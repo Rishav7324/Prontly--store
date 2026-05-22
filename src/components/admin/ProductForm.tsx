@@ -46,6 +46,9 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     isPublished: initialData?.isPublished ?? false,
     isFeatured: initialData?.isFeatured ?? false,
     tags: initialData?.tags?.join(', ') || '',
+    fileFormat: initialData?.fileFormat || '',
+    fileSize: initialData?.fileSize || 0,
+    fileVersion: initialData?.fileVersion || '1.0',
   });
 
   const generateSlug = (name: string) => {
@@ -65,8 +68,21 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!formData.slug) {
+      toast({ variant: "destructive", title: "Slug Required", description: "Please set a product name/slug before uploading assets." });
+      return;
+    }
+
     const fileId = Math.random().toString(36).substring(7);
-    const fileName = `${type}s/${Date.now()}-${file.name}`;
+    let fileName = "";
+    
+    if (type === 'image') {
+      const isMain = formData.images.length === 0;
+      const baseName = isMain ? "main" : `img${formData.images.length}`;
+      fileName = `product/${formData.slug}/${baseName}.webp`;
+    } else {
+      fileName = `product/${formData.slug}/asset-${Date.now()}.${file.name.split('.').pop()}`;
+    }
     
     try {
       setUploadProgress(prev => ({ ...prev, [fileId]: 10 }));
@@ -89,9 +105,14 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           if (type === 'image') {
             setFormData(prev => ({ ...prev, images: [...prev.images, publicUrl] }));
           } else {
-            setFormData(prev => ({ ...prev, fileKey: publicUrl }));
+            setFormData(prev => ({ 
+              ...prev, 
+              fileKey: publicUrl,
+              fileSize: file.size,
+              fileFormat: file.name.split('.').pop()?.toUpperCase() || ''
+            }));
           }
-          toast({ title: "Upload Success", description: `${file.name} uploaded.` });
+          toast({ title: "Upload Success", description: `${file.name} uploaded as ${fileName}` });
         }
       };
       
@@ -123,6 +144,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         categorySlug: selectedCategory?.slug || '',
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
         updatedAt: serverTimestamp(),
+        bannerImage: formData.images[0] || '', // Use main image as banner/og
       };
 
       if (id) {
@@ -175,27 +197,33 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         <Card>
           <CardHeader>
             <CardTitle>Assets & Media</CardTitle>
-            <CardDescription>Upload preview images and the actual digital product file.</CardDescription>
+            <CardDescription>Upload preview images (renamed automatically) and the actual digital product file.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <Label>Product Gallery</Label>
+              <div className="flex items-center justify-between">
+                <Label>Product Gallery (4:5 Ratio Recommended)</Label>
+                <Badge variant="outline" className="text-[10px]">First image is Main/OG</Badge>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {formData.images.map((img, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border group">
+                  <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden border group bg-muted">
                     <Image src={img} alt="Preview" fill className="object-cover" />
-                    <button 
-                      type="button" 
-                      onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
-                      className="absolute top-1 right-1 bg-destructive text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button 
+                        type="button" 
+                        onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                        className="bg-destructive text-white p-2 rounded-full hover:scale-110 transition-transform"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    {i === 0 && <Badge className="absolute top-2 left-2 bg-primary">Main</Badge>}
                   </div>
                 ))}
-                <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-square cursor-pointer hover:bg-muted transition-colors">
-                  <ImageIcon className="h-6 w-6 text-muted-foreground mb-2" />
-                  <span className="text-[10px] text-muted-foreground">Add Image</span>
+                <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted transition-colors border-muted-foreground/25">
+                  <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                  <span className="text-[10px] text-muted-foreground font-medium text-center px-2">Add Image<br/>(renamed to .webp)</span>
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
                 </label>
               </div>
@@ -208,11 +236,11 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                   value={formData.fileKey} 
                   readOnly 
                   placeholder="No file uploaded" 
-                  className="bg-muted cursor-default"
+                  className="bg-muted cursor-default text-xs"
                 />
-                <Button type="button" variant="outline" className="relative overflow-hidden">
+                <Button type="button" variant="outline" className="relative overflow-hidden shrink-0">
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload
+                  Upload Asset
                   <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'file')} />
                 </Button>
               </div>
@@ -284,7 +312,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               <Label htmlFor="featured">Feature on Homepage</Label>
             </div>
             <Button type="submit" className="w-full h-12" disabled={isSaving}>
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Product'}
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4 mr-2" /> {id ? 'Update Product' : 'Create Product'}</>}
             </Button>
           </CardContent>
         </Card>
