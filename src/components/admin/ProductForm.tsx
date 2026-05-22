@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -15,10 +14,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles, Search } from 'lucide-react';
+import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles, Search, Wand2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getUploadUrl } from '@/app/actions/r2-actions';
 import { logAdminAction } from '@/lib/admin-logs';
+import { generateProductCopy } from '@/ai/flows/generate-product-copy';
 import Image from 'next/image';
 
 interface ProductFormProps {
@@ -31,6 +31,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   const db = useFirestore();
   const { user } = useUser();
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
 
   const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
@@ -70,6 +71,39 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       name,
       slug: prev.slug || generateSlug(name)
     }));
+  };
+
+  const handleAiGenerate = async () => {
+    if (!formData.name) {
+      toast({ variant: "destructive", title: "Name Required", description: "Enter a product name to help AI generate content." });
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const selectedCategory = categories?.find(c => c.id === formData.categoryId);
+      const result = await generateProductCopy({
+        name: formData.name,
+        category: selectedCategory?.name || 'Digital Asset',
+        features: formData.shortDescription || formData.tags,
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        description: result.description,
+        shortDescription: result.shortDescription,
+        seo: {
+          ...prev.seo,
+          keywords: result.seoKeywords.join(', '),
+          description: result.shortDescription
+        }
+      }));
+      toast({ title: "AI Generation Complete", description: "Description and metadata have been updated." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate product copy." });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file') => {
@@ -166,7 +200,9 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           ...productData,
           createdAt: serverTimestamp(),
           salesCount: 0,
-          downloadCount: 0
+          downloadCount: 0,
+          averageRating: 0,
+          reviewCount: 0
         });
         finalId = docRef.id;
         await logAdminAction({
@@ -195,8 +231,22 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
           <TabsContent value="content" className="space-y-8">
             <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Basic Information</CardTitle>
+                  <CardDescription>Tell customers about your product.</CardDescription>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2 text-primary border-primary/20 hover:bg-primary/5"
+                  onClick={handleAiGenerate}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                  AI Writer
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -213,7 +263,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">Full Description (HTML Supported)</Label>
-                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[200px]" placeholder="Detailed product features..." />
+                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[300px]" placeholder="Detailed product features..." />
                 </div>
               </CardContent>
             </Card>

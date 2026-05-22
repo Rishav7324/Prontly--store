@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -49,10 +48,28 @@
         "isFeatured": { "type": "boolean" },
         "downloadCount": { "type": "number" },
         "salesCount": { "type": "number" },
+        "averageRating": { "type": "number" },
+        "reviewCount": { "type": "number" },
         "seo": { "type": "object" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "createdBy": { "type": "string" }
+      }
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer feedback on products.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userAvatar": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "isApproved": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     },
     "Order": {
@@ -185,6 +202,10 @@
       "schema": "Product",
       "description": "Digital products catalog."
     },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Product customer reviews."
+    },
     "/orders/{orderId}": {
       "schema": "Order",
       "description": "Customer purchase orders."
@@ -208,6 +229,10 @@
     "/site_settings/main": {
       "schema": "SiteSettings",
       "description": "Main store configuration settings."
+    },
+    "/newsletter_subscribers/{id}": {
+      "schema": { "type": "object", "properties": { "email": { "type": "string" }, "createdAt": { "type": "string" } } },
+      "description": "Mailing list."
     }
   }
 }
