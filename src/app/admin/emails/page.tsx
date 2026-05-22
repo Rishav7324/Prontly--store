@@ -20,14 +20,17 @@ import {
   Layout,
   AlertCircle,
   Send,
-  Eye
+  Eye,
+  Copy,
+  Wand2
 } from "lucide-react";
 import { 
   listTemplates, 
   createResendTemplate, 
   deleteResendTemplate, 
   listResendDomains,
-  sendTestEmail
+  sendTestEmail,
+  duplicateResendTemplate
 } from '@/app/actions/resend-actions';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -51,12 +54,12 @@ export default function AdminEmailsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testEmail, setTestEmail] = useState('');
-  const [selectedTemplateForTest, setSelectedTemplateForTest] = useState<string | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     subject: '',
-    html: '<html><body><h1>New Template</h1><p>Start writing your content here...</p></body></html>'
+    html: '<html>\n<body style="font-family: sans-serif;">\n  <h1>Welcome to Prontly</h1>\n  <p>Hello {{{name}}},</p>\n  <p>Your journey begins here.</p>\n</body>\n</html>'
   });
 
   const fetchData = async () => {
@@ -85,8 +88,9 @@ export default function AdminEmailsPage() {
     setIsSaving(true);
     const res = await createResendTemplate(formData);
     if (res.success) {
-      toast({ title: "Template Created", description: "Successfully synced with Resend." });
+      toast({ title: "Template Published", description: "Successfully synced and published to Resend." });
       setIsModalOpen(false);
+      setFormData({ name: '', subject: '', html: '' });
       fetchData();
     } else {
       toast({ variant: "destructive", title: "Creation Failed", description: res.error });
@@ -94,8 +98,19 @@ export default function AdminEmailsPage() {
     setIsSaving(false);
   };
 
+  const handleDuplicate = async (id: string) => {
+    toast({ title: "Duplicating...", description: "Creating a copy of the template." });
+    const res = await duplicateResendTemplate(id);
+    if (res.success) {
+      toast({ title: "Template Duplicated" });
+      fetchData();
+    } else {
+      toast({ variant: "destructive", title: "Duplication Failed", description: res.error });
+    }
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this template from Resend?')) return;
+    if (!confirm('Delete this template permanently from Resend?')) return;
     const res = await deleteResendTemplate(id);
     if (res.success) {
       toast({ title: "Template Removed" });
@@ -116,7 +131,6 @@ export default function AdminEmailsPage() {
     });
     if (res.success) {
       toast({ title: "Test Sent", description: `Check ${testEmail} for the preview.` });
-      setSelectedTemplateForTest(null);
     } else {
       toast({ variant: "destructive", title: "Test Failed", description: res.error });
     }
@@ -145,16 +159,16 @@ export default function AdminEmailsPage() {
             <DialogContent className="max-w-2xl bg-card border-white/10">
               <DialogHeader>
                 <DialogTitle>Create Resend Template</DialogTitle>
-                <DialogDescription>Define a reusable HTML template for automated workflows.</DialogDescription>
+                <DialogDescription>Define a reusable HTML template with variable support (e.g. <code>{"{{{name}}}"}</code>).</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Template Name (e.g. welcome-email)</Label>
+                  <Label htmlFor="name">Template Name</Label>
                   <Input 
                     id="name" 
                     value={formData.name} 
                     onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                    placeholder="welcome-onboarding"
+                    placeholder="order-confirmation"
                     required
                   />
                 </div>
@@ -164,7 +178,7 @@ export default function AdminEmailsPage() {
                     id="subject" 
                     value={formData.subject} 
                     onChange={(e) => setFormData({...formData, subject: e.target.value})} 
-                    placeholder="Welcome to the Community!"
+                    placeholder="Your order is confirmed!"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -180,7 +194,7 @@ export default function AdminEmailsPage() {
                 <DialogFooter>
                   <Button type="submit" disabled={isSaving}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                    Publish Template
+                    Create & Publish
                   </Button>
                 </DialogFooter>
               </form>
@@ -209,6 +223,12 @@ export default function AdminEmailsPage() {
                         <FileCode className="h-5 w-5" />
                       </div>
                       <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewTemplate(template)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleDuplicate(template.id)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
@@ -218,7 +238,7 @@ export default function AdminEmailsPage() {
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Send Test Email</DialogTitle>
-                              <DialogDescription>Verify how "{template.name}" looks in an actual inbox.</DialogDescription>
+                              <DialogDescription>Verify "{template.name}" in your inbox.</DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                               <div className="grid gap-2">
@@ -248,9 +268,9 @@ export default function AdminEmailsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between mt-4">
-                      <Badge variant="outline" className="text-[10px] uppercase border-white/10">Active Template</Badge>
+                      <Badge variant="outline" className="text-[10px] uppercase border-white/10 text-green-500 bg-green-500/5">Published</Badge>
                       <Button variant="link" size="sm" className="h-auto p-0 text-primary text-xs" asChild>
-                        <a href={`https://resend.com/templates/${template.id}`} target="_blank">Resend Console <ExternalLink className="ml-1 h-3 w-3" /></a>
+                        <a href={`https://resend.com/templates/${template.id}`} target="_blank">View in Console <ExternalLink className="ml-1 h-3 w-3" /></a>
                       </Button>
                     </div>
                   </CardContent>
@@ -321,7 +341,7 @@ export default function AdminEmailsPage() {
                   <p className="text-sm font-bold">Node.js SDK Status</p>
                   <div className="flex items-center gap-2 text-xs text-green-500 font-medium">
                     <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    v4.1.2 Active
+                    v4.x Integration Active
                   </div>
                 </div>
                 <Badge variant="outline" className="bg-green-500/10 text-green-500 border-none">CONNECTED</Badge>
@@ -333,19 +353,28 @@ export default function AdminEmailsPage() {
                   <span className="text-muted-foreground">RESEND_API_KEY</span>
                   <span className="text-foreground">{process.env.RESEND_API_KEY ? 're_••••••••' + process.env.RESEND_API_KEY.slice(-4) : <span className="text-destructive font-bold">NOT CONFIGURED</span>}</span>
                 </div>
-                {!process.env.RESEND_API_KEY && (
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3">
-                    <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                    <p className="text-xs text-destructive leading-relaxed">
-                      API key is missing. Add <strong>RESEND_API_KEY</strong> to your environment variables to enable email delivery and template management.
-                    </p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden bg-white">
+          <div className="p-4 border-b bg-muted flex items-center justify-between">
+            <h3 className="font-bold text-black">Preview: {previewTemplate?.name}</h3>
+            <Badge className="bg-primary">{previewTemplate?.id}</Badge>
+          </div>
+          <div className="flex-1 bg-white">
+            <iframe 
+              srcDoc={previewTemplate?.html} 
+              title="Template Preview"
+              className="w-full h-full border-none"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

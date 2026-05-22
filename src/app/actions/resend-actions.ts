@@ -6,12 +6,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * Lists all email templates from the Resend account.
- * Corrected for Resend SDK v4.
  */
 export async function listTemplates() {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
-    // Corrected path: resend.templates instead of resend.emails.templates
     const { data, error } = await resend.templates.list();
     if (error) throw error;
     return { success: true, data: data?.data || [] };
@@ -36,12 +34,47 @@ export async function getTemplate(id: string) {
 }
 
 /**
- * Creates a new email template.
+ * Creates and publishes a new email template.
  */
 export async function createResendTemplate(payload: { name: string; html: string; subject?: string }) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
+    // Creating and publishing in one step as per API docs
     const { data, error } = await resend.templates.create(payload);
+    if (error) throw error;
+    
+    // Explicitly publish it if creation was successful
+    if (data?.id) {
+      await resend.templates.publish(data.id);
+    }
+    
+    return { success: true, data };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Updates an existing template.
+ */
+export async function updateResendTemplate(id: string, payload: { name?: string; html?: string; subject?: string }) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
+  try {
+    const { data, error } = await resend.templates.update(id, payload);
+    if (error) throw error;
+    return { success: true, data };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Duplicates an existing template.
+ */
+export async function duplicateResendTemplate(id: string) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
+  try {
+    const { data, error } = await resend.templates.duplicate(id);
     if (error) throw error;
     return { success: true, data };
   } catch (e: any) {
@@ -90,7 +123,6 @@ export async function sendNewsletterCampaign(payload: { templateId: string; subj
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   
   try {
-    // Send in batches of 100 (Resend limit)
     const batches = [];
     for (let i = 0; i < payload.recipients.length; i += 100) {
       batches.push(payload.recipients.slice(i, i + 100));
@@ -115,7 +147,7 @@ export async function sendNewsletterCampaign(payload: { templateId: string; subj
 }
 
 /**
- * Lists verified domains to check delivery status.
+ * Lists verified domains.
  */
 export async function listResendDomains() {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
