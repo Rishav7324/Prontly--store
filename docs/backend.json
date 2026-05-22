@@ -1,0 +1,213 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information for customers and staff.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "editor", "admin", "super-admin"] },
+        "phone": { "type": "string" },
+        "gstNumber": { "type": "string" },
+        "language": { "type": "string", "enum": ["en", "hi"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" },
+        "isActive": { "type": "boolean" },
+        "orderCount": { "type": "number" },
+        "totalSpent": { "type": "number" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A digital product available in the store.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "shortDescription": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "categorySlug": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "price": { "type": "number", "description": "Price in INR paise" },
+        "compareAtPrice": { "type": "number" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "bannerImage": { "type": "string" },
+        "fileKey": { "type": "string" },
+        "previewFileKey": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "fileFormat": { "type": "string" },
+        "fileVersion": { "type": "string" },
+        "isPublished": { "type": "boolean" },
+        "isFeatured": { "type": "boolean" },
+        "downloadCount": { "type": "number" },
+        "salesCount": { "type": "number" },
+        "seo": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      }
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A purchase record for digital assets.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userName": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "gst": { "type": "number" },
+        "total": { "type": "number" },
+        "couponCode": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "paid", "delivered", "refunded", "failed"] },
+        "paymentId": { "type": "string" },
+        "paymentSignature": { "type": "string" },
+        "gstNumber": { "type": "string" },
+        "invoiceUrl": { "type": "string" },
+        "downloadCount": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "paidAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product categorization.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "iconEmoji": { "type": "string" },
+        "bannerImage": { "type": "string" },
+        "productCount": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "seo": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Articles and updates for the store blog.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "content": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "featuredImage": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "tags": { "type": "array" },
+        "categoryId": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published", "scheduled"] },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "viewCount": { "type": "number" },
+        "relatedProductIds": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Discount codes for orders.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["percentage", "fixed"] },
+        "value": { "type": "number" },
+        "minOrderAmount": { "type": "number" },
+        "maxUsageCount": { "type": "number" },
+        "usageCount": { "type": "number" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "isActive": { "type": "boolean" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "AdminLog": {
+      "title": "AdminLog",
+      "description": "Logging of administrative actions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "adminEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "resourceType": { "type": "string" },
+        "resourceId": { "type": "string" },
+        "details": { "type": "object" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global store configuration.",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string" },
+        "siteDescription": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "socialLinks": { "type": "object" },
+        "gstNumber": { "type": "string" },
+        "razorpayKeyId": { "type": "string" },
+        "featuredProductIds": { "type": "array" },
+        "maintenanceMode": { "type": "boolean" },
+        "homepageHeroCopy": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user accounts."
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Digital products catalog."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer purchase orders."
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product categories."
+    },
+    "/blog_posts/{postId}": {
+      "schema": "BlogPost",
+      "description": "Blog content."
+    },
+    "/coupons/{couponId}": {
+      "schema": "Coupon",
+      "description": "Store discount coupons."
+    },
+    "/admin_logs/{logId}": {
+      "schema": "AdminLog",
+      "description": "System audit logs."
+    },
+    "/site_settings/main": {
+      "schema": "SiteSettings",
+      "description": "Main store configuration settings."
+    }
+  }
+}
