@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -15,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles, Search, Wand2 } from 'lucide-react';
+import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles, Search, Wand2, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getUploadUrl } from '@/app/actions/r2-actions';
 import { logAdminAction } from '@/lib/admin-logs';
@@ -157,19 +156,21 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           }
           toast({ title: "Upload Success", description: `${file.name} uploaded successfully` });
         }
-      };
-      
-      xhr.send(file);
-    } catch (error) {
-      toast({ variant: "destructive", title: "Upload Failed", description: "Could not upload file to R2." });
-    } finally {
-      setTimeout(() => {
         setUploadProgress(prev => {
           const newProgress = { ...prev };
           delete newProgress[fileId];
           return newProgress;
         });
-      }, 2000);
+      };
+      
+      xhr.send(file);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Upload Failed", description: "Could not upload file to R2." });
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[fileId];
+        return newProgress;
+      });
     }
   };
 
@@ -298,10 +299,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-                        {i === 0 && <Badge className="absolute top-2 left-2 bg-primary">Main</Badge>}
+                        {i === 0 && <Badge className="absolute top-2 left-2 bg-primary shadow-lg">Main/OG</Badge>}
                       </div>
                     ))}
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted transition-colors border-muted-foreground/25">
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted transition-colors border-white/5 bg-white/5">
                       <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
                       <span className="text-[10px] text-muted-foreground font-medium text-center px-2">Add Image</span>
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
@@ -310,32 +311,35 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                 </div>
 
                 <div className="space-y-4">
-                  <Label>Digital Product File (ZIP, PDF, etc.)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Digital Product File (Source ZIP/PDF)</Label>
+                    {formData.fileKey && <Badge variant="outline" className="text-green-500 border-green-500/20"><CheckCircle2 className="h-3 w-3 mr-1" /> Ready</Badge>}
+                  </div>
                   <div className="flex items-center gap-4">
                     <div className="flex-1 relative">
                       <FileIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input 
                         value={formData.fileKey} 
                         readOnly 
-                        placeholder="No file uploaded" 
-                        className="bg-muted pl-9 text-xs"
+                        placeholder="No asset uploaded yet" 
+                        className="bg-muted pl-9 text-xs opacity-60"
                       />
                     </div>
-                    <Button type="button" variant="outline" className="relative overflow-hidden shrink-0">
+                    <Button type="button" variant="outline" className="relative overflow-hidden shrink-0 h-10">
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Asset
+                      Upload File
                       <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'file')} />
                     </Button>
                   </div>
                 </div>
 
                 {Object.keys(uploadProgress).map(id => (
-                  <div key={id} className="space-y-1">
-                    <div className="flex justify-between text-[10px] font-medium">
-                      <span>Uploading asset...</span>
+                  <div key={id} className="space-y-1 animate-in fade-in">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-primary">
+                      <span>Syncing with storage...</span>
                       <span>{uploadProgress[id]}%</span>
                     </div>
-                    <Progress value={uploadProgress[id]} className="h-1" />
+                    <Progress value={uploadProgress[id]} className="h-1 bg-primary/20" />
                   </div>
                 ))}
               </CardContent>
@@ -366,6 +370,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                     value={formData.seo.description} 
                     onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} 
                     placeholder="Compelling summary to drive clicks..."
+                    className="resize-none h-24"
                   />
                   <p className="text-[10px] text-muted-foreground">Recommended: 150-160 characters.</p>
                 </div>
@@ -434,10 +439,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox id="featured" checked={formData.isFeatured} onCheckedChange={(checked) => setFormData({...formData, isFeatured: !!checked})} />
-              <Label htmlFor="featured">Force Feature (Override Settings)</Label>
+              <Label htmlFor="featured">Feature on Homepage</Label>
             </div>
-            <Button type="submit" className="w-full h-12" disabled={isSaving}>
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4 mr-2" /> {id ? 'Update Product' : 'Create Product'}</>}
+            <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isSaving}>
+              {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Sparkles className="h-5 w-5 mr-2" /> {id ? 'Update Asset' : 'Launch Asset'}</>}
             </Button>
           </CardContent>
         </Card>

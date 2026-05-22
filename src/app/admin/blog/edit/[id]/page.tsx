@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,11 +18,15 @@ import { getUploadUrl } from '@/app/actions/r2-actions';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 
-export default function NewBlogPostPage() {
+export default function EditBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const db = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const postRef = useMemoFirebase(() => (db ? doc(db, 'blog_posts', id) : null), [db, id]);
+  const { data: post, loading: postLoading } = useDoc(postRef);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -34,27 +38,23 @@ export default function NewBlogPostPage() {
     tags: '',
   });
 
-  const generateSlug = (title: string) => {
-    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  };
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      title,
-      slug: prev.slug || generateSlug(title)
-    }));
-  };
+  useEffect(() => {
+    if (post) {
+      setFormData({
+        title: post.title || '',
+        slug: post.slug || '',
+        content: post.content || '',
+        excerpt: post.excerpt || '',
+        featuredImage: post.featuredImage || '',
+        status: post.status || 'draft',
+        tags: post.tags?.join(', ') || '',
+      });
+    }
+  }, [post]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!formData.slug) {
-      toast({ variant: "destructive", title: "Slug Required", description: "Please set a title before uploading an image." });
-      return;
-    }
 
     const fileName = `blog/${formData.slug}/featured.webp`;
     
@@ -76,7 +76,7 @@ export default function NewBlogPostPage() {
         if (xhr.status === 200) {
           const publicUrl = `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${fileName}`;
           setFormData(prev => ({ ...prev, featuredImage: publicUrl }));
-          toast({ title: "Upload Success", description: "Featured image uploaded." });
+          toast({ title: "Upload Success", description: "Featured image updated." });
         }
         setUploadProgress(0);
       };
@@ -94,23 +94,25 @@ export default function NewBlogPostPage() {
     setIsSaving(true);
 
     try {
-      await addDoc(collection(db, 'blog_posts'), {
+      await updateDoc(doc(db, 'blog_posts', id), {
         ...formData,
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
-        createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        viewCount: 0,
-        publishedAt: formData.status === 'published' ? serverTimestamp() : null
+        publishedAt: formData.status === 'published' ? (post?.publishedAt || serverTimestamp()) : null
       });
 
-      toast({ title: "Article Created", description: "Your blog post has been saved." });
+      toast({ title: "Article Updated", description: "Your changes have been saved." });
       router.push('/admin/blog');
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to create article." });
+      toast({ variant: "destructive", title: "Error", description: "Failed to update article." });
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (postLoading) {
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   return (
     <div className="space-y-8 pb-20">
@@ -119,8 +121,8 @@ export default function NewBlogPostPage() {
           <Link href="/admin/blog"><ChevronLeft className="h-4 w-4" /></Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold font-headline">New Article</h1>
-          <p className="text-muted-foreground">Draft your next story for the Prontly community.</p>
+          <h1 className="text-3xl font-bold font-headline">Edit Article</h1>
+          <p className="text-muted-foreground">Modify your existing content.</p>
         </div>
       </header>
 
@@ -133,9 +135,8 @@ export default function NewBlogPostPage() {
                 <Input 
                   id="title" 
                   value={formData.title} 
-                  onChange={handleTitleChange} 
+                  onChange={(e) => setFormData({...formData, title: e.target.value})} 
                   required 
-                  placeholder="e.g. 10 Tips for Better AI Prompts" 
                 />
               </div>
               <div className="grid gap-2">
@@ -153,7 +154,6 @@ export default function NewBlogPostPage() {
                   id="excerpt" 
                   value={formData.excerpt} 
                   onChange={(e) => setFormData({...formData, excerpt: e.target.value})} 
-                  placeholder="Short summary for the blog listing page..." 
                   className="resize-none h-24"
                 />
               </div>
@@ -162,7 +162,6 @@ export default function NewBlogPostPage() {
                 <RichTextEditor 
                   content={formData.content} 
                   onChange={(content) => setFormData({...formData, content})} 
-                  placeholder="Start writing your article..." 
                 />
               </div>
             </CardContent>
@@ -215,11 +214,11 @@ export default function NewBlogPostPage() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
-                <Input id="tags" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} placeholder="news, tutorials" />
+                <Label htmlFor="tags">Tags</Label>
+                <Input id="tags" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} placeholder="news, tips" />
               </div>
               <Button type="submit" className="w-full" disabled={isSaving}>
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save Article</>}
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Update Article</>}
               </Button>
             </CardContent>
           </Card>
