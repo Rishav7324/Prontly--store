@@ -34,6 +34,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function AdminCategories() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,16 +66,31 @@ export default function AdminCategories() {
 
     if (editingCategory) {
       const ref = doc(db, 'categories', editingCategory.id);
-      await updateDoc(ref, {
+      updateDoc(ref, {
         ...formData,
         updatedAt: serverTimestamp()
+      }).catch(async () => {
+        const permissionError = new FirestorePermissionError({
+          path: ref.path,
+          operation: 'update',
+          requestResourceData: formData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
       });
     } else {
-      await addDoc(collection(db, 'categories'), {
+      const collRef = collection(db, 'categories');
+      addDoc(collRef, {
         ...formData,
         isActive: true,
         productCount: 0,
         createdAt: serverTimestamp()
+      }).catch(async () => {
+        const permissionError = new FirestorePermissionError({
+          path: 'categories',
+          operation: 'create',
+          requestResourceData: formData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
       });
     }
 
@@ -84,7 +101,14 @@ export default function AdminCategories() {
 
   const handleDelete = async (id: string) => {
     if (!db || !confirm('Are you sure you want to delete this category?')) return;
-    await deleteDoc(doc(db, 'categories', id));
+    const ref = doc(db, 'categories', id);
+    deleteDoc(ref).catch(async () => {
+      const permissionError = new FirestorePermissionError({
+        path: ref.path,
+        operation: 'delete',
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   const handleEdit = (category: any) => {

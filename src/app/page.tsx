@@ -49,6 +49,10 @@ export default function Home() {
     'ui-kits': Layers
   };
 
+  const heroHeadline = settings?.homepageHeroCopy?.headline || "Master the Future with Expert Digital Assets";
+  const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.";
+  const heroBadge = settings?.homepageHeroCopy?.badge || "New: GPT-4o Optimized Prompts Now Available!";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -59,14 +63,17 @@ export default function Home() {
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(85,78,210,0.2),rgba(15,15,19,1))]" />
           <div className="container mx-auto px-4 text-center relative">
             <Badge variant="outline" className="mb-6 border-primary/50 text-primary py-1 px-4 text-sm font-medium animate-pulse rounded-full bg-primary/5">
-              New: GPT-4o Optimized Prompts Now Available!
+              {heroBadge}
             </Badge>
             <h1 className="mx-auto max-w-5xl font-headline text-5xl font-bold tracking-tight md:text-8xl lg:leading-[1.1]">
-              Master the Future with <br />
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent text-shadow-glow">Expert Digital Assets</span>
+              {heroHeadline.split(' ').map((word, i) => (
+                <span key={i} className={i > 4 ? "bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent" : ""}>
+                  {word}{' '}
+                </span>
+              ))}
             </h1>
             <p className="mx-auto mt-10 max-w-2xl text-lg text-muted-foreground md:text-2xl leading-relaxed">
-              Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.
+              {heroSubheadline}
             </p>
             <div className="mt-12 flex flex-wrap items-center justify-center gap-6">
               <Button asChild size="lg" className="h-14 px-10 text-lg rounded-2xl shadow-[0_20px_50px_rgba(85,78,210,0.3)] hover:scale-105 transition-all">
@@ -188,7 +195,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]" />
             <div className="relative z-10 max-w-3xl mx-auto">
               <h2 className="text-4xl md:text-6xl font-bold font-headline mb-8">Ready to elevate your creation?</h2>
-              <p className="text-xl opacity-90 mb-12">Join thousands of creators using Prontly to speed up their workflow and deliver better results.</p>
+              <p className="text-xl opacity-90 mb-12">Join thousands of creators using {settings?.siteName || 'Prontly'} to speed up their workflow and deliver better results.</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button asChild size="lg" variant="secondary" className="h-14 px-10 text-lg rounded-2xl">
                   <Link href="/signup">Get Started Now</Link>
