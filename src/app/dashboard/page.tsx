@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -42,7 +43,6 @@ export default function Dashboard() {
     if (!db) return;
     setDownloadingId(productId);
     try {
-      // 1. Fetch product to get the fileKey
       const prodSnap = await getDoc(doc(db, 'products', productId));
       if (!prodSnap.exists()) throw new Error("Product not found");
       
@@ -52,10 +52,7 @@ export default function Dashboard() {
         return;
       }
 
-      // 2. Get signed URL from R2
       const { url } = await getDownloadUrl(product.fileKey);
-      
-      // 3. Trigger download
       window.open(url, '_blank');
       toast({ title: "Download Started", description: `Preparing ${productName}...` });
     } catch (error) {
@@ -65,7 +62,6 @@ export default function Dashboard() {
     }
   };
 
-  // Extract all purchased items for the "Library" section
   const libraryItems = useMemo(() => {
     if (!orders) return [];
     const itemsMap = new Map();
@@ -235,7 +231,7 @@ export default function Dashboard() {
                           </td>
                         </tr>
                       ))}
-                      {!ordersLoading && orders?.length === 0 && (
+                      {!ordersLoading && (!orders || orders.length === 0) && (
                         <tr>
                           <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No orders found.</td>
                         </tr>
