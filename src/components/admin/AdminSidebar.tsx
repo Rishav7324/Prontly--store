@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -22,7 +21,8 @@ import {
   ExternalLink,
   History,
   Mail,
-  MessageSquare
+  MessageSquare,
+  SendHorizontal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,8 @@ const menuItems = [
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
   ]},
   { group: 'Marketing', items: [
-    { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
+    { name: 'Email Templates', href: '/admin/emails', icon: Mail },
+    { name: 'Newsletter', href: '/admin/newsletter', icon: SendHorizontal },
     { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
     { name: 'Blog', href: '/admin/blog', icon: FileText },
   ]},
