@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,7 +11,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Plus,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  Ticket
 } from "lucide-react";
 import { useCollection, useFirestore } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
@@ -25,15 +26,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
+
+const chartData = [
+  { name: 'Mon', revenue: 4000 },
+  { name: 'Tue', revenue: 3000 },
+  { name: 'Wed', revenue: 5000 },
+  { name: 'Thu', revenue: 2780 },
+  { name: 'Fri', revenue: 1890 },
+  { name: 'Sat', revenue: 2390 },
+  { name: 'Sun', revenue: 3490 },
+];
 
 export default function AdminDashboard() {
   const db = useFirestore();
   
-  // Recent Orders Query
   const ordersQuery = db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(5)) : null;
   const { data: recentOrders, loading: ordersLoading } = useCollection(ordersQuery);
 
-  // Stats (Mocked or denormalized from site_settings/main in production)
   const stats = [
     { name: 'Total Revenue', value: '₹1,24,500', trend: '+12.5%', isUp: true, icon: TrendingUp },
     { name: 'Active Users', value: '1,248', trend: '+5.2%', isUp: true, icon: UsersIcon },
@@ -58,7 +78,6 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.name} className="bg-card/50 backdrop-blur-sm">
@@ -87,64 +106,52 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Recent Orders */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 overflow-hidden">
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>Track the latest sales from your store.</CardDescription>
+            <CardTitle>Revenue Analytics</CardTitle>
+            <CardDescription>Daily performance of your marketplace sales.</CardDescription>
           </CardHeader>
-          <CardContent>
-            {ordersLoading ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-12 w-full animate-pulse bg-muted rounded" />
-                ))}
-              </div>
-            ) : recentOrders && recentOrders.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentOrders.map((order: any) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-code text-primary">#{order.id?.slice(-6).toUpperCase()}</TableCell>
-                      <TableCell>{order.userName || order.userEmail}</TableCell>
-                      <TableCell>
-                        <Badge variant={order.status === 'paid' ? 'default' : 'secondary'}>
-                          {order.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold">₹{(order.total / 100).toLocaleString('en-IN')}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="flex h-40 flex-col items-center justify-center text-center">
-                <p className="text-muted-foreground">No orders yet.</p>
-                <Button variant="link" size="sm" asChild>
-                  <Link href="/admin/orders">View Order Management</Link>
-                </Button>
-              </div>
-            )}
-            <div className="mt-4 border-t pt-4">
-              <Button variant="ghost" className="w-full gap-2" asChild>
-                <Link href="/admin/orders">
-                  View All Orders
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+          <CardContent className="p-0 sm:p-6">
+            <div className="h-[300px] w-full pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}} 
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: 'hsl(var(--muted-foreground))', fontSize: 12}}
+                    tickFormatter={(value) => `₹${value}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                    itemStyle={{ color: 'hsl(var(--primary))' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Quick Links & Actions */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -158,7 +165,7 @@ export default function AdminDashboard() {
                 </Link>
               </Button>
               <Button variant="outline" className="justify-start gap-3" asChild>
-                <Link href="/admin/blog/new">
+                <Link href="/admin/blog">
                   <FileText className="h-4 w-4" />
                   New Blog Post
                 </Link>
@@ -185,25 +192,62 @@ export default function AdminDashboard() {
           </Card>
         </div>
       </div>
-    </div>
-  );
-}
 
-function FileText({ className }: { className?: string }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
-    </svg>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Orders</CardTitle>
+          <CardDescription>Track the latest sales from your store.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {ordersLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-12 w-full animate-pulse bg-muted rounded" />
+              ))}
+            </div>
+          ) : recentOrders && recentOrders.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentOrders.map((order: any) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-code text-primary">#{order.id?.slice(-6).toUpperCase()}</TableCell>
+                    <TableCell>{order.userName || order.userEmail}</TableCell>
+                    <TableCell>
+                      <Badge variant={order.status === 'paid' ? 'default' : 'secondary'}>
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-bold">₹{(order.total / 100).toLocaleString('en-IN')}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex h-40 flex-col items-center justify-center text-center">
+              <p className="text-muted-foreground">No orders yet.</p>
+              <Button variant="link" size="sm" asChild>
+                <Link href="/admin/orders">View Order Management</Link>
+              </Button>
+            </div>
+          )}
+          <div className="mt-4 border-t pt-4">
+            <Button variant="ghost" className="w-full gap-2" asChild>
+              <Link href="/admin/orders">
+                View All Orders
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
