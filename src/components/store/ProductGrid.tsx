@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ProductCard } from './ProductCard';
@@ -38,7 +37,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
           priceRaw={product.price}
           category={product.categorySlug || 'Digital Asset'}
           imageUrl={product.images?.[0] || 'https://picsum.photos/seed/placeholder/600/400'}
-          rating={4.9}
+          rating={product.averageRating || 5.0}
           sales={product.salesCount?.toString() || '0'}
         />
       ))}

@@ -1,11 +1,40 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Zap, Github, Twitter, Instagram, Mail } from 'lucide-react';
+import { Zap, Github, Twitter, Instagram, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { toast } from '@/hooks/use-toast';
 
 export function Footer() {
+  const db = useFirestore();
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!db || !email) return;
+
+    setIsSubmitting(true);
+    try {
+      await addDoc(collection(db, 'newsletter_subscribers'), {
+        email: email.toLowerCase(),
+        createdAt: serverTimestamp(),
+        source: 'footer'
+      });
+      setIsSubscribed(true);
+      toast({ title: "Subscribed!", description: "You've been added to our mailing list." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to join newsletter." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <footer className="border-t py-20 bg-muted/20">
       <div className="container mx-auto px-4">
@@ -56,13 +85,26 @@ export function Footer() {
             <p className="text-xs text-muted-foreground">
               Get weekly updates on new assets and exclusive discounts.
             </p>
-            <form className="flex gap-2">
-              <Input 
-                placeholder="Email address" 
-                className="bg-background border-none text-xs"
-              />
-              <Button size="sm">Join</Button>
-            </form>
+            {isSubscribed ? (
+              <div className="flex items-center gap-2 text-green-500 text-sm font-bold animate-in fade-in zoom-in duration-300">
+                <CheckCircle2 className="h-5 w-5" />
+                Welcome to Prontly!
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex gap-2">
+                <Input 
+                  type="email"
+                  placeholder="Email address" 
+                  className="bg-background border-none text-xs"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button size="sm" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Join'}
+                </Button>
+              </form>
+            )}
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Mail className="h-3 w-3" />
               <span>support@prontly.in</span>
