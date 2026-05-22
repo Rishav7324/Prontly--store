@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -45,10 +44,10 @@ export function Footer() {
           <div>
             <h4 className="font-bold mb-6 text-sm uppercase tracking-wider">Support</h4>
             <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><Link href="/faq" className="hover:text-primary transition-colors">Help Center</Link></li>
-              <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
+              <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li><Link href="/refund-policy" className="hover:text-primary transition-colors">Refund Policy</Link></li>
+              <li><Link href="/delivery-policy" className="hover:text-primary transition-colors">Shipping & Delivery</Link></li>
             </ul>
           </div>
 
@@ -74,9 +73,9 @@ export function Footer() {
         <div className="mt-20 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Prontly Store. Built for the modern creator.</p>
           <div className="flex gap-6">
-            <Link href="/terms" className="hover:text-primary">Terms</Link>
             <Link href="/privacy" className="hover:text-primary">Privacy</Link>
-            <Link href="/cookies" className="hover:text-primary">Cookies</Link>
+            <Link href="/terms" className="hover:text-primary">Terms</Link>
+            <Link href="/cookies" className="hover:text-primary transition-colors">Cookies</Link>
           </div>
         </div>
       </div>

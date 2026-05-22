@@ -3,6 +3,7 @@ import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
+import { CookieConsent } from '@/components/layout/CookieConsent';
 
 export const metadata: Metadata = {
   title: 'Prontly Store | Premium Digital Marketplace',
@@ -24,17 +25,35 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
         
-        {/* Google Analytics */}
+        {/* Google Analytics - Respect Cookie Consent */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
+            // Function to check consent
+            function hasConsent() {
+              try {
+                return localStorage.getItem('cookieConsent') === 'all';
+              } catch (e) {
+                return false;
+              }
+            }
+
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
+
+            if (hasConsent()) {
+              gtag('config', '${GA_MEASUREMENT_ID}');
+            } else {
+              // Deny tracking if no consent
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied'
+              });
+            }
           `}
         </Script>
       </head>
@@ -42,6 +61,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
           {children}
           <Toaster />
+          <CookieConsent />
         </FirebaseClientProvider>
       </body>
     </html>
