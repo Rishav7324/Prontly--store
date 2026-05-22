@@ -1,6 +1,6 @@
 'use server';
 
-import { PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2, R2_BUCKET_NAME } from '@/lib/r2';
 
@@ -20,6 +20,30 @@ export async function getUploadUrl(key: string, contentType: string) {
   } catch (error) {
     console.error('Failed to generate upload URL:', error);
     throw new Error('Could not generate upload URL');
+  }
+}
+
+/**
+ * Generates a pre-signed URL for downloading a private file from R2.
+ * Valid for 10 minutes.
+ */
+export async function getDownloadUrl(key: string) {
+  try {
+    // Extract key from full URL if passed
+    const cleanKey = key.includes('https://') 
+      ? key.split('/').slice(3).join('/') 
+      : key;
+
+    const command = new GetObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: cleanKey,
+    });
+
+    const url = await getSignedUrl(r2, command, { expiresIn: 600 });
+    return { url };
+  } catch (error) {
+    console.error('Failed to generate download URL:', error);
+    throw new Error('Could not generate download URL');
   }
 }
 

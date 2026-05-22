@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  Download
+  Download,
+  ArrowUpRight
 } from 'lucide-react';
 import {
   Table,
@@ -35,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,9 +78,11 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-bold font-headline">Orders</h1>
-        <p className="text-muted-foreground">Monitor sales and manage customer transactions.</p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-headline">Orders</h1>
+          <p className="text-muted-foreground">Monitor sales and manage customer transactions.</p>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -86,8 +90,8 @@ export default function AdminOrders() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600">Total Sales</p>
-                <h3 className="text-2xl font-bold">₹84,200</h3>
+                <p className="text-[10px] uppercase font-bold text-green-600">Lifetime Sales</p>
+                <h3 className="text-2xl font-bold">₹{(orders?.filter(o => o.status === 'paid').reduce((sum, o) => sum + (o.total || 0), 0) / 100).toLocaleString('en-IN')}</h3>
               </div>
               <CheckCircle2 className="h-8 w-8 text-green-500" />
             </div>
@@ -97,10 +101,10 @@ export default function AdminOrders() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600">Pending</p>
-                <h3 className="text-2xl font-bold">12</h3>
+                <p className="text-[10px] uppercase font-bold text-blue-600">Active Count</p>
+                <h3 className="text-2xl font-bold">{orders?.length || 0}</h3>
               </div>
-              <Clock className="h-8 w-8 text-blue-500" />
+              <ShoppingBag className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
@@ -156,15 +160,15 @@ export default function AdminOrders() {
               <TableBody>
                 {filteredOrders.map((order: any) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-code text-primary">#{order.id?.toUpperCase()}</TableCell>
+                    <TableCell className="font-code text-primary uppercase text-xs">#{order.id?.slice(-8)}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-bold">{order.userName || 'Guest'}</span>
-                        <span className="text-xs text-muted-foreground">{order.userEmail}</span>
+                        <span className="font-bold text-sm">{order.userName || 'Guest'}</span>
+                        <span className="text-[10px] text-muted-foreground">{order.userEmail}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, yyyy') : 'N/A'}
+                    <TableCell className="text-xs text-muted-foreground">
+                      {order.createdAt ? format(new Date(order.createdAt.toDate()), 'MMM dd, yyyy') : 'N/A'}
                     </TableCell>
                     <TableCell className="font-bold">₹{(order.total / 100).toLocaleString('en-IN')}</TableCell>
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
@@ -175,11 +179,13 @@ export default function AdminOrders() {
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel>Order Management</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/orders/${order.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Inspect Details
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Download className="mr-2 h-4 w-4" />
@@ -190,8 +196,8 @@ export default function AdminOrders() {
                             <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
                             Mark as Paid
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'refunded')}>
-                            <XCircle className="mr-2 h-4 w-4 text-destructive" />
+                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'refunded')} className="text-destructive">
+                            <XCircle className="mr-2 h-4 w-4" />
                             Refund Order
                           </DropdownMenuItem>
                         </DropdownMenuContent>
