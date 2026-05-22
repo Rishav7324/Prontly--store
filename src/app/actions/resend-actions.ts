@@ -6,11 +6,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * Lists all email templates from the Resend account.
+ * Corrected for Resend SDK v4.
  */
 export async function listTemplates() {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
-    const { data, error } = await resend.emails.templates.list();
+    // Corrected path: resend.templates instead of resend.emails.templates
+    const { data, error } = await resend.templates.list();
     if (error) throw error;
     return { success: true, data: data?.data || [] };
   } catch (e: any) {
@@ -23,8 +25,9 @@ export async function listTemplates() {
  * Fetches a single template by ID.
  */
 export async function getTemplate(id: string) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
-    const { data, error } = await resend.emails.templates.get(id);
+    const { data, error } = await resend.templates.get(id);
     if (error) throw error;
     return { success: true, data };
   } catch (e: any) {
@@ -36,8 +39,9 @@ export async function getTemplate(id: string) {
  * Creates a new email template.
  */
 export async function createResendTemplate(payload: { name: string; html: string; subject?: string }) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
-    const { data, error } = await resend.emails.templates.create(payload);
+    const { data, error } = await resend.templates.create(payload);
     if (error) throw error;
     return { success: true, data };
   } catch (e: any) {
@@ -49,10 +53,31 @@ export async function createResendTemplate(payload: { name: string; html: string
  * Deletes a template.
  */
 export async function deleteResendTemplate(id: string) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
-    const { data, error } = await resend.emails.templates.remove(id);
+    const { data, error } = await resend.templates.remove(id);
     if (error) throw error;
     return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Sends a test email using a template or raw HTML.
+ */
+export async function sendTestEmail(payload: { to: string; subject: string; templateId?: string; html?: string }) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Prontly Test <onboarding@resend.dev>',
+      to: payload.to,
+      subject: payload.subject,
+      template_id: payload.templateId,
+      html: payload.html,
+    });
+    if (error) throw error;
+    return { success: true, data };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -74,7 +99,7 @@ export async function sendNewsletterCampaign(payload: { templateId: string; subj
     for (const batch of batches) {
       await resend.batch.send(
         batch.map(email => ({
-          from: 'Prontly Newsletter <updates@resend.dev>', // Replace with your domain
+          from: 'Prontly Newsletter <updates@resend.dev>', 
           to: email,
           subject: payload.subject,
           template_id: payload.templateId,
@@ -93,6 +118,7 @@ export async function sendNewsletterCampaign(payload: { templateId: string; subj
  * Lists verified domains to check delivery status.
  */
 export async function listResendDomains() {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
     const { data, error } = await resend.domains.list();
     if (error) throw error;
