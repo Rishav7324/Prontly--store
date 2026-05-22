@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -34,7 +33,6 @@ import {
   DropdownMenuTrigger, DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
 import { useState, useCallback } from 'react';
-import { getUploadUrl } from '@/app/actions/r2-actions';
 
 interface RichTextEditorProps {
   content: string;
@@ -79,7 +77,7 @@ const Toolbar = ({ editor }: { editor: any }) => {
   };
 
   return (
-    <div className="sticky top-0 z-30 w-full glass-morphism border-b border-white/10">
+    <div className="shrink-0 z-30 w-full glass-morphism border-b border-white/10">
       <div className="flex items-center gap-1 p-1.5 overflow-x-auto hide-scrollbar">
         
         {/* Undo/Redo */}
@@ -245,7 +243,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     editorProps: {
       attributes: {
         class: cn(
-          'prose-editor max-w-none focus:outline-none min-h-[400px]',
+          'prose-editor focus:outline-none',
           className
         ),
       },
@@ -254,14 +252,15 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
   });
 
   return (
-    <div className="flex flex-col w-full rounded-2xl border border-white/10 bg-card/20 overflow-hidden shadow-sm">
+    <div className="flex flex-col w-full rounded-2xl border border-white/10 bg-card/20 overflow-hidden shadow-sm h-[600px] max-h-[80vh]">
       <Toolbar editor={editor} />
-      <div className="relative">
-        <EditorContent editor={editor} />
+      
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-black/5 relative">
+        <EditorContent editor={editor} className="h-full" />
       </div>
       
       {/* Bottom status bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold bg-black/20">
+      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold bg-black/20">
         <div className="flex items-center gap-4">
           <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>
           <span>Chars: {editor?.getText().length || 0}</span>

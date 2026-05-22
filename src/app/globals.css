@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -52,7 +51,7 @@
 
 /* Advanced CMS Typography */
 .prose-editor {
-  @apply max-w-none min-h-[500px] outline-none px-6 py-8;
+  @apply max-w-none outline-none px-6 py-8 h-full;
 }
 
 .prose-editor h1 { @apply text-4xl font-bold font-headline mb-6 mt-8 text-foreground; }
@@ -97,3 +96,17 @@
 .prose-editor .block-warning { @apply border-destructive/20 bg-destructive/5; }
 .prose-editor .block-success { @apply border-green-500/20 bg-green-500/5; }
 .prose-editor .block-faq { @apply border-accent/20 bg-accent/5; }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
