@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -34,94 +33,96 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Zap className="h-5 w-5 text-white" fill="currentColor" />
-              </div>
-              <span className="font-headline text-xl font-bold tracking-tight text-foreground">
-                PRONTLY <span className="text-primary">STORE</span>
-              </span>
-            </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/products" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Browse</Link>
-              <Link href="/products?category=prompts" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">AI Prompts</Link>
-              <Link href="/products?category=templates" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Templates</Link>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="relative hidden lg:block w-64">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search products..." 
-                className="pl-9 bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
-              />
-            </div>
-            
-            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsCartOpen(true)}>
-              <ShoppingCart className="h-5 w-5" />
-              {getItemCount() > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                  {getItemCount()}
+      <header className="sticky top-4 z-50 w-full px-4 md:px-6">
+        <nav className="mx-auto max-w-7xl rounded-2xl border border-white/10 bg-background/60 shadow-2xl backdrop-blur-xl transition-all duration-300">
+          <div className="flex h-16 items-center justify-between px-4 md:px-8">
+            <div className="flex items-center gap-8">
+              <Link href="/" className="flex items-center gap-2 group">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
+                  <Zap className="h-5 w-5 text-white" fill="currentColor" />
+                </div>
+                <span className="font-headline text-xl font-bold tracking-tight text-foreground hidden sm:block">
+                  PRONTLY <span className="text-primary">STORE</span>
                 </span>
-              )}
-            </Button>
-
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-                      <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link href="/login">
-                <Button size="sm" className="hidden md:flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Sign In
-                </Button>
               </Link>
-            )}
+              <div className="hidden md:flex items-center gap-6">
+                <Link href="/products" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Browse</Link>
+                <Link href="/products?category=prompts" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">AI Prompts</Link>
+                <Link href="/products?category=templates" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Templates</Link>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="relative hidden lg:block w-64">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input 
+                  placeholder="Search products..." 
+                  className="pl-9 bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary h-9"
+                />
+              </div>
+              
+              <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => setIsCartOpen(true)}>
+                <ShoppingCart className="h-5 w-5" />
+                {getItemCount() > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white ring-2 ring-background">
+                    {getItemCount()}
+                  </span>
+                )}
+              </Button>
+
+              <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-full">
+                <Menu className="h-5 w-5" />
+              </Button>
+
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden ring-offset-background transition-all hover:ring-2 hover:ring-primary">
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+                        <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="cursor-pointer">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/settings" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link href="/login">
+                  <Button size="sm" className="hidden md:flex items-center gap-2 rounded-full px-5">
+                    <User className="h-4 w-4" />
+                    Sign In
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </header>
       <CartDrawer open={isCartOpen} onOpenChange={setIsCartOpen} />
     </>
   );
