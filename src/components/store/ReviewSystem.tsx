@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,29 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Star, MessageSquare, Loader2, Send, CheckCircle2, Filter, X } from 'lucide-react';
+import { 
+  Star, 
+  MessageSquare, 
+  Loader2, 
+  Send, 
+  CheckCircle2, 
+  X, 
+  Quote,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 interface ReviewSystemProps {
   productId: string;
@@ -26,15 +46,18 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [starFilter, setStarFilter] = useState<number | null>(null);
+  
+  const plugin = useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  );
 
   const reviewsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    let baseQuery = query(
+    return query(
       collection(db, 'reviews'),
       where('productId', '==', productId),
       orderBy('createdAt', 'desc')
     );
-    return baseQuery;
   }, [db, productId]);
 
   const { data: allReviews, loading } = useCollection(reviewsQuery);
@@ -59,7 +82,6 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
     };
   }, [allReviews]);
 
-  // Client-side filtering for better UX responsiveness
   const filteredReviews = useMemo(() => {
     if (!allReviews) return [];
     if (starFilter === null) return allReviews;
@@ -107,9 +129,9 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-16">
+      {/* 1. Review Summary & Action Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Left: Summary & Stats */}
         <div className="lg:col-span-4 space-y-8">
           <section className="space-y-6">
             <div className="flex items-center gap-6">
@@ -210,107 +232,165 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
           )}
         </div>
 
-        {/* Right: Reviews List & Filtering */}
-        <div className="lg:col-span-8 space-y-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
-            <h3 className="text-2xl font-bold font-headline flex items-center gap-3">
-              <MessageSquare className="h-6 w-6 text-primary" />
-              Community Feedback
-            </h3>
-            
-            <div className="flex flex-wrap gap-2">
-              {starFilter !== null && (
-                <Badge 
-                  variant="secondary" 
-                  className="gap-2 px-3 py-1 cursor-pointer bg-primary/20 text-primary border-none"
-                  onClick={() => setStarFilter(null)}
-                >
-                  {starFilter} Stars <X className="h-3 w-3" />
-                </Badge>
-              )}
-              {stats.distribution.map((_, i) => {
-                const star = 5 - i;
-                const hasReviews = stats.distribution[i] > 0;
-                if (!hasReviews) return null;
-                return (
-                  <button
-                    key={star}
-                    onClick={() => setStarFilter(starFilter === star ? null : star)}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all",
-                      starFilter === star 
-                        ? "bg-primary border-primary text-white" 
-                        : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
-                    )}
-                  >
-                    {star}★
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="space-y-6">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-40 w-full animate-pulse bg-muted rounded-[2rem]" />
-              ))}
-            </div>
-          ) : filteredReviews.length > 0 ? (
-            <div className="space-y-6">
-              {filteredReviews.map((review: any) => (
-                <div 
-                  key={review.id} 
-                  className="p-8 rounded-[2rem] border border-white/5 bg-card/30 space-y-6 transition-all hover:bg-card/50 hover:border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-500"
-                >
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12 border-2 border-primary/20">
-                        <AvatarImage src={review.userAvatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                          {review.userName?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-base text-foreground">{review.userName}</span>
-                          <Badge variant="secondary" className="text-[9px] bg-green-500/10 text-green-500 border-none px-2 py-0 font-bold uppercase tracking-widest">
-                            <CheckCircle2 className="h-2.5 w-2.5 mr-1" /> Verified
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Reviewed {review.createdAt ? format(new Date(review.createdAt.toDate()), 'MMMM dd, yyyy') : 'Recently'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-1 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={cn("h-3 w-3", i < review.rating ? "text-yellow-500 fill-current" : "text-muted-foreground/20")} />
-                      ))}
-                    </div>
+        <div className="lg:col-span-8 space-y-12">
+          {/* 2. Spotlight Carousel (Auto-swipe) */}
+          {allReviews && allReviews.length > 0 && (
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-accent/20 flex items-center justify-center text-accent">
+                    <Sparkles className="h-5 w-5" />
                   </div>
-                  <div className="relative">
-                    <div className="absolute -left-4 top-0 text-primary opacity-20 text-4xl font-serif">"</div>
-                    <p className="text-muted-foreground leading-relaxed italic text-lg pl-2">
-                      {review.comment}
-                    </p>
-                    <div className="absolute -right-2 bottom-0 text-primary opacity-20 text-4xl font-serif">"</div>
+                  <div>
+                    <h3 className="text-xl font-bold font-headline">Review Spotlight</h3>
+                    <p className="text-xs text-muted-foreground">What people are talking about</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-32 bg-muted/5 border-dashed border-2 rounded-[3rem] border-white/5">
-              <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-              <h4 className="text-xl font-bold font-headline mb-2">No matching reviews</h4>
-              <p className="text-muted-foreground">Adjust your filters or be the first to share your thoughts.</p>
-              {starFilter !== null && (
-                <Button variant="link" onClick={() => setStarFilter(null)} className="mt-4 text-primary font-bold">
-                  Clear all filters
-                </Button>
-              )}
-            </div>
+              </div>
+
+              <Carousel
+                plugins={[plugin.current]}
+                className="w-full"
+                onMouseEnter={plugin.current.stop}
+                onMouseLeave={plugin.current.reset}
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+              >
+                <CarouselContent className="-ml-4">
+                  {allReviews.map((review: any) => (
+                    <CarouselItem key={review.id} className="pl-4 md:basis-1/2 lg:basis-1/2">
+                      <Card className="h-full bg-card/40 border-white/5 rounded-[2rem] p-8 space-y-6 transition-all hover:bg-card/60 hover:border-primary/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={cn("h-3 w-3", i < review.rating ? "text-yellow-500 fill-current" : "text-muted-foreground/20")} />
+                            ))}
+                          </div>
+                          <Quote className="h-6 w-6 text-primary/10" />
+                        </div>
+                        
+                        <p className="text-sm italic leading-relaxed text-foreground/90 line-clamp-4 min-h-[5rem]">
+                          "{review.comment}"
+                        </p>
+
+                        <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                          <Avatar className="h-8 w-8 border border-white/10">
+                            <AvatarImage src={review.userAvatar} />
+                            <AvatarFallback className="text-[10px]">{review.userName?.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold truncate">{review.userName}</p>
+                            <div className="flex items-center gap-1 text-green-500 text-[8px] font-bold uppercase tracking-widest">
+                              <CheckCircle2 className="h-2 w-2" /> Verified
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="hidden md:flex justify-end gap-2 mt-4">
+                  <CarouselPrevious className="relative left-0 top-0 translate-y-0 h-10 w-10 border-white/10 bg-white/5 hover:bg-primary" />
+                  <CarouselNext className="relative right-0 top-0 translate-y-0 h-10 w-10 border-white/10 bg-white/5 hover:bg-primary" />
+                </div>
+              </Carousel>
+            </section>
           )}
+
+          {/* 3. Detailed Review List & Filtering */}
+          <div className="space-y-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+              <h3 className="text-2xl font-bold font-headline flex items-center gap-3">
+                <MessageSquare className="h-6 w-6 text-primary" />
+                Community Feed
+              </h3>
+              
+              <div className="flex flex-wrap gap-2">
+                {starFilter !== null && (
+                  <Badge 
+                    variant="secondary" 
+                    className="gap-2 px-3 py-1 cursor-pointer bg-primary/20 text-primary border-none"
+                    onClick={() => setStarFilter(null)}
+                  >
+                    {starFilter} Stars <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const hasReviews = stats.distribution[5-star] > 0;
+                  if (!hasReviews && starFilter !== star) return null;
+                  return (
+                    <button
+                      key={star}
+                      onClick={() => setStarFilter(starFilter === star ? null : star)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all",
+                        starFilter === star 
+                          ? "bg-primary border-primary text-white" 
+                          : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                      )}
+                    >
+                      {star}★
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="space-y-6">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="h-40 w-full animate-pulse bg-muted rounded-[2rem]" />
+                ))}
+              </div>
+            ) : filteredReviews.length > 0 ? (
+              <div className="space-y-6">
+                {filteredReviews.map((review: any) => (
+                  <div 
+                    key={review.id} 
+                    className="p-8 rounded-[2rem] border border-white/5 bg-card/30 space-y-6 transition-all hover:bg-card/50 hover:border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-500"
+                  >
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-12 w-12 border-2 border-primary/20">
+                          <AvatarImage src={review.userAvatar} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                            {review.userName?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-base text-foreground">{review.userName}</span>
+                            <Badge variant="secondary" className="text-[9px] bg-green-500/10 text-green-500 border-none px-2 py-0 font-bold uppercase tracking-widest">
+                              <CheckCircle2 className="h-2.5 w-2.5 mr-1" /> Verified
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Reviewed {review.createdAt ? format(new Date(review.createdAt.toDate()), 'MMMM dd, yyyy') : 'Recently'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={cn("h-3 w-3", i < review.rating ? "text-yellow-500 fill-current" : "text-muted-foreground/20")} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed italic text-lg pl-2 border-l-2 border-primary/20">
+                      "{review.comment}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-32 bg-muted/5 border-dashed border-2 rounded-[3rem] border-white/5">
+                <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                <h4 className="text-xl font-bold font-headline mb-2">No matching reviews</h4>
+                <p className="text-muted-foreground">Be the first to share your thoughts on this asset.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
