@@ -14,7 +14,7 @@ import { ChevronLeft, Loader2, Save, Upload, ImageIcon, Trash2 } from 'lucide-re
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
-import { getUploadUrl } from '@/app/actions/r2-actions';
+import { uploadFileAction } from '@/app/actions/r2-actions';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 
@@ -59,31 +59,23 @@ export default function NewBlogPostPage() {
     const fileName = `blog/${formData.slug}/featured.webp`;
     
     try {
-      setUploadProgress(10);
-      const { url } = await getUploadUrl(fileName, file.type);
-      
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', url, true);
-      xhr.setRequestHeader('Content-Type', file.type);
-      
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          setUploadProgress(Math.round((event.loaded / event.total) * 100));
-        }
-      };
+      setUploadProgress(30);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('key', fileName);
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const publicUrl = `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${fileName}`;
-          setFormData(prev => ({ ...prev, featuredImage: publicUrl }));
-          toast({ title: "Upload Success", description: "Featured image uploaded." });
-        }
-        setUploadProgress(0);
-      };
+      setUploadProgress(60);
+      const result = await uploadFileAction(uploadFormData);
       
-      xhr.send(file);
+      if (result.success) {
+        setFormData(prev => ({ ...prev, featuredImage: result.url! }));
+        toast({ title: "Upload Success", description: "Featured image uploaded." });
+      } else {
+        toast({ variant: "destructive", title: "Upload Failed", description: result.error });
+      }
     } catch (error) {
-      toast({ variant: "destructive", title: "Upload Failed", description: "Could not upload image." });
+      toast({ variant: "destructive", title: "Error", description: "Could not process image." });
+    } finally {
       setUploadProgress(0);
     }
   };

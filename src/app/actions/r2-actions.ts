@@ -5,7 +5,50 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2, R2_BUCKET_NAME } from '@/lib/r2';
 
 /**
+ * Robust server-side file upload to Cloudflare R2.
+ * Bypasses CORS issues common with client-side signed URL uploads.
+ */
+export async function uploadFileAction(formData: FormData) {
+  try {
+    const file = formData.get('file') as File;
+    const key = formData.get('key') as string;
+    
+    if (!file || !key) {
+      throw new Error('File and key are required');
+    }
+
+    if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID) {
+      throw new Error('Storage credentials (R2) are not configured in environment variables.');
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+      Body: buffer,
+      ContentType: file.type,
+    });
+
+    await r2.send(command);
+
+    return { 
+      success: true, 
+      url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${key}` 
+    };
+  } catch (error: any) {
+    console.error('Failed to upload to R2:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to sync with storage provider' 
+    };
+  }
+}
+
+/**
  * Generates a pre-signed URL for client-side uploads to Cloudflare R2.
+ * @deprecated Use uploadFileAction for better reliability unless handling very large files (>10MB).
  */
 export async function getUploadUrl(key: string, contentType: string) {
   try {
@@ -29,7 +72,6 @@ export async function getUploadUrl(key: string, contentType: string) {
  */
 export async function getDownloadUrl(key: string) {
   try {
-    // Extract key from full URL if passed
     const cleanKey = key.includes('https://') 
       ? key.split('/').slice(3).join('/') 
       : key;

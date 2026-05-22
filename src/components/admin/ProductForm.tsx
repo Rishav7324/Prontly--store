@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Sparkles, Search, Wand2, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { getUploadUrl } from '@/app/actions/r2-actions';
+import { uploadFileAction } from '@/app/actions/r2-actions';
 import { logAdminAction } from '@/lib/admin-logs';
 import { generateProductCopy } from '@/ai/flows/generate-product-copy';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
@@ -83,23 +83,19 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-
-          // Resize if too large
           const MAX_WIDTH = 1920;
           if (width > MAX_WIDTH) {
             height = (MAX_WIDTH / width) * height;
             width = MAX_WIDTH;
           }
-
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
-
           canvas.toBlob((blob) => {
             if (blob) resolve(blob);
             else reject(new Error('Canvas conversion failed'));
-          }, 'image/webp', 0.85); // 85% quality WebP
+          }, 'image/webp', 0.85);
         };
         img.onerror = reject;
         img.src = e.target?.result as string;
@@ -114,7 +110,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       toast({ variant: "destructive", title: "Name Required", description: "Enter a product name to help AI generate content." });
       return;
     }
-    
     setIsGenerating(true);
     try {
       const selectedCategory = categories?.find(c => c.id === formData.categoryId);
@@ -123,7 +118,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         category: selectedCategory?.name || 'Digital Asset',
         features: formData.shortDescription || formData.tags,
       });
-
       setFormData(prev => ({
         ...prev,
         description: result.description,
@@ -154,13 +148,12 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     const fileId = Math.random().toString(36).substring(7);
     let fileName = "";
     let finalBlob: Blob | File = file;
-    let finalType = file.type;
 
     try {
+      setUploadProgress(prev => ({ ...prev, [fileId]: 20 }));
+
       if (type === 'image') {
-        setUploadProgress(prev => ({ ...prev, [fileId]: 5 }));
         finalBlob = await optimizeImage(file);
-        finalType = 'image/webp';
         const suffix = Math.random().toString(36).substring(2, 6);
         fileName = `product/${formData.slug}/gallery-${suffix}.webp`;
       } else {
@@ -168,56 +161,32 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         fileName = `product/${formData.slug}/source-${Date.now()}.${ext}`;
       }
       
-      setUploadProgress(prev => ({ ...prev, [fileId]: 10 }));
-      const { url } = await getUploadUrl(fileName, finalType);
-      
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', url, true);
-      xhr.setRequestHeader('Content-Type', finalType);
-      
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 90) + 10;
-          setUploadProgress(prev => ({ ...prev, [fileId]: percent }));
-        }
-      };
+      setUploadProgress(prev => ({ ...prev, [fileId]: 50 }));
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const publicUrl = `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${fileName}`;
-          if (type === 'image') {
-            setFormData(prev => ({ ...prev, images: [...prev.images, publicUrl] }));
-          } else {
-            setFormData(prev => ({ 
-              ...prev, 
-              fileKey: publicUrl,
-              fileSize: file.size,
-              fileFormat: file.name.split('.').pop()?.toUpperCase() || ''
-            }));
-          }
-          toast({ title: "Upload Success", description: `${file.name} is now available.` });
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', finalBlob, fileName);
+      uploadFormData.append('key', fileName);
+
+      const result = await uploadFileAction(uploadFormData);
+
+      if (result.success) {
+        if (type === 'image') {
+          setFormData(prev => ({ ...prev, images: [...prev.images, result.url!] }));
         } else {
-          toast({ variant: "destructive", title: "Upload Failed", description: "Storage server rejected the request." });
+          setFormData(prev => ({ 
+            ...prev, 
+            fileKey: result.url!,
+            fileSize: file.size,
+            fileFormat: file.name.split('.').pop()?.toUpperCase() || ''
+          }));
         }
-        setUploadProgress(prev => {
-          const newProgress = { ...prev };
-          delete newProgress[fileId];
-          return newProgress;
-        });
-      };
-
-      xhr.onerror = () => {
-        toast({ variant: "destructive", title: "Network Error", description: "Could not connect to storage provider." });
-        setUploadProgress(prev => {
-          const newProgress = { ...prev };
-          delete newProgress[fileId];
-          return newProgress;
-        });
-      };
-      
-      xhr.send(finalBlob);
-    } catch (error) {
-      toast({ variant: "destructive", title: "Process Failed", description: "Could not optimize or prepare file." });
+        toast({ title: "Sync Success", description: `${file.name} is now stored securely.` });
+      } else {
+        toast({ variant: "destructive", title: "Sync Error", description: result.error });
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Process Failed", description: error.message || "An unexpected error occurred." });
+    } finally {
       setUploadProgress(prev => {
         const newProgress = { ...prev };
         delete newProgress[fileId];
@@ -386,7 +355,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                 {Object.keys(uploadProgress).map(id => (
                   <div key={id} className="space-y-1 animate-in fade-in">
                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-primary">
-                      <span>Syncing with Cloudflare R2...</span>
+                      <span>Syncing with storage provider...</span>
                       <span>{uploadProgress[id]}%</span>
                     </div>
                     <Progress value={uploadProgress[id]} className="h-1 bg-primary/20" />
