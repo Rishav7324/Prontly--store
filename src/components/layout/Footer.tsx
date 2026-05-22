@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Zap, Github, Twitter, Instagram, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
@@ -65,8 +66,8 @@ export function Footer() {
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li><Link href="/products?category=prompts" className="hover:text-primary transition-colors">AI Prompts</Link></li>
               <li><Link href="/products?category=templates" className="hover:text-primary transition-colors">UI Kits & Templates</Link></li>
-              <li><Link href="/products?category=guides" className="hover:text-primary transition-colors">Learning Guides</Link></li>
-              <li><Link href="/products" className="hover:text-primary transition-colors">New Arrivals</Link></li>
+              <li><Link href="/testimonials" className="hover:text-primary transition-colors flex items-center gap-2">Wall of Love <Badge variant="secondary" className="text-[8px] px-1.5 py-0">New</Badge></Link></li>
+              <li><Link href="/blog" className="hover:text-primary transition-colors">Resource Blog</Link></li>
             </ul>
           </div>
 

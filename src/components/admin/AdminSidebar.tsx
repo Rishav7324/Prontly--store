@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -20,7 +21,8 @@ import {
   LogOut,
   ExternalLink,
   History,
-  Mail
+  Mail,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -39,6 +41,7 @@ const menuItems = [
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Categories', href: '/admin/categories', icon: Layers },
+    { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
   ]},
   { group: 'Marketing', items: [
     { name: 'Newsletter', href: '/admin/newsletter', icon: Mail },
