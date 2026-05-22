@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -180,6 +179,13 @@
         "logoUrl": { "type": "string" },
         "faviconUrl": { "type": "string" },
         "contactEmail": { "type": "string" },
+        "emailSettings": {
+          "type": "object",
+          "properties": {
+            "fromEmail": { "type": "string", "description": "Verified sender email from Resend" },
+            "senderName": { "type": "string", "description": "Display name for sent emails" }
+          }
+        },
         "socialLinks": { "type": "object" },
         "gstNumber": { "type": "string" },
         "razorpayKeyId": { "type": "string" },

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -24,7 +23,8 @@ import {
   Home,
   Star,
   FileText,
-  Palette
+  Palette,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -39,6 +39,10 @@ export default function AdminSettings() {
   const { data: products } = useCollection(db ? collection(db, 'products') : null);
   
   const [formData, setFormData] = useState<any>({
+    emailSettings: {
+      fromEmail: 'onboarding@resend.dev',
+      senderName: 'Prontly Store'
+    },
     invoiceSettings: {
       businessName: '',
       address: '',
@@ -53,6 +57,10 @@ export default function AdminSettings() {
     if (settings) {
       setFormData({
         ...settings,
+        emailSettings: settings.emailSettings || {
+          fromEmail: 'onboarding@resend.dev',
+          senderName: 'Prontly Store'
+        },
         invoiceSettings: settings.invoiceSettings || {
           businessName: '',
           address: '',
@@ -67,6 +75,17 @@ export default function AdminSettings() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleEmailSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      emailSettings: {
+        ...prev.emailSettings,
+        [id]: value
+      }
+    }));
   };
 
   const handleInvoiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -138,6 +157,7 @@ export default function AdminSettings() {
           <TabsTrigger value="general" className="gap-2 px-4 py-2"><Globe className="h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="appearance" className="gap-2 px-4 py-2"><Layout className="h-4 w-4" /> Appearance</TabsTrigger>
           <TabsTrigger value="homepage" className="gap-2 px-4 py-2"><Home className="h-4 w-4" /> Homepage</TabsTrigger>
+          <TabsTrigger value="email" className="gap-2 px-4 py-2"><Mail className="h-4 w-4" /> Email Customization</TabsTrigger>
           <TabsTrigger value="payments" className="gap-2 px-4 py-2"><CreditCard className="h-4 w-4" /> Payments</TabsTrigger>
           <TabsTrigger value="invoicing" className="gap-2 px-4 py-2"><FileText className="h-4 w-4" /> Invoicing</TabsTrigger>
           <TabsTrigger value="contact" className="gap-2 px-4 py-2"><Mail className="h-4 w-4" /> Contact</TabsTrigger>
@@ -161,6 +181,46 @@ export default function AdminSettings() {
               <div className="grid gap-2">
                 <Label htmlFor="gstNumber">GST Number</Label>
                 <Input id="gstNumber" value={formData.gstNumber || ''} onChange={handleChange} placeholder="e.g. 07AAAAA0000A1Z5" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sender Configuration</CardTitle>
+              <CardDescription>Control the custom email and name that appears in your customers' inbox.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 flex items-start gap-4 mb-4">
+                <AlertCircle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-bold text-yellow-500">Domain Verification Required</p>
+                  <p className="text-muted-foreground">To use a custom email (e.g. hello@yourdomain.com), you must first verify your domain in the Resend dashboard and add it to the <strong>Domains</strong> tab in this app.</p>
+                </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="senderName">Sender Display Name</Label>
+                  <Input 
+                    id="senderName" 
+                    value={formData.emailSettings?.senderName || ''} 
+                    onChange={handleEmailSettingsChange} 
+                    placeholder="e.g. Prontly Support" 
+                  />
+                  <p className="text-[10px] text-muted-foreground">Used as the "From" name in emails.</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="fromEmail">Verified "From" Email</Label>
+                  <Input 
+                    id="fromEmail" 
+                    value={formData.emailSettings?.fromEmail || ''} 
+                    onChange={handleEmailSettingsChange} 
+                    placeholder="e.g. hello@yourdomain.com" 
+                  />
+                  <p className="text-[10px] text-muted-foreground">Must be a verified domain/address in Resend.</p>
+                </div>
               </div>
             </CardContent>
           </Card>

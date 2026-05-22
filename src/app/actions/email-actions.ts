@@ -1,4 +1,3 @@
-
 'use server';
 
 import { Resend } from 'resend';
@@ -50,16 +49,35 @@ const emailWrapper = (content: string, preheader: string) => `
 `;
 
 /**
+ * Fetches global site settings from Firestore.
+ */
+async function getEmailSettings() {
+  const { db } = initializeFirebase();
+  try {
+    const settingsSnap = await getDoc(doc(db, 'site_settings', 'main'));
+    const data = settingsSnap.data();
+    return {
+      fromEmail: data?.emailSettings?.fromEmail || 'onboarding@resend.dev',
+      senderName: data?.emailSettings?.senderName || 'Prontly Store',
+      invoice: data?.invoiceSettings || {}
+    };
+  } catch (e) {
+    return {
+      fromEmail: 'onboarding@resend.dev',
+      senderName: 'Prontly Store',
+      invoice: {}
+    };
+  }
+}
+
+/**
  * Sends order confirmation with a PDF invoice attachment.
  */
 export async function sendOrderConfirmationEmail(order: any) {
   if (!process.env.RESEND_API_KEY) return { success: false };
 
-  // 1. Fetch Custom Invoice Settings from Firestore
-  const { db } = initializeFirebase();
-  const settingsSnap = await getDoc(doc(db, 'site_settings', 'main'));
-  const settings = settingsSnap.data();
-  const inv = settings?.invoiceSettings || {};
+  // 1. Fetch Custom Invoice and Email Settings from Firestore
+  const { fromEmail, senderName, invoice: inv } = await getEmailSettings();
 
   // 2. Generate PDF Invoice using jsPDF
   const docPdf = new jsPDF() as any;
@@ -150,7 +168,7 @@ export async function sendOrderConfirmationEmail(order: any) {
 
   try {
     await resend.emails.send({
-      from: 'Prontly Orders <orders@resend.dev>',
+      from: `${senderName} <${fromEmail}>`,
       to: order.userEmail,
       subject: `Order Confirmation: #${order.id.toUpperCase().slice(-8)}`,
       html,
@@ -173,6 +191,8 @@ export async function sendOrderConfirmationEmail(order: any) {
  */
 export async function sendWelcomeEmail(email: string, name: string) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API key missing' };
+  
+  const { fromEmail, senderName } = await getEmailSettings();
 
   const html = emailWrapper(`
     <h1>Welcome to Prontly, ${name}!</h1>
@@ -184,7 +204,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
   try {
     await resend.emails.send({
-      from: 'Prontly <onboarding@resend.dev>',
+      from: `${senderName} <${fromEmail}>`,
       to: email,
       subject: 'Welcome to Prontly!',
       html,
@@ -201,6 +221,8 @@ export async function sendWelcomeEmail(email: string, name: string) {
  */
 export async function sendPasswordResetEmail(email: string) {
   if (!process.env.RESEND_API_KEY) return;
+  
+  const { fromEmail, senderName } = await getEmailSettings();
 
   const html = emailWrapper(`
     <h1>Password Reset Request</h1>
@@ -212,7 +234,7 @@ export async function sendPasswordResetEmail(email: string) {
 
   try {
     await resend.emails.send({
-      from: 'Prontly Security <security@resend.dev>',
+      from: `${senderName} Security <${fromEmail}>`,
       to: email,
       subject: 'Security Alert: Password Reset Requested',
       html,
