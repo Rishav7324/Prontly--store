@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,8 @@ import {
   Eye, 
   EyeOff,
   ExternalLink,
-  Package
+  Package,
+  ShoppingBag as OrderIcon
 } from 'lucide-react';
 import {
   Table,
@@ -36,9 +38,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import Link from 'next/link';
+import { logAdminAction } from '@/lib/admin-logs';
 
 export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
+  const { user, profile } = useUser();
   const db = useFirestore();
   
   const productsQuery = useMemoFirebase(() => {
@@ -52,15 +56,35 @@ export default function AdminProducts() {
     p.categorySlug?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const togglePublished = async (id: string, currentStatus: boolean) => {
-    if (!db) return;
+  const togglePublished = async (id: string, name: string, currentStatus: boolean) => {
+    if (!db || !user) return;
     const ref = doc(db, 'products', id);
     await updateDoc(ref, { isPublished: !currentStatus });
+    
+    await logAdminAction({
+      db,
+      adminId: user.uid,
+      adminEmail: user.email || 'unknown',
+      action: !currentStatus ? 'PUBLISH' : 'UNPUBLISH',
+      resourceType: 'PRODUCT',
+      resourceId: id,
+      details: { name }
+    });
   };
 
-  const deleteProduct = async (id: string) => {
-    if (!db || !confirm('Are you sure you want to delete this product?')) return;
+  const deleteProduct = async (id: string, name: string) => {
+    if (!db || !user || !confirm('Are you sure you want to delete this product?')) return;
     await deleteDoc(doc(db, 'products', id));
+
+    await logAdminAction({
+      db,
+      adminId: user.uid,
+      adminEmail: user.email || 'unknown',
+      action: 'DELETE',
+      resourceType: 'PRODUCT',
+      resourceId: id,
+      details: { name }
+    });
   };
 
   return (
@@ -140,7 +164,7 @@ export default function AdminProducts() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-xs">
-                        <ShoppingBag className="h-3 w-3" />
+                        <OrderIcon className="h-3 w-3" />
                         {product.salesCount || 0}
                       </div>
                     </TableCell>
@@ -166,7 +190,7 @@ export default function AdminProducts() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => togglePublished(product.id, product.isPublished)}>
+                          <DropdownMenuItem onClick={() => togglePublished(product.id, product.name, product.isPublished)}>
                             {product.isPublished ? (
                               <>
                                 <EyeOff className="mr-2 h-4 w-4" />
@@ -181,7 +205,7 @@ export default function AdminProducts() {
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                            onClick={() => deleteProduct(product.id)}
+                            onClick={() => deleteProduct(product.id, product.name)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
@@ -209,24 +233,5 @@ export default function AdminProducts() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function ShoppingBag({ className }: { className?: string }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
-    </svg>
   );
 }

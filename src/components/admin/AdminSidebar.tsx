@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -18,7 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  ExternalLink
+  ExternalLink,
+  History
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,6 +32,7 @@ const menuItems = [
   { group: 'Overview', items: [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Audit Logs', href: '/admin/logs', icon: History },
   ]},
   { group: 'Management', items: [
     { name: 'Products', href: '/admin/products', icon: Package },

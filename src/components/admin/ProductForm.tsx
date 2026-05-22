@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useUser } from '@/firebase';
 import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getUploadUrl } from '@/app/actions/r2-actions';
+import { logAdminAction } from '@/lib/admin-logs';
 import Image from 'next/image';
 
 interface ProductFormProps {
@@ -28,6 +29,7 @@ interface ProductFormProps {
 export function ProductForm({ initialData, id }: ProductFormProps) {
   const router = useRouter();
   const db = useFirestore();
+  const { user } = useUser();
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
 
@@ -137,7 +139,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!db || !user) return;
     setIsSaving(true);
 
     try {
@@ -152,14 +154,24 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         bannerImage: formData.images[0] || '',
       };
 
+      let finalId = id;
       if (id) {
         await setDoc(doc(db, 'products', id), productData, { merge: true });
+        await logAdminAction({
+          db, adminId: user.uid, adminEmail: user.email!,
+          action: 'UPDATE', resourceType: 'PRODUCT', resourceId: id, details: { name: formData.name }
+        });
       } else {
-        await addDoc(collection(db, 'products'), {
+        const docRef = await addDoc(collection(db, 'products'), {
           ...productData,
           createdAt: serverTimestamp(),
           salesCount: 0,
           downloadCount: 0
+        });
+        finalId = docRef.id;
+        await logAdminAction({
+          db, adminId: user.uid, adminEmail: user.email!,
+          action: 'CREATE', resourceType: 'PRODUCT', resourceId: finalId, details: { name: formData.name }
         });
       }
 
