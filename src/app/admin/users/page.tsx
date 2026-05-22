@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +38,10 @@ export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const db = useFirestore();
   
-  const usersQuery = db ? query(collection(db, 'users'), orderBy('createdAt', 'desc')) : null;
+  const usersQuery = useMemoFirebase(() => {
+    return db ? query(collection(db, 'users'), orderBy('createdAt', 'desc')) : null;
+  }, [db]);
+
   const { data: users, loading } = useCollection(usersQuery);
 
   const filteredUsers = users?.filter(u => 

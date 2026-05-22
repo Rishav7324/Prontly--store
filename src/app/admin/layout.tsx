@@ -1,9 +1,8 @@
-
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Loader2, ShieldAlert } from 'lucide-react';
@@ -15,7 +14,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const db = useFirestore();
   const router = useRouter();
   
-  const userProfileQuery = user && db ? doc(db, 'users', user.uid) : null;
+  const userProfileQuery = useMemoFirebase(() => {
+    return user && db ? doc(db, 'users', user.uid) : null;
+  }, [db, user]);
+
   const { data: profile, loading: profileLoading } = useDoc(userProfileQuery);
 
   if (authLoading || profileLoading) {

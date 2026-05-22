@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +41,10 @@ export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const db = useFirestore();
   
-  const productsQuery = db ? query(collection(db, 'products'), orderBy('createdAt', 'desc')) : null;
+  const productsQuery = useMemoFirebase(() => {
+    return db ? query(collection(db, 'products'), orderBy('createdAt', 'desc')) : null;
+  }, [db]);
+
   const { data: products, loading } = useCollection(productsQuery);
 
   const filteredProducts = products?.filter(p => 

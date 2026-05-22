@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,10 @@ export default function AdminCoupons() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const db = useFirestore();
   
-  const couponsQuery = db ? query(collection(db, 'coupons'), orderBy('createdAt', 'desc')) : null;
+  const couponsQuery = useMemoFirebase(() => {
+    return db ? query(collection(db, 'coupons'), orderBy('createdAt', 'desc')) : null;
+  }, [db]);
+
   const { data: coupons, loading } = useCollection(couponsQuery);
 
   const [formData, setFormData] = useState({

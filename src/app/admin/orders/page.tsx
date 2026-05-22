@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +41,10 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const db = useFirestore();
   
-  const ordersQuery = db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc')) : null;
+  const ordersQuery = useMemoFirebase(() => {
+    return db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc')) : null;
+  }, [db]);
+
   const { data: orders, loading } = useCollection(ordersQuery);
 
   const filteredOrders = orders?.filter(order => {

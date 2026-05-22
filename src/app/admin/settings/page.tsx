@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDoc, useFirestore } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +23,10 @@ import { toast } from '@/hooks/use-toast';
 
 export default function AdminSettings() {
   const db = useFirestore();
-  const settingsRef = db ? doc(db, 'site_settings', 'main') : null;
+  const settingsRef = useMemoFirebase(() => {
+    return db ? doc(db, 'site_settings', 'main') : null;
+  }, [db]);
+
   const { data: settings, loading } = useDoc(settingsRef);
   
   const [formData, setFormData] = useState<any>({});

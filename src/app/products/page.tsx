@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -9,7 +8,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, QueryConstraint } from 'firebase/firestore';
 import { Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react';
 import Link from 'next/link';
@@ -20,11 +19,13 @@ export default function ProductListingPage() {
   const db = useFirestore();
   
   // Fetch Categories for Sidebar
-  const categoriesQuery = useMemo(() => (db ? collection(db, 'categories') : null), [db]);
+  const categoriesQuery = useMemoFirebase(() => {
+    return db ? collection(db, 'categories') : null;
+  }, [db]);
   const { data: categories } = useCollection(categoriesQuery);
 
   // Fetch Products with optional filtering
-  const productsQuery = useMemo(() => {
+  const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     const constraints: QueryConstraint[] = [where('isPublished', '==', true)];
     

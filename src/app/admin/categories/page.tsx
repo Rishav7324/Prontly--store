@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +41,10 @@ export default function AdminCategories() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const db = useFirestore();
   
-  const categoriesQuery = db ? query(collection(db, 'categories'), orderBy('createdAt', 'desc')) : null;
+  const categoriesQuery = useMemoFirebase(() => {
+    return db ? query(collection(db, 'categories'), orderBy('createdAt', 'desc')) : null;
+  }, [db]);
+
   const { data: categories, loading } = useCollection(categoriesQuery);
 
   const [formData, setFormData] = useState({
