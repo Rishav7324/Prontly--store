@@ -59,6 +59,37 @@ export async function deleteResendTemplate(id: string) {
 }
 
 /**
+ * Sends a newsletter campaign to multiple subscribers.
+ */
+export async function sendNewsletterCampaign(payload: { templateId: string; subject: string; recipients: string[] }) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
+  
+  try {
+    // Send in batches of 100 (Resend limit)
+    const batches = [];
+    for (let i = 0; i < payload.recipients.length; i += 100) {
+      batches.push(payload.recipients.slice(i, i + 100));
+    }
+
+    for (const batch of batches) {
+      await resend.batch.send(
+        batch.map(email => ({
+          from: 'Prontly Newsletter <updates@resend.dev>', // Replace with your domain
+          to: email,
+          subject: payload.subject,
+          template_id: payload.templateId,
+        }))
+      );
+    }
+
+    return { success: true };
+  } catch (e: any) {
+    console.error('Broadcast failed:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
  * Lists verified domains to check delivery status.
  */
 export async function listResendDomains() {
