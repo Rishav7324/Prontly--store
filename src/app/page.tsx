@@ -1,55 +1,32 @@
 
-"use client";
+'use client';
 
-import { Navbar } from "@/components/layout/Navbar";
-import { ProductCard } from "@/components/store/ProductCard";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Zap, Rocket, Shield, Crown, Search } from "lucide-react";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import Link from "next/link";
-
-const featuredProducts = [
-  {
-    id: "1",
-    title: "Master AI Copywriting Prompt Pack",
-    price: "₹1,499",
-    category: "AI Prompts",
-    imageUrl: PlaceHolderImages.find(img => img.id === "product-1")?.imageUrl || "",
-    rating: 4.9,
-    sales: "1.2k"
-  },
-  {
-    id: "2",
-    title: "SaaS Starter UI Dashboard Kit",
-    price: "₹3,999",
-    category: "Templates",
-    imageUrl: PlaceHolderImages.find(img => img.id === "product-2")?.imageUrl || "",
-    rating: 4.8,
-    sales: "850"
-  },
-  {
-    id: "3",
-    title: "Ultimate SEO & Growth Guide 2024",
-    price: "₹999",
-    category: "E-Books",
-    imageUrl: PlaceHolderImages.find(img => img.id === "product-3")?.imageUrl || "",
-    rating: 5.0,
-    sales: "2.5k"
-  },
-  {
-    id: "4",
-    title: "Clean Architecture React Template",
-    price: "₹2,499",
-    category: "Code",
-    imageUrl: PlaceHolderImages.find(img => img.id === "product-4")?.imageUrl || "",
-    rating: 4.7,
-    sales: "420"
-  }
-];
+import { useMemo } from 'react';
+import { Navbar } from '@/components/layout/Navbar';
+import { ProductCard } from '@/components/store/ProductCard';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Zap, Rocket, Shield, Crown, Search } from 'lucide-react';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, where, limit, orderBy } from 'firebase/firestore';
+import Link from 'next/link';
 
 export default function Home() {
+  const db = useFirestore();
+
+  const productsQuery = useMemo(() => {
+    if (!db) return null;
+    return query(
+      collection(db, 'products'),
+      where('isPublished', '==', true),
+      orderBy('createdAt', 'desc'),
+      limit(8)
+    );
+  }, [db]);
+
+  const { data: products, loading } = useCollection(productsQuery);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -121,17 +98,40 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="bento-grid">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-[300px] rounded-xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : products && products.length > 0 ? (
+          <div className="bento-grid">
+            {products.map((product: any) => (
+              <ProductCard 
+                key={product.id} 
+                id={product.id}
+                title={product.name}
+                price={`₹${(product.price / 100).toLocaleString('en-IN')}`}
+                category={product.categorySlug || 'Digital Asset'}
+                imageUrl={product.images?.[0] || 'https://picsum.photos/seed/placeholder/600/400'}
+                rating={4.9} // Placeholder for now
+                sales={product.salesCount?.toString() || '0'}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 border rounded-3xl bg-muted/20">
+            <p className="text-muted-foreground">No products found. Start adding some to your Firestore!</p>
+          </div>
+        )}
 
         <div className="mt-16 text-center">
-          <Button variant="link" size="lg" className="text-primary hover:text-accent font-semibold group">
-            View All Marketplace Items
-            <Search className="ml-2 h-4 w-4 transition-transform group-hover:scale-110" />
-          </Button>
+          <Link href="/products">
+            <Button variant="link" size="lg" className="text-primary hover:text-accent font-semibold group">
+              View All Marketplace Items
+              <Search className="ml-2 h-4 w-4 transition-transform group-hover:scale-110" />
+            </Button>
+          </Link>
         </div>
       </section>
 
