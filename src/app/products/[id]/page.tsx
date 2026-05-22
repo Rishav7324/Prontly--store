@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useEffect } from "react";
+import { use, useMemo, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { PromptOptimizer } from "@/components/store/PromptOptimizer";
 import { ReviewSystem } from "@/components/store/ReviewSystem";
@@ -25,6 +25,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const db = useFirestore();
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const productRef = useMemo(() => (db ? doc(db, 'products', id) : null), [db, id]);
   const { data: product, loading } = useDoc(productRef);
@@ -47,6 +52,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     analytics.addToCart(product);
     toast({ title: "Added to cart", description: `${product.name} is ready for checkout.` });
   };
+
+  const isWishlisted = mounted ? isInWishlist(id) : false;
 
   if (loading) {
     return (
@@ -111,9 +118,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   variant="ghost" 
                   size="icon" 
                   onClick={() => toggleItem(id)}
-                  className={cn("rounded-full h-12 w-12 border border-white/5 bg-white/5", isInWishlist(id) ? "text-red-500 fill-current" : "text-muted-foreground")}
+                  className={cn("rounded-full h-12 w-12 border border-white/5 bg-white/5", isWishlisted ? "text-red-500 fill-current" : "text-muted-foreground")}
                 >
-                  <Heart className={cn("h-6 w-6", isInWishlist(id) && "fill-current")} />
+                  <Heart className={cn("h-6 w-6", isWishlisted && "fill-current")} />
                 </Button>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold font-headline leading-tight">{product.name}</h1>

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,11 @@ export function Navbar() {
   const { getItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAdmin = role === 'admin' || role === 'super-admin';
 
@@ -43,6 +48,8 @@ export function Navbar() {
       router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  const cartItemCount = mounted ? getItemCount() : 0;
 
   return (
     <>
@@ -78,9 +85,9 @@ export function Navbar() {
               
               <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => setIsCartOpen(true)}>
                 <ShoppingCart className="h-5 w-5" />
-                {getItemCount() > 0 && (
+                {cartItemCount > 0 && (
                   <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white ring-2 ring-background">
-                    {getItemCount()}
+                    {cartItemCount}
                   </span>
                 )}
               </Button>

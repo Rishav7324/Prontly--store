@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Star, ArrowRight, Heart, ShoppingCart, Eye } from 'lucide-react';
@@ -25,6 +26,11 @@ interface ProductCardProps {
 export function ProductCard({ id, title, price, priceRaw, category, imageUrl, rating, sales }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,6 +58,8 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
       description: isAdded ? `${title} saved for later.` : `${title} removed.`,
     });
   };
+
+  const isWishlisted = mounted ? isInWishlist(id) : false;
 
   return (
     <Link href={`/products/${id}`} className="group block h-full">
@@ -86,10 +94,10 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
             onClick={handleWishlist}
             className={cn(
               "absolute left-4 top-4 h-9 w-9 rounded-xl bg-background/60 backdrop-blur-md flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100",
-              isInWishlist(id) ? "text-red-500 opacity-100 scale-100" : "text-muted-foreground hover:text-red-500"
+              isWishlisted ? "text-red-500 opacity-100 scale-100" : "text-muted-foreground hover:text-red-500"
             )}
           >
-            <Heart className={cn("h-4 w-4", isInWishlist(id) && "fill-current")} />
+            <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
           </button>
         </div>
 
