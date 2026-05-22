@@ -50,12 +50,27 @@
   @apply bg-card/60 backdrop-blur-md border border-white/5;
 }
 
-/* Tiptap Styles */
-.ProseMirror {
-  outline: none;
-  min-height: 200px;
+/* Advanced CMS Typography */
+.prose-editor {
+  @apply max-w-none min-h-[500px] outline-none px-6 py-8;
 }
 
+.prose-editor h1 { @apply text-4xl font-bold font-headline mb-6 mt-8 text-foreground; }
+.prose-editor h2 { @apply text-3xl font-bold font-headline mb-4 mt-6 text-foreground; }
+.prose-editor h3 { @apply text-2xl font-bold font-headline mb-3 mt-4 text-foreground; }
+.prose-editor p { @apply leading-relaxed mb-4 text-muted-foreground; }
+.prose-editor ul { @apply list-disc pl-6 mb-4 space-y-2; }
+.prose-editor ol { @apply list-decimal pl-6 mb-4 space-y-2; }
+.prose-editor blockquote { @apply border-l-4 border-primary pl-6 italic my-6 text-xl; }
+.prose-editor pre { @apply bg-muted p-4 rounded-xl font-code text-sm overflow-x-auto my-4; }
+.prose-editor img { @apply rounded-2xl border border-white/5 my-8 shadow-2xl transition-all; }
+.prose-editor table { @apply w-full border-collapse my-6 rounded-xl overflow-hidden; }
+.prose-editor th { @apply bg-muted/50 p-3 text-left font-bold border border-white/10; }
+.prose-editor td { @apply p-3 border border-white/10; }
+.prose-editor .task-list { @apply list-none pl-0; }
+.prose-editor .task-list li { @apply flex items-start gap-3 mb-2; }
+
+/* Placeholder for Tiptap */
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
@@ -64,26 +79,21 @@
   height: 0;
 }
 
-.ProseMirror h1 {
-  @apply text-3xl font-bold mb-4;
+/* Sticky Toolbar Scrollbar Hide */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.ProseMirror h2 {
-  @apply text-2xl font-bold mb-3;
+/* Custom Block Styles */
+.prose-editor .product-block {
+  @apply rounded-3xl p-8 my-8 border-2 border-dashed transition-all;
 }
 
-.ProseMirror h3 {
-  @apply text-xl font-bold mb-2;
-}
-
-.ProseMirror ul {
-  @apply list-disc pl-6 mb-4;
-}
-
-.ProseMirror ol {
-  @apply list-decimal pl-6 mb-4;
-}
-
-.ProseMirror a {
-  @apply text-primary underline cursor-pointer;
-}
+.prose-editor .block-feature { @apply border-primary/20 bg-primary/5; }
+.prose-editor .block-warning { @apply border-destructive/20 bg-destructive/5; }
+.prose-editor .block-success { @apply border-green-500/20 bg-green-500/5; }
+.prose-editor .block-faq { @apply border-accent/20 bg-accent/5; }
