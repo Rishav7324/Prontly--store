@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,6 +64,9 @@ export default function AdminNewsletter() {
 
   const { data: subscribers, loading } = useCollection(subscribersQuery);
 
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
+
   useEffect(() => {
     const fetchTemplates = async () => {
       const res = await listTemplates();
@@ -82,7 +85,8 @@ export default function AdminNewsletter() {
       const res = await sendNewsletterCampaign({
         templateId: broadcastData.templateId,
         subject: broadcastData.subject || "Newsletter Update from Prontly",
-        recipients: emails
+        recipients: emails,
+        sender: settings?.emailSettings
       });
 
       if (res.success) {

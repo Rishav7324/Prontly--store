@@ -1,9 +1,9 @@
-
 'use client';
 
 import { useState } from 'react';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,10 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const auth = useAuth();
+  const db = useFirestore();
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +32,7 @@ export default function ForgotPasswordPage() {
       await sendPasswordResetEmail(auth, email);
       
       // Send branded notification via Resend (Non-blocking)
-      sendResendResetEmail(email);
+      sendResendResetEmail(email, settings);
 
       setSent(true);
       toast({ title: "Email Sent", description: "Check your inbox for password reset instructions." });

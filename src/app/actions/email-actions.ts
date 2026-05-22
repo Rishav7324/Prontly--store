@@ -4,8 +4,6 @@ import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import { initializeFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BRAND_COLOR = '#5b52d6';
@@ -49,37 +47,16 @@ const emailWrapper = (content: string, preheader: string) => `
 `;
 
 /**
- * Fetches global site settings from Firestore.
- */
-async function getEmailSettings() {
-  const { db } = initializeFirebase();
-  try {
-    const settingsSnap = await getDoc(doc(db, 'site_settings', 'main'));
-    const data = settingsSnap.data();
-    return {
-      fromEmail: data?.emailSettings?.fromEmail || 'onboarding@resend.dev',
-      senderName: data?.emailSettings?.senderName || 'Prontly Store',
-      invoice: data?.invoiceSettings || {}
-    };
-  } catch (e) {
-    return {
-      fromEmail: 'onboarding@resend.dev',
-      senderName: 'Prontly Store',
-      invoice: {}
-    };
-  }
-}
-
-/**
  * Sends order confirmation with a PDF invoice attachment.
  */
-export async function sendOrderConfirmationEmail(order: any) {
+export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   if (!process.env.RESEND_API_KEY) return { success: false };
 
-  // 1. Fetch Custom Invoice and Email Settings from Firestore
-  const { fromEmail, senderName, invoice: inv } = await getEmailSettings();
+  const fromEmail = settings?.emailSettings?.fromEmail || 'onboarding@resend.dev';
+  const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
+  const inv = settings?.invoiceSettings || {};
 
-  // 2. Generate PDF Invoice using jsPDF
+  // Generate PDF Invoice using jsPDF
   const docPdf = new jsPDF() as any;
   const margin = 20;
   const primaryColor = inv.color || BRAND_COLOR;
@@ -153,7 +130,7 @@ export async function sendOrderConfirmationEmail(order: any) {
   // Convert to Base64
   const pdfBase64 = docPdf.output('datauristring').split(',')[1];
 
-  // 3. Prepare HTML Content
+  // Prepare HTML Content
   const html = emailWrapper(`
     <h1>Order Confirmed!</h1>
     <p>Hi ${order.userName}, thank you for your purchase! Your payment was successful, and your digital assets are now ready for use.</p>
@@ -189,10 +166,11 @@ export async function sendOrderConfirmationEmail(order: any) {
 /**
  * Sends a welcome email to new users.
  */
-export async function sendWelcomeEmail(email: string, name: string) {
+export async function sendWelcomeEmail(email: string, name: string, settings?: any) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API key missing' };
   
-  const { fromEmail, senderName } = await getEmailSettings();
+  const fromEmail = settings?.emailSettings?.fromEmail || 'onboarding@resend.dev';
+  const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
     <h1>Welcome to Prontly, ${name}!</h1>
@@ -219,10 +197,11 @@ export async function sendWelcomeEmail(email: string, name: string) {
 /**
  * Sends a password reset notification.
  */
-export async function sendPasswordResetEmail(email: string) {
+export async function sendPasswordResetEmail(email: string, settings?: any) {
   if (!process.env.RESEND_API_KEY) return;
   
-  const { fromEmail, senderName } = await getEmailSettings();
+  const fromEmail = settings?.emailSettings?.fromEmail || 'onboarding@resend.dev';
+  const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
     <h1>Password Reset Request</h1>

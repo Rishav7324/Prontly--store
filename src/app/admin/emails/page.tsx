@@ -59,8 +59,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function AdminEmailsPage() {
+  const db = useFirestore();
   const [templates, setTemplates] = useState<any[]>([]);
   const [domains, setDomains] = useState<any[]>([]);
   const [audiences, setAudiences] = useState<any[]>([]);
@@ -74,6 +77,9 @@ export default function AdminEmailsPage() {
   const [isTesting, setIsTesting] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -192,7 +198,8 @@ export default function AdminEmailsPage() {
     const res = await sendTestEmail({
       to: testEmail,
       subject: 'Prontly Template Test',
-      templateId
+      templateId,
+      sender: settings?.emailSettings
     });
     if (res.success) {
       toast({ title: "Test Sent", description: `Check ${testEmail}` });

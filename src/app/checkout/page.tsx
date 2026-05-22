@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/hooks/use-cart';
-import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, where, limit, getDocs } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, query, where, limit, getDocs, doc } from 'firebase/firestore';
 import { ShieldCheck, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, Ticket, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -30,6 +29,9 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isApplying, setIsApplying] = useState(false);
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const [formData, setFormData] = useState({
     name: user?.displayName || '',
@@ -125,7 +127,7 @@ export default function CheckoutPage() {
       analytics.purchase({ id: docRef.id, ...orderData });
       
       // Trigger Email Confirmation with PDF (Non-blocking)
-      sendOrderConfirmationEmail({ id: docRef.id, ...orderData });
+      sendOrderConfirmationEmail({ id: docRef.id, ...orderData }, settings);
 
       setIsSuccess(true);
       clearCart();

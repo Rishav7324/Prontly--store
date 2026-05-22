@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +27,9 @@ export default function SignupPage() {
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +66,7 @@ export default function SignupPage() {
       });
 
       // Send Welcome Email (Non-blocking)
-      sendWelcomeEmail(formData.email, formData.name);
+      sendWelcomeEmail(formData.email, formData.name, settings);
 
       toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
       router.push('/dashboard');
@@ -99,7 +101,7 @@ export default function SignupPage() {
 
       // Send Welcome Email (Non-blocking)
       if (user.email && user.displayName) {
-        sendWelcomeEmail(user.email, user.displayName);
+        sendWelcomeEmail(user.email, user.displayName, settings);
       }
 
       router.push('/dashboard');

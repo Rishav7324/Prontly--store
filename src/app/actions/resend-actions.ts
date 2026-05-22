@@ -1,27 +1,8 @@
 'use server';
 
 import { Resend } from 'resend';
-import { initializeFirebase } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-/**
- * Fetches global sender settings.
- */
-async function getEmailSender() {
-  const { db } = initializeFirebase();
-  try {
-    const settingsSnap = await getDoc(doc(db, 'site_settings', 'main'));
-    const data = settingsSnap.data();
-    return {
-      fromEmail: data?.emailSettings?.fromEmail || 'onboarding@resend.dev',
-      senderName: data?.emailSettings?.senderName || 'Prontly Store'
-    };
-  } catch (e) {
-    return { fromEmail: 'onboarding@resend.dev', senderName: 'Prontly Store' };
-  }
-}
 
 /**
  * --- TEMPLATES API ---
@@ -170,10 +151,17 @@ export async function listResendAudiences() {
  * --- INFRASTRUCTURE & DELIVERY ---
  */
 
-export async function sendTestEmail(payload: { to: string; subject: string; templateId?: string; html?: string }) {
+export async function sendTestEmail(payload: { 
+  to: string; 
+  subject: string; 
+  templateId?: string; 
+  html?: string;
+  sender?: { fromEmail?: string; senderName?: string }
+}) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   
-  const { fromEmail, senderName } = await getEmailSender();
+  const fromEmail = payload.sender?.fromEmail || 'onboarding@resend.dev';
+  const senderName = payload.sender?.senderName || 'Prontly Store';
 
   try {
     const { data, error } = await resend.emails.send({
@@ -201,10 +189,16 @@ export async function listResendDomains() {
   }
 }
 
-export async function sendNewsletterCampaign(payload: { templateId: string; subject: string; recipients: string[] }) {
+export async function sendNewsletterCampaign(payload: { 
+  templateId: string; 
+  subject: string; 
+  recipients: string[];
+  sender?: { fromEmail?: string; senderName?: string }
+}) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   
-  const { fromEmail, senderName } = await getEmailSender();
+  const fromEmail = payload.sender?.fromEmail || 'onboarding@resend.dev';
+  const senderName = payload.sender?.senderName || 'Prontly Store';
 
   try {
     const batches = [];
