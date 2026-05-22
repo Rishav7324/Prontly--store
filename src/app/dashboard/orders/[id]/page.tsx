@@ -8,7 +8,15 @@ import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, Download, ExternalLink, Loader2, Printer, ShieldCheck, Package } from 'lucide-react';
+import { 
+  ChevronLeft, 
+  Download, 
+  ExternalLink, 
+  Loader2, 
+  Printer, 
+  ShieldCheck, 
+  Package 
+} from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -120,7 +128,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     Transaction processed securely. Digital assets are permanently added to your library.
                   </p>
                 </CardContent>
-              </div>
+              </Card>
             </div>
           </div>
 
