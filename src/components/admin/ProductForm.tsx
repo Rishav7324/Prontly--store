@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -48,7 +48,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     compareAtPrice: initialData?.compareAtPrice ? initialData?.compareAtPrice / 100 : 0,
     images: initialData?.images || [],
     fileKey: initialData?.fileKey || '',
-    isPublished: initialData?.isPublished ?? false,
+    isPublished: initialData?.isPublished ?? true, // Default to true for better UX
     isFeatured: initialData?.isFeatured ?? false,
     tags: initialData?.tags?.join(', ') || '',
     fileFormat: initialData?.fileFormat || '',
@@ -60,6 +60,35 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       keywords: initialData?.seo?.keywords || '',
     }
   });
+
+  // Sync state if initialData arrives late
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || '',
+        slug: initialData.slug || '',
+        description: initialData.description || '',
+        shortDescription: initialData.shortDescription || '',
+        categoryId: initialData.categoryId || '',
+        categorySlug: initialData.categorySlug || '',
+        price: initialData.price ? initialData.price / 100 : 0,
+        compareAtPrice: initialData.compareAtPrice ? initialData.compareAtPrice / 100 : 0,
+        images: initialData.images || [],
+        fileKey: initialData.fileKey || '',
+        isPublished: initialData.isPublished ?? true,
+        isFeatured: initialData.isFeatured ?? false,
+        tags: initialData.tags?.join(', ') || '',
+        fileFormat: initialData.fileFormat || '',
+        fileSize: initialData.fileSize || 0,
+        fileVersion: initialData.fileVersion || '1.0',
+        seo: {
+          title: initialData.seo?.title || '',
+          description: initialData.seo?.description || '',
+          keywords: initialData.seo?.keywords || '',
+        }
+      });
+    }
+  }, [initialData]);
 
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -202,18 +231,27 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
     try {
       const selectedCategory = categories?.find(c => c.id === formData.categoryId);
+      
+      // Crucial: Fallback to existing slug if categories list hasn't loaded during edit
+      const finalCategorySlug = selectedCategory?.slug || initialData?.categorySlug || '';
+
       const productData = {
         ...formData,
         price: Math.round(formData.price * 100),
         compareAtPrice: formData.compareAtPrice ? Math.round(formData.compareAtPrice * 100) : 0,
-        categorySlug: selectedCategory?.slug || '',
+        categorySlug: finalCategorySlug,
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
         updatedAt: serverTimestamp(),
         bannerImage: formData.images[0] || '',
       };
 
       if (id) {
-        await setDoc(doc(db, 'products', id), productData, { merge: true });
+        // Preserve createdAt on update
+        await setDoc(doc(db, 'products', id), {
+          ...productData,
+          createdAt: initialData?.createdAt || serverTimestamp()
+        }, { merge: true });
+
         await logAdminAction({
           db, adminId: user.uid, adminEmail: user.email!,
           action: 'UPDATE', resourceType: 'PRODUCT', resourceId: id, details: { name: formData.name }
@@ -224,7 +262,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           createdAt: serverTimestamp(),
           salesCount: 0,
           downloadCount: 0,
-          averageRating: 0,
+          averageRating: 5.0,
           reviewCount: 0
         });
         await logAdminAction({
