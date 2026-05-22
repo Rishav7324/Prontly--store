@@ -5,6 +5,8 @@ import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
+import { initializeFirebase } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BRAND_COLOR = '#5b52d6';
@@ -48,6 +50,125 @@ const emailWrapper = (content: string, preheader: string) => `
 `;
 
 /**
+ * Sends order confirmation with a PDF invoice attachment.
+ */
+export async function sendOrderConfirmationEmail(order: any) {
+  if (!process.env.RESEND_API_KEY) return { success: false };
+
+  // 1. Fetch Custom Invoice Settings from Firestore
+  const { db } = initializeFirebase();
+  const settingsSnap = await getDoc(doc(db, 'site_settings', 'main'));
+  const settings = settingsSnap.data();
+  const inv = settings?.invoiceSettings || {};
+
+  // 2. Generate PDF Invoice using jsPDF
+  const docPdf = new jsPDF() as any;
+  const margin = 20;
+  const primaryColor = inv.color || BRAND_COLOR;
+  
+  // Header
+  docPdf.setFontSize(22);
+  docPdf.setTextColor(primaryColor);
+  docPdf.text(inv.businessName || 'PRONTLY STORE', margin, 30);
+  
+  docPdf.setFontSize(9);
+  docPdf.setTextColor(100);
+  const addressLines = inv.address ? inv.address.split('\n') : ['Digital Assets Marketplace'];
+  addressLines.forEach((line: string, i: number) => {
+    docPdf.text(line, margin, 38 + (i * 5));
+  });
+  
+  docPdf.setFontSize(12);
+  docPdf.setTextColor(0);
+  docPdf.text(`INVOICE: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
+  docPdf.text(`Date: ${format(new Date(), 'dd MMM yyyy')}`, 140, 36);
+
+  // Billing Details
+  docPdf.setFontSize(10);
+  docPdf.text('Billed To:', margin, 75);
+  docPdf.setFont(undefined, 'bold');
+  docPdf.text(order.userName, margin, 80);
+  docPdf.setFont(undefined, 'normal');
+  docPdf.text(order.userEmail, margin, 85);
+  if (order.gstNumber) docPdf.text(`GST: ${order.gstNumber}`, margin, 90);
+
+  // Table
+  const tableData = order.items.map((item: any) => [
+    item.productName,
+    item.quantity,
+    `INR ${(item.price / 100).toLocaleString('en-IN')}`,
+    `INR ${(item.price * item.quantity / 100).toLocaleString('en-IN')}`
+  ]);
+
+  // Convert Hex to RGB for AutoTable
+  const r = parseInt(primaryColor.slice(1, 3), 16);
+  const g = parseInt(primaryColor.slice(3, 5), 16);
+  const b = parseInt(primaryColor.slice(5, 7), 16);
+
+  docPdf.autoTable({
+    startY: 100,
+    head: [['Product', 'Qty', 'Unit Price', 'Total']],
+    body: tableData,
+    headStyles: { fillColor: [r, g, b] },
+    margin: { left: margin, right: margin }
+  });
+
+  // Totals
+  const finalY = (docPdf as any).lastAutoTable.finalY + 10;
+  docPdf.text('Subtotal:', 140, finalY);
+  docPdf.text(`INR ${(order.subtotal / 100).toLocaleString('en-IN')}`, 175, finalY, { align: 'right' });
+  
+  docPdf.text('GST (18%):', 140, finalY + 7);
+  docPdf.text(`INR ${(order.gst / 100).toLocaleString('en-IN')}`, 175, finalY + 7, { align: 'right' });
+  
+  docPdf.setFontSize(14);
+  docPdf.setFont(undefined, 'bold');
+  docPdf.text('Grand Total:', 140, finalY + 16);
+  docPdf.text(`INR ${(order.total / 100).toLocaleString('en-IN')}`, 175, finalY + 16, { align: 'right' });
+
+  // Footer
+  docPdf.setFontSize(8);
+  docPdf.setFont(undefined, 'normal');
+  docPdf.setTextColor(150);
+  docPdf.text(inv.footerText || 'Digital delivery confirmed. No physical shipping required.', margin, 280);
+
+  // Convert to Base64
+  const pdfBase64 = docPdf.output('datauristring').split(',')[1];
+
+  // 3. Prepare HTML Content
+  const html = emailWrapper(`
+    <h1>Order Confirmed!</h1>
+    <p>Hi ${order.userName}, thank you for your purchase! Your payment was successful, and your digital assets are now ready for use.</p>
+    <div style="background-color: #f8f8fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <strong>Order ID:</strong> #${order.id.toUpperCase().slice(-8)}<br/>
+      <strong>Total Paid:</strong> INR ${(order.total / 100).toLocaleString('en-IN')}
+    </div>
+    <p>You can download your assets anytime by visiting your personal library dashboard.</p>
+    <center><a href="${SITE_URL}/dashboard" class="button">Access My Library</a></center>
+    <p style="font-size: 12px; color: #777; margin-top: 30px;">A detailed tax invoice is attached to this email for your records.</p>
+  `, `Thanks for your order! Your digital assets are ready.`);
+
+  try {
+    await resend.emails.send({
+      from: 'Prontly Orders <orders@resend.dev>',
+      to: order.userEmail,
+      subject: `Order Confirmation: #${order.id.toUpperCase().slice(-8)}`,
+      html,
+      attachments: [
+        {
+          filename: `invoice-${order.id.slice(-8)}.pdf`,
+          content: pdfBase64,
+        }
+      ]
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Order email failed:', error);
+    return { success: false };
+  }
+}
+
+/**
  * Sends a welcome email to new users.
  */
 export async function sendWelcomeEmail(email: string, name: string) {
@@ -63,7 +184,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
   try {
     await resend.emails.send({
-      from: 'Prontly <onboarding@resend.dev>', // Replace with your domain once verified
+      from: 'Prontly <onboarding@resend.dev>',
       to: email,
       subject: 'Welcome to Prontly!',
       html,
@@ -98,103 +219,5 @@ export async function sendPasswordResetEmail(email: string) {
     });
   } catch (e) {
     console.error('Reset notification failed:', e);
-  }
-}
-
-/**
- * Sends order confirmation with a PDF invoice attachment.
- */
-export async function sendOrderConfirmationEmail(order: any) {
-  if (!process.env.RESEND_API_KEY) return { success: false };
-
-  // 1. Generate PDF Invoice using jsPDF
-  const doc = new jsPDF() as any;
-  const margin = 20;
-  
-  // Header
-  doc.setFontSize(22);
-  doc.setTextColor(BRAND_COLOR);
-  doc.text('PRONTLY STORE', margin, 30);
-  
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text('Digital Assets Marketplace', margin, 36);
-  
-  doc.setFontSize(12);
-  doc.setTextColor(0);
-  doc.text(`INVOICE: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
-  doc.text(`Date: ${format(new Date(), 'dd MMM yyyy')}`, 140, 36);
-
-  // Billing Details
-  doc.setFontSize(10);
-  doc.text('Billed To:', margin, 60);
-  doc.setFont(undefined, 'bold');
-  doc.text(order.userName, margin, 65);
-  doc.setFont(undefined, 'normal');
-  doc.text(order.userEmail, margin, 70);
-  if (order.gstNumber) doc.text(`GST: ${order.gstNumber}`, margin, 75);
-
-  // Table
-  const tableData = order.items.map((item: any) => [
-    item.productName,
-    item.quantity,
-    `INR ${(item.price / 100).toLocaleString('en-IN')}`,
-    `INR ${(item.price * item.quantity / 100).toLocaleString('en-IN')}`
-  ]);
-
-  doc.autoTable({
-    startY: 90,
-    head: [['Product', 'Qty', 'Unit Price', 'Total']],
-    body: tableData,
-    headStyles: { fillColor: [91, 82, 214] }, // Brand color
-    margin: { left: margin, right: margin }
-  });
-
-  // Totals
-  const finalY = (doc as any).lastAutoTable.finalY + 10;
-  doc.text('Subtotal:', 140, finalY);
-  doc.text(`INR ${(order.subtotal / 100).toLocaleString('en-IN')}`, 175, finalY, { align: 'right' });
-  
-  doc.text('GST (18%):', 140, finalY + 7);
-  doc.text(`INR ${(order.gst / 100).toLocaleString('en-IN')}`, 175, finalY + 7, { align: 'right' });
-  
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text('Grand Total:', 140, finalY + 16);
-  doc.text(`INR ${(order.total / 100).toLocaleString('en-IN')}`, 175, finalY + 16, { align: 'right' });
-
-  // Convert to Base64
-  const pdfBase64 = doc.output('datauristring').split(',')[1];
-
-  // 2. Prepare HTML Content
-  const html = emailWrapper(`
-    <h1>Order Confirmed!</h1>
-    <p>Hi ${order.userName}, thank you for your purchase! Your payment was successful, and your digital assets are now ready for use.</p>
-    <div style="background-color: #f8f8fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <strong>Order ID:</strong> #${order.id.toUpperCase().slice(-8)}<br/>
-      <strong>Total Paid:</strong> INR ${(order.total / 100).toLocaleString('en-IN')}
-    </div>
-    <p>You can download your assets anytime by visiting your personal library dashboard.</p>
-    <center><a href="${SITE_URL}/dashboard" class="button">Access My Library</a></center>
-    <p style="font-size: 12px; color: #777; margin-top: 30px;">A detailed tax invoice is attached to this email for your records.</p>
-  `, `Thanks for your order! Your digital assets are ready.`);
-
-  try {
-    await resend.emails.send({
-      from: 'Prontly Orders <orders@resend.dev>',
-      to: order.userEmail,
-      subject: `Order Confirmation: #${order.id.toUpperCase().slice(-8)}`,
-      html,
-      attachments: [
-        {
-          filename: `invoice-${order.id.slice(-8)}.pdf`,
-          content: pdfBase64,
-        }
-      ]
-    });
-    return { success: true };
-  } catch (error) {
-    console.error('Order email failed:', error);
-    return { success: false };
   }
 }

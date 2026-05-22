@@ -23,8 +23,8 @@ import {
   CheckCircle2,
   Home,
   Star,
-  Plus,
-  Trash2
+  FileText,
+  Palette
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -38,18 +38,46 @@ export default function AdminSettings() {
   const { data: settings, loading } = useDoc(settingsRef);
   const { data: products } = useCollection(db ? collection(db, 'products') : null);
   
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<any>({
+    invoiceSettings: {
+      businessName: '',
+      address: '',
+      color: '#5b52d6',
+      footerText: 'Thank you for choosing Prontly Store.',
+      logoUrl: ''
+    }
+  });
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (settings) {
-      setFormData(settings);
+      setFormData({
+        ...settings,
+        invoiceSettings: settings.invoiceSettings || {
+          businessName: '',
+          address: '',
+          color: '#5b52d6',
+          footerText: 'Thank you for choosing Prontly Store.',
+          logoUrl: ''
+        }
+      });
     }
   }, [settings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleInvoiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      invoiceSettings: {
+        ...prev.invoiceSettings,
+        [id]: value
+      }
+    }));
   };
 
   const handleToggleFeatured = (productId: string) => {
@@ -111,6 +139,7 @@ export default function AdminSettings() {
           <TabsTrigger value="appearance" className="gap-2 px-4 py-2"><Layout className="h-4 w-4" /> Appearance</TabsTrigger>
           <TabsTrigger value="homepage" className="gap-2 px-4 py-2"><Home className="h-4 w-4" /> Homepage</TabsTrigger>
           <TabsTrigger value="payments" className="gap-2 px-4 py-2"><CreditCard className="h-4 w-4" /> Payments</TabsTrigger>
+          <TabsTrigger value="invoicing" className="gap-2 px-4 py-2"><FileText className="h-4 w-4" /> Invoicing</TabsTrigger>
           <TabsTrigger value="contact" className="gap-2 px-4 py-2"><Mail className="h-4 w-4" /> Contact</TabsTrigger>
         </TabsList>
 
@@ -137,6 +166,43 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="invoicing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Invoice Template Settings</CardTitle>
+              <CardDescription>Customize the look and details of generated PDF invoices.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="businessName">Registered Business Name</Label>
+                  <Input id="businessName" value={formData.invoiceSettings?.businessName || ''} onChange={handleInvoiceChange} placeholder="e.g. Prontly Digital Services" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="color">Accent Color (Hex)</Label>
+                  <div className="flex gap-2">
+                    <Input id="color" value={formData.invoiceSettings?.color || '#5b52d6'} onChange={handleInvoiceChange} placeholder="#5b52d6" />
+                    <div className="h-10 w-10 rounded border" style={{ backgroundColor: formData.invoiceSettings?.color || '#5b52d6' }} />
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="address">Business Address</Label>
+                <Textarea id="address" value={formData.invoiceSettings?.address || ''} onChange={handleInvoiceChange} placeholder="Full postal address for invoices..." className="h-20" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="logoUrl">Invoice Logo URL (PNG/JPG)</Label>
+                <Input id="logoUrl" value={formData.invoiceSettings?.logoUrl || ''} onChange={handleInvoiceChange} placeholder="https://..." />
+                <p className="text-[10px] text-muted-foreground">Transparent PNG recommended. Used at the top left of the PDF.</p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="footerText">Invoice Footer Note</Label>
+                <Input id="footerText" value={formData.invoiceSettings?.footerText || ''} onChange={handleInvoiceChange} placeholder="Thanks for your business!" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="appearance" className="space-y-6">
           <Card>
             <CardHeader>
@@ -145,7 +211,7 @@ export default function AdminSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="logoUrl">Logo URL</Label>
+                <Label htmlFor="logoUrl">Main Logo URL</Label>
                 <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} placeholder="https://..." />
               </div>
               <div className="grid gap-2">
@@ -225,16 +291,6 @@ export default function AdminSettings() {
               <div className="grid gap-2">
                 <Label htmlFor="contactEmail">Support Email</Label>
                 <Input id="contactEmail" value={formData.contactEmail || ''} onChange={handleChange} type="email" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="twitter">Twitter Handle</Label>
-                  <Input id="twitter" placeholder="@handle" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="instagram">Instagram Handle</Label>
-                  <Input id="instagram" placeholder="@handle" />
-                </div>
               </div>
             </CardContent>
           </Card>

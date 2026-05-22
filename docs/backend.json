@@ -186,6 +186,16 @@
         "featuredProductIds": { "type": "array" },
         "maintenanceMode": { "type": "boolean" },
         "homepageHeroCopy": { "type": "object" },
+        "invoiceSettings": {
+          "type": "object",
+          "properties": {
+            "businessName": { "type": "string" },
+            "address": { "type": "string" },
+            "color": { "type": "string" },
+            "footerText": { "type": "string" },
+            "logoUrl": { "type": "string" }
+          }
+        },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     }
