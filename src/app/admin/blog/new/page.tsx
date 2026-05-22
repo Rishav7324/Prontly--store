@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChevronLeft, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
+import { RichTextEditor } from '@/components/shared/RichTextEditor';
 
 export default function NewBlogPostPage() {
   const router = useRouter();
@@ -111,12 +112,10 @@ export default function NewBlogPostPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="content">Content (HTML Supported)</Label>
-                <Textarea 
-                  id="content" 
-                  value={formData.content} 
-                  onChange={(e) => setFormData({...formData, content: e.target.value})} 
-                  className="min-h-[400px]" 
+                <Label htmlFor="content">Content</Label>
+                <RichTextEditor 
+                  content={formData.content} 
+                  onChange={(content) => setFormData({...formData, content})} 
                   placeholder="Start writing your article..." 
                 />
               </div>

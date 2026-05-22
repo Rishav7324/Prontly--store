@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -19,6 +20,7 @@ import { toast } from '@/hooks/use-toast';
 import { getUploadUrl } from '@/app/actions/r2-actions';
 import { logAdminAction } from '@/lib/admin-logs';
 import { generateProductCopy } from '@/ai/flows/generate-product-copy';
+import { RichTextEditor } from '@/components/shared/RichTextEditor';
 import Image from 'next/image';
 
 interface ProductFormProps {
@@ -262,8 +264,12 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                   <Input id="shortDescription" value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} placeholder="One-line summary for grids" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Full Description (HTML Supported)</Label>
-                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[300px]" placeholder="Detailed product features..." />
+                  <Label htmlFor="description">Full Description</Label>
+                  <RichTextEditor 
+                    content={formData.description} 
+                    onChange={(content) => setFormData({...formData, description: content})} 
+                    placeholder="Detailed product features..."
+                  />
                 </div>
               </CardContent>
             </Card>
