@@ -153,7 +153,7 @@ export default function Dashboard() {
                   <div className="text-2xl font-bold font-headline">{orders?.length || 0}</div>
                   <div className="text-sm text-muted-foreground uppercase tracking-widest text-[10px] font-bold mt-1">Orders Placed</div>
                 </CardContent>
-              </div>
+              </Card>
             </div>
 
             <div className="space-y-6">
