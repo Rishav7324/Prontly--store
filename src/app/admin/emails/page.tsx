@@ -18,11 +18,13 @@ import {
   Loader2,
   FileCode,
   Layout,
-  AlertCircle,
   Send,
   Eye,
   Copy,
-  Wand2
+  Users,
+  UserPlus,
+  UserX,
+  Check
 } from "lucide-react";
 import { 
   listTemplates, 
@@ -30,7 +32,11 @@ import {
   deleteResendTemplate, 
   listResendDomains,
   sendTestEmail,
-  duplicateResendTemplate
+  duplicateResendTemplate,
+  listResendAudiences,
+  listResendContacts,
+  createResendContact,
+  deleteResendContact
 } from '@/app/actions/resend-actions';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -45,12 +51,25 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 export default function AdminEmailsPage() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [domains, setDomains] = useState<any[]>([]);
+  const [audiences, setAudiences] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [selectedAudience, setSelectedAudience] = useState<string | null>(null);
+  
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testEmail, setTestEmail] = useState('');
@@ -62,16 +81,27 @@ export default function AdminEmailsPage() {
     html: '<html>\n<body style="font-family: sans-serif;">\n  <h1>Welcome to Prontly</h1>\n  <p>Hello {{{name}}},</p>\n  <p>Your journey begins here.</p>\n</body>\n</html>'
   });
 
+  const [contactData, setContactData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+  });
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [tRes, dRes] = await Promise.all([listTemplates(), listResendDomains()]);
+      const [tRes, dRes, aRes] = await Promise.all([
+        listTemplates(), 
+        listResendDomains(),
+        listResendAudiences()
+      ]);
       
       if (tRes.success) setTemplates(tRes.data);
-      else if (tRes.error !== 'API Key missing') toast({ variant: "destructive", title: "Templates Error", description: tRes.error });
-      
       if (dRes.success) setDomains(dRes.data);
-      else if (dRes.error !== 'API Key missing') toast({ variant: "destructive", title: "Domains Error", description: dRes.error });
+      if (aRes.success) {
+        setAudiences(aRes.data);
+        if (aRes.data.length > 0) setSelectedAudience(aRes.data[0].id);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -79,38 +109,73 @@ export default function AdminEmailsPage() {
     }
   };
 
+  const fetchContacts = async () => {
+    if (!selectedAudience) return;
+    setLoading(true);
+    const res = await listResendContacts(selectedAudience);
+    if (res.success) setContacts(res.data);
+    setLoading(false);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (selectedAudience) fetchContacts();
+  }, [selectedAudience]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     const res = await createResendTemplate(formData);
     if (res.success) {
-      toast({ title: "Template Published", description: "Successfully synced and published to Resend." });
+      toast({ title: "Template Published" });
       setIsModalOpen(false);
       setFormData({ name: '', subject: '', html: '' });
       fetchData();
     } else {
-      toast({ variant: "destructive", title: "Creation Failed", description: res.error });
+      toast({ variant: "destructive", title: "Failed", description: res.error });
     }
     setIsSaving(false);
   };
 
+  const handleCreateContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAudience) return;
+    setIsSaving(true);
+    const res = await createResendContact({ ...contactData, audienceId: selectedAudience });
+    if (res.success) {
+      toast({ title: "Contact Created" });
+      setIsContactModalOpen(false);
+      setContactData({ email: '', firstName: '', lastName: '' });
+      fetchContacts();
+    } else {
+      toast({ variant: "destructive", title: "Failed", description: res.error });
+    }
+    setIsSaving(false);
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    if (!selectedAudience || !confirm('Remove this contact?')) return;
+    const res = await deleteResendContact(selectedAudience, contactId);
+    if (res.success) {
+      toast({ title: "Contact Removed" });
+      fetchContacts();
+    }
+  };
+
   const handleDuplicate = async (id: string) => {
-    toast({ title: "Duplicating...", description: "Creating a copy of the template." });
+    toast({ title: "Duplicating..." });
     const res = await duplicateResendTemplate(id);
     if (res.success) {
       toast({ title: "Template Duplicated" });
       fetchData();
-    } else {
-      toast({ variant: "destructive", title: "Duplication Failed", description: res.error });
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this template permanently from Resend?')) return;
+  const handleDeleteTemplate = async (id: string) => {
+    if (!confirm('Delete this template?')) return;
     const res = await deleteResendTemplate(id);
     if (res.success) {
       toast({ title: "Template Removed" });
@@ -120,7 +185,7 @@ export default function AdminEmailsPage() {
 
   const handleSendTest = async (templateId: string) => {
     if (!testEmail) {
-      toast({ variant: "destructive", title: "Email Required", description: "Please enter a destination email." });
+      toast({ variant: "destructive", title: "Email Required" });
       return;
     }
     setIsTesting(true);
@@ -130,7 +195,7 @@ export default function AdminEmailsPage() {
       templateId
     });
     if (res.success) {
-      toast({ title: "Test Sent", description: `Check ${testEmail} for the preview.` });
+      toast({ title: "Test Sent", description: `Check ${testEmail}` });
     } else {
       toast({ variant: "destructive", title: "Test Failed", description: res.error });
     }
@@ -142,7 +207,7 @@ export default function AdminEmailsPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold font-headline">Email Control Center</h1>
-          <p className="text-muted-foreground">Administer Resend services, templates, and delivery health.</p>
+          <p className="text-muted-foreground">Administer Resend templates, audience contacts, and delivery health.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
@@ -151,51 +216,31 @@ export default function AdminEmailsPage() {
           </Button>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-primary hover:bg-primary/90">
+              <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
                 New Template
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-card border-white/10">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Create Resend Template</DialogTitle>
-                <DialogDescription>Define a reusable HTML template with variable support (e.g. <code>{"{{{name}}}"}</code>).</DialogDescription>
+                <DialogTitle>Create Template</DialogTitle>
+                <DialogDescription>Use <code>{"{{{variable}}}"}</code> for dynamic fields.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Template Name</Label>
-                  <Input 
-                    id="name" 
-                    value={formData.name} 
-                    onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                    placeholder="order-confirmation"
-                    required
-                  />
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="subject">Default Subject Line</Label>
-                  <Input 
-                    id="subject" 
-                    value={formData.subject} 
-                    onChange={(e) => setFormData({...formData, subject: e.target.value})} 
-                    placeholder="Your order is confirmed!"
-                  />
+                  <Label htmlFor="subject">Default Subject</Label>
+                  <Input id="subject" value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="html">HTML Payload</Label>
-                  <Textarea 
-                    id="html" 
-                    value={formData.html} 
-                    onChange={(e) => setFormData({...formData, html: e.target.value})} 
-                    className="font-code text-[10px] h-60 bg-black/30"
-                    required
-                  />
+                  <Label htmlFor="html">HTML Content</Label>
+                  <Textarea id="html" value={formData.html} onChange={(e) => setFormData({...formData, html: e.target.value})} className="font-code text-[10px] h-60 bg-black/30" required />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
-                    Create & Publish
-                  </Button>
+                  <Button type="submit" disabled={isSaving}>Create & Publish</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -205,124 +250,162 @@ export default function AdminEmailsPage() {
 
       <Tabs defaultValue="templates" className="space-y-6">
         <TabsList className="bg-muted/50 p-1 w-full justify-start h-12">
-          <TabsTrigger value="templates" className="gap-2 px-6"><Layout className="h-4 w-4" /> My Templates</TabsTrigger>
+          <TabsTrigger value="templates" className="gap-2 px-6"><Layout className="h-4 w-4" /> Templates</TabsTrigger>
+          <TabsTrigger value="audience" className="gap-2 px-6"><Users className="h-4 w-4" /> Audience</TabsTrigger>
           <TabsTrigger value="domains" className="gap-2 px-6"><Globe className="h-4 w-4" /> Domains</TabsTrigger>
           <TabsTrigger value="settings" className="gap-2 px-6"><Code2 className="h-4 w-4" /> Connection</TabsTrigger>
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {loading ? (
+            {loading && templates.length === 0 ? (
               [...Array(3)].map((_, i) => <Card key={i} className="h-48 animate-pulse bg-muted/20" />)
-            ) : templates.length > 0 ? (
-              templates.map((template) => (
-                <Card key={template.id} className="bg-card/30 border-white/5 overflow-hidden group hover:border-primary/30 transition-all">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-2">
-                        <FileCode className="h-5 w-5" />
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewTemplate(template)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleDuplicate(template.id)}>
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Send Test Email</DialogTitle>
-                              <DialogDescription>Verify "{template.name}" in your inbox.</DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div className="grid gap-2">
-                                <Label>Recipient Email</Label>
-                                <Input 
-                                  placeholder="you@example.com" 
-                                  value={testEmail} 
-                                  onChange={(e) => setTestEmail(e.target.value)} 
-                                />
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button onClick={() => handleSendTest(template.id)} disabled={isTesting}>
-                                {isTesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                                Dispatch Test
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(template.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+            ) : templates.map((template) => (
+              <Card key={template.id} className="bg-card/30 border-white/5 overflow-hidden group hover:border-primary/30 transition-all">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-2">
+                      <FileCode className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-lg truncate">{template.name}</CardTitle>
-                    <CardDescription className="text-[10px] font-mono opacity-50">{template.id}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between mt-4">
-                      <Badge variant="outline" className="text-[10px] uppercase border-white/10 text-green-500 bg-green-500/5">Published</Badge>
-                      <Button variant="link" size="sm" className="h-auto p-0 text-primary text-xs" asChild>
-                        <a href={`https://resend.com/templates/${template.id}`} target="_blank">View in Console <ExternalLink className="ml-1 h-3 w-3" /></a>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewTemplate(template)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(template.id)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Send Test</DialogTitle>
+                          </DialogHeader>
+                          <div className="py-4">
+                            <Input placeholder="Recipient Email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} />
+                          </div>
+                          <DialogFooter>
+                            <Button onClick={() => handleSendTest(template.id)} disabled={isTesting}>Dispatch Test</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteTemplate(template.id)}>
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full py-20 flex flex-col items-center justify-center border-dashed border-2 bg-muted/5 border-white/5">
-                <Mail className="h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                <h3 className="text-xl font-bold">No Templates Found</h3>
-                <p className="text-muted-foreground mb-6 text-center max-w-xs text-sm">Create your first template to start using automated Resend transactional flows.</p>
-                <Button variant="outline" onClick={() => setIsModalOpen(true)}>Initialize First Template</Button>
+                  </div>
+                  <CardTitle className="text-lg truncate">{template.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge variant="outline" className="text-[10px] uppercase border-white/10 text-green-500 bg-green-500/5">Published</Badge>
+                </CardContent>
               </Card>
-            )}
+            ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="audience" className="space-y-6">
+          <Card className="bg-card/20 border-white/5">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Audience Contacts</CardTitle>
+                <CardDescription>Manage subscribers in your Resend list.</CardDescription>
+              </div>
+              <Dialog open={isContactModalOpen} onOpenChange={setIsContactModalOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Add Contact
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>New Contact</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateContact} className="space-y-4 py-4">
+                    <div className="grid gap-2">
+                      <Label>Email Address</Label>
+                      <Input type="email" value={contactData.email} onChange={(e) => setContactData({...contactData, email: e.target.value})} required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label>First Name</Label>
+                        <Input value={contactData.firstName} onChange={(e) => setContactData({...contactData, firstName: e.target.value})} />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Last Name</Label>
+                        <Input value={contactData.lastName} onChange={(e) => setContactData({...contactData, lastName: e.target.value})} />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" disabled={isSaving}>Add to List</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border border-white/5">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contacts.length > 0 ? contacts.map((contact) => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{contact.email}</TableCell>
+                        <TableCell>{contact.firstName} {contact.lastName}</TableCell>
+                        <TableCell>
+                          <Badge variant={contact.unsubscribed ? "destructive" : "secondary"}>
+                            {contact.unsubscribed ? "Unsubscribed" : "Subscribed"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteContact(contact.id)}>
+                            <UserX className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
+                          No contacts found in this audience.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="domains" className="space-y-6">
           <Card className="bg-card/20 border-white/5">
             <CardHeader>
-              <CardTitle>Verified Sending Domains</CardTitle>
-              <CardDescription>Configure these in your Resend Dashboard to ensure high deliverability.</CardDescription>
+              <CardTitle>Verified Domains</CardTitle>
             </CardHeader>
-            <CardContent>
-              {domains.length > 0 ? (
-                <div className="space-y-4">
-                  {domains.map((domain) => (
-                    <div key={domain.id} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5">
-                      <div className="flex items-center gap-4">
-                        <div className={cn("h-3 w-3 rounded-full", domain.status === 'verified' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]")} />
-                        <div>
-                          <p className="font-bold text-sm">{domain.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{domain.status}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary" className="text-[10px] uppercase">{domain.region}</Badge>
-                        <Button variant="ghost" size="icon" asChild className="h-8 w-8">
-                          <a href={`https://resend.com/domains/${domain.id}`} target="_blank"><ExternalLink className="h-4 w-4" /></a>
-                        </Button>
-                      </div>
+            <CardContent className="space-y-4">
+              {domains.map((domain) => (
+                <div key={domain.id} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className={cn("h-3 w-3 rounded-full", domain.status === 'verified' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]")} />
+                    <div>
+                      <p className="font-bold text-sm">{domain.name}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{domain.status}</p>
                     </div>
-                  ))}
+                  </div>
+                  <Badge variant="secondary" className="text-[10px] uppercase">{domain.region}</Badge>
                 </div>
-              ) : (
-                <div className="p-12 text-center bg-muted/5 rounded-2xl border border-dashed border-white/10">
-                  <Globe className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-20" />
-                  <p className="text-sm text-muted-foreground">No domains configured in Resend yet.</p>
-                  <Button variant="link" asChild className="mt-2">
-                    <a href="https://resend.com/domains" target="_blank">Add Domain in Resend</a>
-                  </Button>
-                </div>
-              )}
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
@@ -335,7 +418,7 @@ export default function AdminEmailsPage() {
                 API Connectivity
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent>
               <div className="flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5">
                 <div className="space-y-1">
                   <p className="text-sm font-bold">Node.js SDK Status</p>
@@ -345,14 +428,6 @@ export default function AdminEmailsPage() {
                   </div>
                 </div>
                 <Badge variant="outline" className="bg-green-500/10 text-green-500 border-none">CONNECTED</Badge>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-xs uppercase tracking-widest text-muted-foreground">Environment Config</Label>
-                <div className="rounded-lg bg-black/60 p-4 font-mono text-[10px] flex items-center justify-between">
-                  <span className="text-muted-foreground">RESEND_API_KEY</span>
-                  <span className="text-foreground">{process.env.RESEND_API_KEY ? 're_••••••••' + process.env.RESEND_API_KEY.slice(-4) : <span className="text-destructive font-bold">NOT CONFIGURED</span>}</span>
-                </div>
               </div>
             </CardContent>
           </Card>
