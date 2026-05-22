@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,14 +23,24 @@ import { CartDrawer } from '../store/CartDrawer';
 export function Navbar() {
   const { user, role } = useUser();
   const auth = useAuth();
+  const router = useRouter();
   const { getItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const isAdmin = role === 'admin' || role === 'super-admin';
 
   const handleSignOut = async () => {
     if (auth) {
       await signOut(auth);
+      router.push('/');
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -56,13 +66,15 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="relative hidden lg:block w-48 xl:w-64">
+              <form onSubmit={handleSearch} className="relative hidden lg:block w-48 xl:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input 
                   placeholder="Search assets..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary h-9 text-xs"
                 />
-              </div>
+              </form>
               
               <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => setIsCartOpen(true)}>
                 <ShoppingCart className="h-5 w-5" />

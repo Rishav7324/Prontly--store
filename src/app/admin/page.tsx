@@ -13,7 +13,8 @@ import {
   Plus,
   ArrowRight,
   FileText,
-  Ticket
+  Ticket,
+  Star
 } from "lucide-react";
 import { useCollection, useFirestore } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
@@ -34,8 +35,6 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar
 } from 'recharts';
 
 const chartData = [
@@ -53,6 +52,9 @@ export default function AdminDashboard() {
   
   const ordersQuery = db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(5)) : null;
   const { data: recentOrders, loading: ordersLoading } = useCollection(ordersQuery);
+
+  const productsQuery = db ? query(collection(db, 'products'), orderBy('salesCount', 'desc'), limit(5)) : null;
+  const { data: topProducts, loading: productsLoading } = useCollection(productsQuery);
 
   const stats = [
     { name: 'Total Revenue', value: '₹1,24,500', trend: '+12.5%', isUp: true, icon: TrendingUp },
@@ -80,7 +82,7 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.name} className="bg-card/50 backdrop-blur-sm">
+          <Card key={stat.name} className="bg-card/50 backdrop-blur-sm border-white/5">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.name}
@@ -106,7 +108,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <Card className="lg:col-span-2 overflow-hidden">
+        <Card className="lg:col-span-2 overflow-hidden border-white/5">
           <CardHeader>
             <CardTitle>Revenue Analytics</CardTitle>
             <CardDescription>Daily performance of your marketplace sales.</CardDescription>
@@ -153,47 +155,51 @@ export default function AdminDashboard() {
         </Card>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="border-white/5">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Top Products</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <Button variant="outline" className="justify-start gap-3" asChild>
-                <Link href="/admin/products/new">
-                  <Plus className="h-4 w-4" />
-                  New Product
-                </Link>
-              </Button>
-              <Button variant="outline" className="justify-start gap-3" asChild>
-                <Link href="/admin/blog">
-                  <FileText className="h-4 w-4" />
-                  New Blog Post
-                </Link>
-              </Button>
-              <Button variant="outline" className="justify-start gap-3" asChild>
-                <Link href="/admin/coupons">
-                  <Ticket className="h-4 w-4" />
-                  Manage Coupons
-                </Link>
-              </Button>
+            <CardContent className="space-y-4">
+              {productsLoading ? (
+                [...Array(3)].map((_, i) => <div key={i} className="h-10 w-full animate-pulse bg-muted rounded" />)
+              ) : topProducts?.map((p: any) => (
+                <div key={p.id} className="flex items-center justify-between gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-bold truncate">{p.name}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase">{p.categorySlug}</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs font-bold">{p.salesCount || 0} sales</span>
+                    <span className="text-[10px] text-green-500">₹{(p.price / 100).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
 
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader>
-              <CardTitle className="text-lg">Need Help?</CardTitle>
-              <CardDescription>Check out the Prontly Admin Guide for tips on managing your store.</CardDescription>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Button variant="link" className="p-0 text-primary">
-                Read Documentation
+            <CardContent className="grid gap-2">
+              <Button variant="outline" size="sm" className="justify-start gap-3" asChild>
+                <Link href="/admin/coupons">
+                  <Ticket className="h-4 w-4" />
+                  Manage Coupons
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="justify-start gap-3" asChild>
+                <Link href="/admin/blog">
+                  <FileText className="h-4 w-4" />
+                  New Blog Post
+                </Link>
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      <Card>
+      <Card className="border-white/5">
         <CardHeader>
           <CardTitle>Recent Orders</CardTitle>
           <CardDescription>Track the latest sales from your store.</CardDescription>
@@ -238,7 +244,7 @@ export default function AdminDashboard() {
               </Button>
             </div>
           )}
-          <div className="mt-4 border-t pt-4">
+          <div className="mt-4 border-t border-white/5 pt-4">
             <Button variant="ghost" className="w-full gap-2" asChild>
               <Link href="/admin/orders">
                 View All Orders

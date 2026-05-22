@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useCart } from '@/hooks/use-cart';
-import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ShieldCheck, ShoppingBag, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, query, where, limit, getDocs } from 'firebase/firestore';
+import { ShieldCheck, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, Ticket, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
@@ -22,8 +21,12 @@ export default function CheckoutPage() {
   const { user } = useUser();
   const db = useFirestore();
   const router = useRouter();
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.displayName || '',
@@ -32,8 +35,43 @@ export default function CheckoutPage() {
   });
 
   const subtotal = getTotal();
-  const gst = Math.round(subtotal * 0.18);
-  const total = subtotal + gst;
+  
+  const discount = appliedCoupon 
+    ? (appliedCoupon.type === 'percentage' 
+        ? Math.round(subtotal * (appliedCoupon.value / 100)) 
+        : appliedCoupon.value * 100)
+    : 0;
+    
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const gst = Math.round(discountedSubtotal * 0.18);
+  const total = discountedSubtotal + gst;
+
+  const handleApplyCoupon = async () => {
+    if (!db || !couponCode) return;
+    setIsApplying(true);
+    try {
+      const q = query(collection(db, 'coupons'), where('code', '==', couponCode.toUpperCase()), limit(1));
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        toast({ variant: "destructive", title: "Invalid Coupon", description: "This code does not exist." });
+      } else {
+        const coupon = { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
+        if (!coupon.isActive) {
+          toast({ variant: "destructive", title: "Expired", description: "This coupon is no longer active." });
+        } else if (subtotal < (coupon.minOrderAmount || 0) * 100) {
+          toast({ variant: "destructive", title: "Minimum Amount", description: `Minimum order of ₹${coupon.minOrderAmount} required.` });
+        } else {
+          setAppliedCoupon(coupon);
+          toast({ title: "Coupon Applied!", description: `Discount of ${coupon.type === 'percentage' ? coupon.value + '%' : '₹' + coupon.value} applied.` });
+        }
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Could not validate coupon." });
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,9 +93,11 @@ export default function CheckoutPage() {
           quantity: item.quantity
         })),
         subtotal,
+        discount,
+        couponCode: appliedCoupon?.code || null,
         gst,
         total,
-        status: 'paid', // Simulating successful immediate payment for MVP
+        status: 'paid',
         createdAt: serverTimestamp(),
         paidAt: serverTimestamp()
       };
@@ -72,7 +112,6 @@ export default function CheckoutPage() {
         description: "Your digital assets are now available in your library.",
       });
 
-      // Redirect to dashboard after a short delay
       setTimeout(() => {
         router.push('/dashboard');
       }, 3000);
@@ -82,7 +121,7 @@ export default function CheckoutPage() {
       toast({
         variant: "destructive",
         title: "Checkout Error",
-        description: "Something went wrong while placing your order. Please try again.",
+        description: "Something went wrong while placing your order.",
       });
     } finally {
       setIsProcessing(false);
@@ -134,7 +173,7 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
             <form onSubmit={handlePlaceOrder} className="lg:col-span-7 space-y-8">
-              <Card>
+              <Card className="border-white/5 bg-card/30">
                 <CardHeader>
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
@@ -163,7 +202,7 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-white/5 bg-card/30">
                 <CardHeader>
                   <CardTitle>Billing Details (Optional)</CardTitle>
                 </CardHeader>
@@ -180,7 +219,7 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              <div className="bg-secondary/30 rounded-xl p-6 border flex gap-4 items-start">
+              <div className="bg-secondary/30 rounded-xl p-6 border border-white/5 flex gap-4 items-start">
                 <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0" />
                 <div className="text-sm">
                   <h4 className="font-bold mb-1">Guaranteed Safe Checkout</h4>
@@ -188,7 +227,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full h-14 text-lg font-bold" disabled={isProcessing}>
+              <Button type="submit" size="lg" className="w-full h-14 text-lg font-bold shadow-xl shadow-primary/20" disabled={isProcessing}>
                 {isProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -201,15 +240,15 @@ export default function CheckoutPage() {
             </form>
 
             <div className="lg:col-span-5">
-              <Card className="sticky top-28 overflow-hidden">
+              <Card className="sticky top-28 overflow-hidden border-white/5 bg-card/50 backdrop-blur-xl">
                 <CardHeader className="bg-muted/30">
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                     {items.map((item) => (
                       <div key={item.id} className="flex gap-4">
-                        <div className="relative h-16 w-16 rounded overflow-hidden border bg-muted">
+                        <div className="relative h-16 w-16 rounded-xl overflow-hidden border bg-muted flex-shrink-0">
                           <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -221,18 +260,48 @@ export default function CheckoutPage() {
                     ))}
                   </div>
 
-                  <div className="mt-8 space-y-2 border-t pt-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>₹{(subtotal / 100).toLocaleString('en-IN')}</span>
+                  <div className="mt-8 space-y-4">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="Coupon Code" 
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          className="pl-9 h-10 text-xs"
+                          disabled={!!appliedCoupon}
+                        />
+                      </div>
+                      {appliedCoupon ? (
+                        <Button variant="ghost" size="icon" onClick={() => {setAppliedCoupon(null); setCouponCode('');}}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <Button size="sm" onClick={handleApplyCoupon} disabled={isApplying || !couponCode}>
+                          {isApplying ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Apply'}
+                        </Button>
+                      )}
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">GST (18%)</span>
-                      <span>₹{(gst / 100).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div className="flex justify-between text-xl font-bold pt-4 border-t">
-                      <span>Total</span>
-                      <span className="text-accent">₹{(total / 100).toLocaleString('en-IN')}</span>
+
+                    <div className="space-y-2 border-t pt-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>₹{(subtotal / 100).toLocaleString('en-IN')}</span>
+                      </div>
+                      {appliedCoupon && (
+                        <div className="flex justify-between text-sm text-green-500">
+                          <span>Discount ({appliedCoupon.code})</span>
+                          <span>-₹{(discount / 100).toLocaleString('en-IN')}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">GST (18%)</span>
+                        <span>₹{(gst / 100).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between text-2xl font-bold pt-4 border-t">
+                        <span>Total</span>
+                        <span className="text-accent">₹{(total / 100).toLocaleString('en-IN')}</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

@@ -10,12 +10,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, QueryConstraint } from 'firebase/firestore';
-import { Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react';
+import { Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProductListingPage() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get('category');
+  const searchQuery = searchParams.get('q');
   const db = useFirestore();
   
   // Fetch Categories for Sidebar
@@ -33,11 +34,30 @@ export default function ProductListingPage() {
       constraints.push(where('categorySlug', '==', categoryFilter));
     }
     
-    constraints.push(orderBy('createdAt', 'desc'));
+    // Note: Firestore doesn't support full-text search directly without 3rd party like Algolia.
+    // For MVP, we will fetch all and filter in memory if searching, OR use prefix search if applicable.
+    // Here we'll stick to basic ordering for non-search queries.
+    if (!searchQuery) {
+      constraints.push(orderBy('createdAt', 'desc'));
+    }
+    
     return query(collection(db, 'products'), ...constraints);
-  }, [db, categoryFilter]);
+  }, [db, categoryFilter, searchQuery]);
 
   const { data: products, loading } = useCollection(productsQuery);
+
+  // Client-side filtering for search query
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    if (!searchQuery) return products;
+    
+    const term = searchQuery.toLowerCase();
+    return products.filter(p => 
+      p.name.toLowerCase().includes(term) || 
+      p.shortDescription?.toLowerCase().includes(term) ||
+      p.tags?.some((t: string) => t.toLowerCase().includes(term))
+    );
+  }, [products, searchQuery]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -96,11 +116,19 @@ export default function ProductListingPage() {
                       <span className="capitalize">{categoryFilter}</span>
                     </>
                   )}
+                  {searchQuery && (
+                    <>
+                      <ChevronRight className="h-3 w-3" />
+                      <span className="italic">Search: "{searchQuery}"</span>
+                    </>
+                  )}
                 </div>
                 <h1 className="text-3xl font-bold font-headline">
-                  {categoryFilter ? (
-                    categories?.find((c: any) => c.slug === categoryFilter)?.name || categoryFilter
-                  ) : "All Marketplace Assets"}
+                  {searchQuery ? `Results for "${searchQuery}"` : (
+                    categoryFilter ? (
+                      categories?.find((c: any) => c.slug === categoryFilter)?.name || categoryFilter
+                    ) : "All Marketplace Assets"
+                  )}
                 </h1>
               </div>
 
@@ -116,7 +144,18 @@ export default function ProductListingPage() {
               </div>
             </header>
 
-            <ProductGrid products={products || []} loading={loading} />
+            <ProductGrid products={filteredProducts} loading={loading} />
+            
+            {!loading && filteredProducts.length === 0 && (
+              <div className="text-center py-20 bg-muted/10 border-dashed border-2 rounded-3xl">
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                <h3 className="text-xl font-bold">No assets found</h3>
+                <p className="text-muted-foreground">Try adjusting your filters or search terms.</p>
+                <Button variant="link" asChild className="mt-4">
+                  <Link href="/products">View all products</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </main>
