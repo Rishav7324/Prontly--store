@@ -103,7 +103,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <Badge variant="secondary" className="bg-secondary/50 text-primary border-primary/20 px-3 py-1">{product.categorySlug || 'Digital Asset'}</Badge>
                   <div className="flex items-center gap-1.5 text-yellow-500">
                     <Star className="h-4 w-4 fill-current" />
-                    <span className="font-bold text-foreground">4.9</span>
+                    <span className="font-bold text-foreground">{product.averageRating || '5.0'}</span>
                     <span className="text-muted-foreground text-sm">({product.salesCount || 0} sales)</span>
                   </div>
                 </div>
@@ -117,8 +117,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </Button>
               </div>
               <h1 className="text-4xl md:text-6xl font-bold font-headline leading-tight">{product.name}</h1>
+              
+              {/* Upgraded Description Rendering */}
               <div 
-                className="text-lg text-muted-foreground leading-relaxed max-w-3xl prose prose-invert prose-p:mb-4"
+                className="prose-content"
                 dangerouslySetInnerHTML={{ __html: product.description || '' }}
               />
             </div>
@@ -147,11 +149,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               
               <TabsContent value="details" className="space-y-6 animate-in fade-in duration-500">
                 <Card className="p-8 bg-card/50 border-white/5 rounded-3xl">
-                  <h3 className="text-2xl font-bold font-headline mb-6">Technical Specifications</h3>
+                  <h3 className="text-2xl font-bold font-headline mb-6 text-foreground">Technical Specifications</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
                     {[
                       { label: 'Format', value: product.fileFormat || 'PDF/ZIP' },
-                      { label: 'Size', value: `${(product.fileSize / 1024 / 1024).toFixed(2)} MB` },
+                      { label: 'Size', value: product.fileSize ? `${(product.fileSize / 1024 / 1024).toFixed(2)} MB` : 'N/A' },
                       { label: 'Version', value: product.fileVersion || '1.0' },
                       { label: 'Compatibility', value: 'Any AI Model' },
                     ].map((spec) => (
