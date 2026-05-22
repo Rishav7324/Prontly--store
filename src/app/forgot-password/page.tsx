@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Zap, Loader2, MailCheck, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
+import { sendPasswordResetEmail as sendResendResetEmail } from '@/app/actions/email-actions';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -25,6 +26,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
+      
+      // Send branded notification via Resend (Non-blocking)
+      sendResendResetEmail(email);
+
       setSent(true);
       toast({ title: "Email Sent", description: "Check your inbox for password reset instructions." });
     } catch (error: any) {

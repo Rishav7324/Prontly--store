@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Zap, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
+import { sendWelcomeEmail } from '@/app/actions/email-actions';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -62,6 +63,9 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       });
 
+      // Send Welcome Email (Non-blocking)
+      sendWelcomeEmail(formData.email, formData.name);
+
       toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
       router.push('/dashboard');
     } catch (error: any) {
@@ -92,6 +96,11 @@ export default function SignupPage() {
         totalSpent: 0,
         updatedAt: serverTimestamp()
       }, { merge: true });
+
+      // Send Welcome Email (Non-blocking)
+      if (user.email && user.displayName) {
+        sendWelcomeEmail(user.email, user.displayName);
+      }
 
       router.push('/dashboard');
     } catch (error) {

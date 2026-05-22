@@ -17,6 +17,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { analytics } from '@/lib/analytics';
+import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCart();
@@ -35,6 +36,16 @@ export default function CheckoutPage() {
     email: user?.email || '',
     gstNumber: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.displayName || prev.name,
+        email: user.email || prev.email
+      }));
+    }
+  }, [user]);
 
   const subtotal = getTotal();
   
@@ -113,6 +124,9 @@ export default function CheckoutPage() {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       analytics.purchase({ id: docRef.id, ...orderData });
       
+      // Trigger Email Confirmation with PDF (Non-blocking)
+      sendOrderConfirmationEmail({ id: docRef.id, ...orderData });
+
       setIsSuccess(true);
       clearCart();
       
@@ -139,7 +153,7 @@ export default function CheckoutPage() {
             </div>
           </div>
           <h1 className="text-4xl font-bold font-headline">Payment Successful!</h1>
-          <p className="text-muted-foreground text-lg">Thank you for your purchase.</p>
+          <p className="text-muted-foreground text-lg">Thank you for your purchase. We&apos;ve sent a copy of your invoice to your email.</p>
           <Button asChild size="lg" className="w-full"><Link href="/dashboard">Access My Library</Link></Button>
         </div>
       </div>
