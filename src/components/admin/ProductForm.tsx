@@ -14,7 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Globe, Sparkles, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getUploadUrl } from '@/app/actions/r2-actions';
 import Image from 'next/image';
@@ -49,6 +50,11 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     fileFormat: initialData?.fileFormat || '',
     fileSize: initialData?.fileSize || 0,
     fileVersion: initialData?.fileVersion || '1.0',
+    seo: {
+      title: initialData?.seo?.title || '',
+      description: initialData?.seo?.description || '',
+      keywords: initialData?.seo?.keywords || '',
+    }
   });
 
   const generateSlug = (name: string) => {
@@ -77,8 +83,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     let fileName = "";
     
     if (type === 'image') {
-      const isMain = formData.images.length === 0;
-      const baseName = isMain ? "main" : `img${formData.images.length}`;
+      const baseName = formData.images.length === 0 ? "main" : `img${formData.images.length}`;
       fileName = `product/${formData.slug}/${baseName}.webp`;
     } else {
       fileName = `product/${formData.slug}/asset-${Date.now()}.${file.name.split('.').pop()}`;
@@ -112,7 +117,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               fileFormat: file.name.split('.').pop()?.toUpperCase() || ''
             }));
           }
-          toast({ title: "Upload Success", description: `${file.name} uploaded as ${fileName}` });
+          toast({ title: "Upload Success", description: `${file.name} uploaded successfully` });
         }
       };
       
@@ -144,7 +149,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         categorySlug: selectedCategory?.slug || '',
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
         updatedAt: serverTimestamp(),
-        bannerImage: formData.images[0] || '', // Use main image as banner/og
+        bannerImage: formData.images[0] || '',
       };
 
       if (id) {
@@ -170,93 +175,145 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
       <div className="lg:col-span-2 space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Product Name</Label>
-              <Input id="name" value={formData.name} onChange={handleNameChange} required placeholder="e.g. Master AI Prompt Kit" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="slug">URL Slug</Label>
-              <Input id="slug" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} required placeholder="master-ai-prompt-kit" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="shortDescription">Short Description</Label>
-              <Input id="shortDescription" value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} placeholder="One-line summary for grids" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Full Description (HTML Supported)</Label>
-              <Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[200px]" placeholder="Detailed product features..." />
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="bg-muted/50 p-1 mb-6">
+            <TabsTrigger value="content" className="gap-2"><ImageIcon className="h-4 w-4" /> Content & Media</TabsTrigger>
+            <TabsTrigger value="seo" className="gap-2"><Search className="h-4 w-4" /> SEO Optimization</TabsTrigger>
+          </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Assets & Media</CardTitle>
-            <CardDescription>Upload preview images (renamed automatically) and the actual digital product file.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Product Gallery (4:5 Ratio Recommended)</Label>
-                <Badge variant="outline" className="text-[10px]">First image is Main/OG</Badge>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {formData.images.map((img, i) => (
-                  <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden border group bg-muted">
-                    <Image src={img} alt="Preview" fill className="object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button 
-                        type="button" 
-                        onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
-                        className="bg-destructive text-white p-2 rounded-full hover:scale-110 transition-transform"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+          <TabsContent value="content" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input id="name" value={formData.name} onChange={handleNameChange} required placeholder="e.g. Master AI Prompt Kit" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="slug">URL Slug</Label>
+                  <Input id="slug" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} required placeholder="master-ai-prompt-kit" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="shortDescription">Short Description</Label>
+                  <Input id="shortDescription" value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} placeholder="One-line summary for grids" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Full Description (HTML Supported)</Label>
+                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="min-h-[200px]" placeholder="Detailed product features..." />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Assets & Media</CardTitle>
+                <CardDescription>Manage your product images and digital delivery files.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Product Gallery (4:5 Ratio)</Label>
+                    <Badge variant="outline" className="text-[10px]">First image is Main/OG</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {formData.images.map((img, i) => (
+                      <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden border group bg-muted">
+                        <Image src={img} alt="Preview" fill className="object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button 
+                            type="button" 
+                            onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                            className="bg-destructive text-white p-2 rounded-full hover:scale-110 transition-transform"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        {i === 0 && <Badge className="absolute top-2 left-2 bg-primary">Main</Badge>}
+                      </div>
+                    ))}
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted transition-colors border-muted-foreground/25">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <span className="text-[10px] text-muted-foreground font-medium text-center px-2">Add Image</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label>Digital Product File (ZIP, PDF, etc.)</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 relative">
+                      <FileIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        value={formData.fileKey} 
+                        readOnly 
+                        placeholder="No file uploaded" 
+                        className="bg-muted pl-9 text-xs"
+                      />
                     </div>
-                    {i === 0 && <Badge className="absolute top-2 left-2 bg-primary">Main</Badge>}
+                    <Button type="button" variant="outline" className="relative overflow-hidden shrink-0">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Asset
+                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'file')} />
+                    </Button>
+                  </div>
+                </div>
+
+                {Object.keys(uploadProgress).map(id => (
+                  <div key={id} className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-medium">
+                      <span>Uploading asset...</span>
+                      <span>{uploadProgress[id]}%</span>
+                    </div>
+                    <Progress value={uploadProgress[id]} className="h-1" />
                   </div>
                 ))}
-                <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted transition-colors border-muted-foreground/25">
-                  <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-                  <span className="text-[10px] text-muted-foreground font-medium text-center px-2">Add Image<br/>(renamed to .webp)</span>
-                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
-                </label>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            <div className="space-y-4">
-              <Label>Digital Product File (ZIP, PDF, etc.)</Label>
-              <div className="flex items-center gap-4">
-                <Input 
-                  value={formData.fileKey} 
-                  readOnly 
-                  placeholder="No file uploaded" 
-                  className="bg-muted cursor-default text-xs"
-                />
-                <Button type="button" variant="outline" className="relative overflow-hidden shrink-0">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Asset
-                  <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'file')} />
-                </Button>
-              </div>
-            </div>
-
-            {Object.keys(uploadProgress).map(id => (
-              <div key={id} className="space-y-1">
-                <div className="flex justify-between text-[10px] font-medium">
-                  <span>Uploading asset...</span>
-                  <span>{uploadProgress[id]}%</span>
+          <TabsContent value="seo" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Search Engine Optimization</CardTitle>
+                <CardDescription>Optimize how this product appears in search results.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="seoTitle">SEO Title</Label>
+                  <Input 
+                    id="seoTitle" 
+                    value={formData.seo.title} 
+                    onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} 
+                    placeholder="Focus keyword + Brand name"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Recommended: Under 60 characters.</p>
                 </div>
-                <Progress value={uploadProgress[id]} className="h-1" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                <div className="grid gap-2">
+                  <Label htmlFor="seoDesc">SEO Meta Description</Label>
+                  <Textarea 
+                    id="seoDesc" 
+                    value={formData.seo.description} 
+                    onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} 
+                    placeholder="Compelling summary to drive clicks..."
+                  />
+                  <p className="text-[10px] text-muted-foreground">Recommended: 150-160 characters.</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="seoKeywords">Keywords (comma separated)</Label>
+                  <Input 
+                    id="seoKeywords" 
+                    value={formData.seo.keywords} 
+                    onChange={(e) => setFormData({...formData, seo: {...formData.seo, keywords: e.target.value}})} 
+                    placeholder="ai prompts, ui kit, design system"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <div className="space-y-8">
@@ -309,7 +366,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox id="featured" checked={formData.isFeatured} onCheckedChange={(checked) => setFormData({...formData, isFeatured: !!checked})} />
-              <Label htmlFor="featured">Feature on Homepage</Label>
+              <Label htmlFor="featured">Force Feature (Override Settings)</Label>
             </div>
             <Button type="submit" className="w-full h-12" disabled={isSaving}>
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4 mr-2" /> {id ? 'Update Product' : 'Create Product'}</>}

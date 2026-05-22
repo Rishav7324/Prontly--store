@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -6,49 +7,47 @@ import { Footer } from '@/components/layout/Footer';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Rocket, Shield, Crown, Search } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit, orderBy } from 'firebase/firestore';
+import { Zap, Rocket, Shield, Crown, Search, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, where, limit, orderBy, doc } from 'firebase/firestore';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const db = useFirestore();
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
       collection(db, 'products'),
       where('isPublished', '==', true),
-      orderBy('createdAt', 'desc'),
-      limit(8)
+      orderBy('createdAt', 'desc')
     );
   }, [db]);
 
-  const { data: products, loading } = useCollection(productsQuery);
+  const { data: allProducts, loading } = useCollection(productsQuery);
+
+  const featuredProducts = useMemo(() => {
+    if (!allProducts) return [];
+    if (settings?.featuredProductIds && settings.featuredProductIds.length > 0) {
+      return allProducts.filter(p => settings.featuredProductIds.includes(p.id));
+    }
+    return allProducts.slice(0, 8);
+  }, [allProducts, settings]);
 
   // Schema.org Structured Data
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    'name': 'Prontly Store',
+    'name': settings?.siteName || 'Prontly Store',
     'url': 'https://store.prontly.in',
     'potentialAction': {
       '@type': 'SearchAction',
       'target': 'https://store.prontly.in/products?q={search_term_string}',
       'query-input': 'required name=search_term_string'
-    }
-  };
-
-  const orgJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    'name': 'Prontly Store',
-    'url': 'https://store.prontly.in',
-    'logo': 'https://store.prontly.in/logo.png',
-    'contactPoint': {
-      '@type': 'ContactPoint',
-      'email': 'support@prontly.in',
-      'contactType': 'customer support'
     }
   };
 
@@ -58,78 +57,125 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
-      />
       
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         
         <main className="flex-1">
-          <section className="relative overflow-hidden pt-20 pb-32">
-            <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(85,78,210,0.15),rgba(15,15,19,1))]" />
-            <div className="container mx-auto px-4 text-center">
-              <Badge variant="outline" className="mb-6 border-primary/50 text-primary py-1 px-4 text-sm font-medium animate-bounce">
+          {/* Hero Section */}
+          <section className="relative overflow-hidden pt-32 pb-40 lg:pt-48 lg:pb-56">
+            <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_120%,rgba(85,78,210,0.2),rgba(15,15,19,1))]" />
+            <div className="container mx-auto px-4 text-center relative">
+              <Badge variant="outline" className="mb-6 border-primary/50 text-primary py-1 px-4 text-sm font-medium animate-pulse rounded-full bg-primary/5">
                 New: GPT-4o Optimized Prompts Now Available!
               </Badge>
-              <h1 className="mx-auto max-w-4xl font-headline text-5xl font-bold tracking-tight md:text-7xl">
-                Empower Your Workflow with <br />
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent text-shadow-glow">Premium Digital Assets</span>
+              <h1 className="mx-auto max-w-5xl font-headline text-5xl font-bold tracking-tight md:text-8xl lg:leading-[1.1]">
+                Master the Future with <br />
+                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent text-shadow-glow">Expert Digital Assets</span>
               </h1>
-              <p className="mx-auto mt-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
-                The curated marketplace for AI prompts, UI kits, templates, and guides built for creators who value precision and speed.
+              <p className="mx-auto mt-10 max-w-2xl text-lg text-muted-foreground md:text-2xl leading-relaxed">
+                Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.
               </p>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-                <Button asChild size="lg" className="h-12 px-8 text-base shadow-xl shadow-primary/20">
-                  <Link href="/products">Start Browsing</Link>
+              <div className="mt-12 flex flex-wrap items-center justify-center gap-6">
+                <Button asChild size="lg" className="h-14 px-10 text-lg rounded-2xl shadow-[0_20px_50px_rgba(85,78,210,0.3)] hover:scale-105 transition-all">
+                  <Link href="/products">Browse Marketplace</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
+                <Button asChild size="lg" variant="outline" className="h-14 px-10 text-lg rounded-2xl border-white/10 hover:bg-white/5">
                   <Link href="/products?category=prompts">Explore AI Prompts</Link>
                 </Button>
               </div>
 
-              <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
                 {[
-                  { icon: Shield, label: 'Secure Delivery' },
-                  { icon: Rocket, label: 'Instant Access' },
-                  { icon: Crown, label: 'Premium Quality' },
-                  { icon: Zap, label: 'Optimized for Pro' },
+                  { icon: Shield, label: 'Lifetime Updates' },
+                  { icon: Rocket, label: 'Instant Delivery' },
+                  { icon: Crown, label: 'Hand-Curated' },
+                  { icon: Zap, label: 'Pro Optimized' },
                 ].map((feature, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 group">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary transition-colors group-hover:bg-primary/20">
+                  <div key={i} className="flex flex-col items-center gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/5 shadow-inner">
                       <feature.icon className="h-6 w-6 text-primary" />
                     </div>
-                    <span className="font-semibold text-sm">{feature.label}</span>
+                    <span className="font-bold text-xs uppercase tracking-widest text-muted-foreground">{feature.label}</span>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          <section className="container mx-auto px-4 py-20">
-            <div className="mb-12 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-              <div>
-                <h2 className="text-3xl font-bold font-headline">Trending Assets</h2>
-                <p className="text-muted-foreground mt-1">Handpicked digital products gaining traction this week.</p>
+          {/* Featured Section */}
+          <section className="container mx-auto px-4 py-24">
+            <div className="mb-16 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+              <div className="max-w-xl">
+                <Badge className="bg-primary/20 text-primary border-none mb-4">Curated Assets</Badge>
+                <h2 className="text-4xl md:text-5xl font-bold font-headline">Trending This Week</h2>
+                <p className="text-muted-foreground mt-4 text-lg leading-relaxed">Discover our most popular digital assets, chosen for their quality and performance.</p>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm">All</Button>
-                <Button variant="ghost" size="sm">AI Prompts</Button>
-                <Button variant="ghost" size="sm">UI Kits</Button>
-                <Button variant="ghost" size="sm">Templates</Button>
-              </div>
+              <Button asChild variant="ghost" className="text-primary hover:text-accent font-bold group">
+                <Link href="/products" className="flex items-center gap-2">
+                  View All Marketplace
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
             </div>
 
-            <ProductGrid products={products || []} loading={loading} />
+            <ProductGrid products={featuredProducts} loading={loading} />
+          </section>
 
-            <div className="mt-16 text-center">
-              <Link href="/products">
-                <Button variant="link" size="lg" className="text-primary hover:text-accent font-semibold group">
-                  View All Marketplace Items
-                  <Search className="ml-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                </Button>
-              </Link>
+          {/* Why Prontly Section */}
+          <section className="bg-muted/30 py-32 border-y border-white/5">
+            <div className="container mx-auto px-4">
+              <div className="text-center max-w-3xl mx-auto mb-20">
+                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-6">Built for the Modern Workflow</h2>
+                <p className="text-xl text-muted-foreground">We don't just sell assets; we sell time. Every item in our store is rigorously tested to ensure it works from day one.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                {[
+                  {
+                    title: "Quality First",
+                    desc: "Every AI prompt is tested against multiple models (GPT-4o, Claude 3.5, Gemini 1.5) to ensure consistent, high-quality results.",
+                    icon: CheckCircle2
+                  },
+                  {
+                    title: "Expertly Crafted",
+                    desc: "Our UI templates follow modern accessibility standards and design best practices, making them production-ready out of the box.",
+                    icon: Zap
+                  },
+                  {
+                    title: "B2B Ready",
+                    desc: "Automated GST invoicing and volume licensing options for teams and agencies looking to scale their production.",
+                    icon: Shield
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="space-y-4 p-8 rounded-[2rem] bg-card border border-white/5 shadow-xl">
+                    <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary mb-6">
+                      <item.icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-2xl font-bold font-headline">{item.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA Section */}
+          <section className="container mx-auto px-4 py-32">
+            <div className="relative rounded-[3rem] overflow-hidden bg-primary px-8 py-20 text-center text-white shadow-2xl">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]" />
+              <div className="relative z-10 max-w-3xl mx-auto">
+                <h2 className="text-4xl md:text-6xl font-bold font-headline mb-8">Ready to elevate your creation?</h2>
+                <p className="text-xl opacity-90 mb-12">Join thousands of creators using Prontly to speed up their workflow and deliver better results.</p>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <Button asChild size="lg" variant="secondary" className="h-14 px-10 text-lg rounded-2xl">
+                    <Link href="/signup">Get Started Now</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="h-14 px-10 text-lg rounded-2xl border-white/30 hover:bg-white/10">
+                    <Link href="/products">Explore Store</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </section>
         </main>

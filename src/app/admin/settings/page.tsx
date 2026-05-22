@@ -1,14 +1,17 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Save, 
   Settings, 
@@ -17,9 +20,14 @@ import {
   Mail, 
   Globe,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Home,
+  Star,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 export default function AdminSettings() {
   const db = useFirestore();
@@ -28,6 +36,7 @@ export default function AdminSettings() {
   }, [db]);
 
   const { data: settings, loading } = useDoc(settingsRef);
+  const { data: products } = useCollection(db ? collection(db, 'products') : null);
   
   const [formData, setFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -41,6 +50,14 @@ export default function AdminSettings() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleToggleFeatured = (productId: string) => {
+    const current = formData.featuredProductIds || [];
+    const updated = current.includes(productId)
+      ? current.filter((id: string) => id !== productId)
+      : [...current, productId];
+    setFormData(prev => ({ ...prev, featuredProductIds: updated }));
   };
 
   const handleSave = async () => {
@@ -92,6 +109,7 @@ export default function AdminSettings() {
         <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto h-auto">
           <TabsTrigger value="general" className="gap-2 px-4 py-2"><Globe className="h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="appearance" className="gap-2 px-4 py-2"><Layout className="h-4 w-4" /> Appearance</TabsTrigger>
+          <TabsTrigger value="homepage" className="gap-2 px-4 py-2"><Home className="h-4 w-4" /> Homepage</TabsTrigger>
           <TabsTrigger value="payments" className="gap-2 px-4 py-2"><CreditCard className="h-4 w-4" /> Payments</TabsTrigger>
           <TabsTrigger value="contact" className="gap-2 px-4 py-2"><Mail className="h-4 w-4" /> Contact</TabsTrigger>
         </TabsList>
@@ -133,6 +151,46 @@ export default function AdminSettings() {
               <div className="grid gap-2">
                 <Label htmlFor="faviconUrl">Favicon URL</Label>
                 <Input id="faviconUrl" value={formData.faviconUrl || ''} onChange={handleChange} />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="homepage" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Homepage Management</CardTitle>
+              <CardDescription>Select products to feature on your landing page.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <Label>Featured Products ({formData.featuredProductIds?.length || 0})</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {products?.map((product: any) => (
+                    <div 
+                      key={product.id}
+                      onClick={() => handleToggleFeatured(product.id)}
+                      className={`relative p-3 rounded-xl border cursor-pointer transition-all ${
+                        formData.featuredProductIds?.includes(product.id)
+                          ? 'border-primary bg-primary/10'
+                          : 'border-white/5 bg-card/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-12 w-12 rounded overflow-hidden">
+                          <Image src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/100/100'} alt={product.name} fill className="object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold truncate">{product.name}</p>
+                          <p className="text-[10px] text-muted-foreground">₹{product.price / 100}</p>
+                        </div>
+                        {formData.featuredProductIds?.includes(product.id) && (
+                          <Star className="h-4 w-4 text-primary fill-current" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
