@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -44,7 +45,6 @@
         "fileSize": { "type": "number" },
         "fileFormat": { "type": "string" },
         "fileVersion": { "type": "string" },
-        "isPublished": { "type": "boolean" },
         "isFeatured": { "type": "boolean" },
         "downloadCount": { "type": "number" },
         "salesCount": { "type": "number" },

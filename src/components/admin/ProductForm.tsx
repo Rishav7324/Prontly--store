@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -48,7 +49,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     compareAtPrice: initialData?.compareAtPrice ? initialData?.compareAtPrice / 100 : 0,
     images: initialData?.images || [],
     fileKey: initialData?.fileKey || '',
-    isPublished: initialData?.isPublished ?? true, // Default to true for better UX
     isFeatured: initialData?.isFeatured ?? false,
     tags: initialData?.tags?.join(', ') || '',
     fileFormat: initialData?.fileFormat || '',
@@ -75,7 +75,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         compareAtPrice: initialData.compareAtPrice ? initialData.compareAtPrice / 100 : 0,
         images: initialData.images || [],
         fileKey: initialData.fileKey || '',
-        isPublished: initialData.isPublished ?? true,
         isFeatured: initialData.isFeatured ?? false,
         tags: initialData.tags?.join(', ') || '',
         fileFormat: initialData.fileFormat || '',
@@ -231,8 +230,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
     try {
       const selectedCategory = categories?.find(c => c.id === formData.categoryId);
-      
-      // Crucial: Fallback to existing slug if categories list hasn't loaded during edit
       const finalCategorySlug = selectedCategory?.slug || initialData?.categorySlug || '';
 
       const productData = {
@@ -246,7 +243,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       };
 
       if (id) {
-        // Preserve createdAt on update
         await setDoc(doc(db, 'products', id), {
           ...productData,
           createdAt: initialData?.createdAt || serverTimestamp()
@@ -488,10 +484,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="published" checked={formData.isPublished} onCheckedChange={(checked) => setFormData({...formData, isPublished: !!checked})} />
-              <Label htmlFor="published" className="cursor-pointer">Public Visibility</Label>
-            </div>
             <div className="flex items-center space-x-2">
               <Checkbox id="featured" checked={formData.isFeatured} onCheckedChange={(checked) => setFormData({...formData, isFeatured: !!checked})} />
               <Label htmlFor="featured" className="cursor-pointer">Homepage Featured</Label>

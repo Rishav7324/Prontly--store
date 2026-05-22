@@ -14,8 +14,6 @@ import {
   MoreVertical, 
   Edit, 
   Trash2, 
-  Eye, 
-  EyeOff,
   ExternalLink,
   Package,
   ShoppingBag as OrderIcon
@@ -55,22 +53,6 @@ export default function AdminProducts() {
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.categorySlug?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const togglePublished = async (id: string, name: string, currentStatus: boolean) => {
-    if (!db || !user) return;
-    const ref = doc(db, 'products', id);
-    await updateDoc(ref, { isPublished: !currentStatus });
-    
-    await logAdminAction({
-      db,
-      adminId: user.uid,
-      adminEmail: user.email || 'unknown',
-      action: !currentStatus ? 'PUBLISH' : 'UNPUBLISH',
-      resourceType: 'PRODUCT',
-      resourceId: id,
-      details: { name }
-    });
-  };
 
   const deleteProduct = async (id: string, name: string) => {
     if (!db || !user || !confirm('Are you sure you want to delete this product?')) return;
@@ -129,7 +111,6 @@ export default function AdminProducts() {
                   <TableHead>Product Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Sales</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -158,11 +139,6 @@ export default function AdminProducts() {
                     </TableCell>
                     <TableCell className="font-bold">₹{(product.price / 100).toLocaleString('en-IN')}</TableCell>
                     <TableCell>
-                      <Badge variant={product.isPublished ? 'default' : 'secondary'}>
-                        {product.isPublished ? 'Published' : 'Draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
                       <div className="flex items-center gap-1 text-xs">
                         <OrderIcon className="h-3 w-3" />
                         {product.salesCount || 0}
@@ -190,19 +166,6 @@ export default function AdminProducts() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => togglePublished(product.id, product.name, product.isPublished)}>
-                            {product.isPublished ? (
-                              <>
-                                <EyeOff className="mr-2 h-4 w-4" />
-                                Unpublish
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Publish
-                              </>
-                            )}
-                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                             onClick={() => deleteProduct(product.id, product.name)}

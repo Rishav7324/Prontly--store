@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -21,7 +22,7 @@ service cloud.firestore {
 
     // Products
     match /products/{productId} {
-      allow read: if resource.data.isPublished == true || isAdmin();
+      allow read: if true;
       allow write: if isAdmin();
     }
     

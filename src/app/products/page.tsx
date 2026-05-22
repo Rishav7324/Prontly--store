@@ -29,7 +29,7 @@ function MarketplaceContent() {
   // Fetch Products with optional filtering
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    const constraints: QueryConstraint[] = [where('isPublished', '==', true)];
+    const constraints: QueryConstraint[] = [];
     
     if (categoryFilter) {
       constraints.push(where('categorySlug', '==', categoryFilter));

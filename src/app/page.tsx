@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -26,7 +27,6 @@ export default function Home() {
     if (!db) return null;
     return query(
       collection(db, 'products'),
-      where('isPublished', '==', true),
       orderBy('createdAt', 'desc'),
       limit(20)
     );
