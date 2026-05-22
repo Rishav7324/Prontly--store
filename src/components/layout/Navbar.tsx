@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUser, useAuth } from '@/firebase';
@@ -20,10 +21,12 @@ import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '../store/CartDrawer';
 
 export function Navbar() {
-  const { user } = useUser();
+  const { user, role } = useUser();
   const auth = useAuth();
   const { getItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const isAdmin = role === 'admin' || role === 'super-admin';
 
   const handleSignOut = async () => {
     if (auth) {
@@ -53,11 +56,11 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="relative hidden lg:block w-64">
+              <div className="relative hidden lg:block w-48 xl:w-64">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input 
-                  placeholder="Search products..." 
-                  className="pl-9 bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary h-9"
+                  placeholder="Search assets..." 
+                  className="pl-9 bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary h-9 text-xs"
                 />
               </div>
               
@@ -87,23 +90,35 @@ export function Navbar() {
                   <DropdownMenuContent className="w-56 mt-2" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                        <p className="text-sm font-medium leading-none truncate">{user.displayName || 'Creator'}</p>
+                        <p className="text-[10px] leading-none text-muted-foreground truncate">{user.email}</p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer text-primary font-bold">
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          <span>Admin Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard" className="cursor-pointer">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
+                        <span>Library & History</span>
                       </Link>
                     </DropdownMenuItem>
+                    
                     <DropdownMenuItem asChild>
                       <Link href="/dashboard/settings" className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
+                        <Settings className="mr-2 h-4 w-4" />
                         <span>Profile Settings</span>
                       </Link>
                     </DropdownMenuItem>
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -112,12 +127,18 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link href="/login">
-                  <Button size="sm" className="hidden md:flex items-center gap-2 rounded-full px-5">
-                    <User className="h-4 w-4" />
-                    Sign In
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link href="/login" className="hidden sm:block">
+                    <Button variant="ghost" size="sm" className="rounded-full px-4">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button size="sm" className="rounded-full px-5 shadow-lg shadow-primary/20">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           </div>
