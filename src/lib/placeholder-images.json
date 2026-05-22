@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Abstract digital network landscape",
+      "imageUrl": "https://picsum.photos/seed/prontly-hero/1200/600",
+      "imageHint": "digital network"
+    },
+    {
+      "id": "product-1",
+      "description": "AI Prompt Engineering Guide",
+      "imageUrl": "https://picsum.photos/seed/prompt-guide/600/400",
+      "imageHint": "artificial intelligence"
+    },
+    {
+      "id": "product-2",
+      "description": "SaaS UI Dashboard Template",
+      "imageUrl": "https://picsum.photos/seed/saas-ui/600/400",
+      "imageHint": "ui design"
+    },
+    {
+      "id": "product-3",
+      "description": "Digital Marketing Masterclass",
+      "imageUrl": "https://picsum.photos/seed/marketing/600/400",
+      "imageHint": "digital marketing"
+    },
+    {
+      "id": "product-4",
+      "description": "React Component Library",
+      "imageUrl": "https://picsum.photos/seed/react-code/600/400",
+      "imageHint": "code programming"
+    },
+    {
+      "id": "avatar-1",
+      "description": "User profile avatar",
+      "imageUrl": "https://picsum.photos/seed/user1/100/100",
+      "imageHint": "person portrait"
+    }
+  ]
 }
