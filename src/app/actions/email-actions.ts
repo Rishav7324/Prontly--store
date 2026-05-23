@@ -123,43 +123,50 @@ export async function sendCustomPasswordResetEmail(email: string, resetLink: str
 }
 
 /**
- * 3. ORDER CONFIRMATION & PDF INVOICE
+ * 3. INVOICE PDF GENERATION (INTERNAL UTILITY)
+ */
+export async function generateInvoicePdf(order: any, settings?: any) {
+  const inv = settings?.invoiceSettings || {};
+  const docPdf = new jsPDF() as any;
+  const primaryColor = inv.color || BRAND_COLOR;
+
+  // PDF Generation Logic
+  docPdf.setFont('helvetica', 'bold');
+  docPdf.setFontSize(22);
+  docPdf.setTextColor(primaryColor);
+  docPdf.text(inv.businessName || 'PRONTLY STORE', 20, 30);
+  
+  docPdf.setFontSize(10);
+  docPdf.setTextColor(100);
+  docPdf.text('TAX INVOICE & RECEIPT', 20, 42);
+  docPdf.text(`ID: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
+  docPdf.text(`DATE: ${format(new Date(), 'dd MMM yyyy')}`, 140, 37);
+
+  const tableData = order.items.map((item: any) => [
+    item.productName,
+    item.quantity || 1,
+    `INR ${(item.price / 100).toLocaleString('en-IN')}`,
+    `INR ${((item.price * (item.quantity || 1)) / 100).toLocaleString('en-IN')}`
+  ]);
+
+  docPdf.autoTable({
+    startY: 60,
+    head: [['Product Asset', 'Qty', 'Unit Price', 'Total']],
+    body: tableData,
+    theme: 'striped',
+    headStyles: { fillColor: primaryColor },
+    margin: { left: 20, right: 20 }
+  });
+
+  return docPdf.output('datauristring').split(',')[1];
+}
+
+/**
+ * 4. ORDER CONFIRMATION EMAIL
  */
 export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   try {
-    const inv = settings?.invoiceSettings || {};
-    const docPdf = new jsPDF() as any;
-    const primaryColor = inv.color || BRAND_COLOR;
-
-    // PDF Generation Logic
-    docPdf.setFont('helvetica', 'bold');
-    docPdf.setFontSize(22);
-    docPdf.setTextColor(primaryColor);
-    docPdf.text(inv.businessName || 'PRONTLY STORE', 20, 30);
-    
-    docPdf.setFontSize(10);
-    docPdf.setTextColor(100);
-    docPdf.text('TAX INVOICE & RECEIPT', 20, 42);
-    docPdf.text(`ID: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
-    docPdf.text(`DATE: ${format(new Date(), 'dd MMM yyyy')}`, 140, 37);
-
-    const tableData = order.items.map((item: any) => [
-      item.productName,
-      item.quantity || 1,
-      `INR ${(item.price / 100).toLocaleString('en-IN')}`,
-      `INR ${((item.price * (item.quantity || 1)) / 100).toLocaleString('en-IN')}`
-    ]);
-
-    docPdf.autoTable({
-      startY: 60,
-      head: [['Product Asset', 'Qty', 'Unit Price', 'Total']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: primaryColor },
-      margin: { left: 20, right: 20 }
-    });
-
-    const pdfBase64 = docPdf.output('datauristring').split(',')[1];
+    const pdfBase64 = await generateInvoicePdf(order, settings);
 
     const html = emailWrapper(`
       <h1>Order Confirmed.</h1>
@@ -200,7 +207,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 }
 
 /**
- * 4. SECURITY ALERT
+ * 5. SECURITY ALERT
  */
 export async function sendSecurityAlertEmail(email: string, action: string) {
   try {
@@ -229,7 +236,7 @@ export async function sendSecurityAlertEmail(email: string, action: string) {
 }
 
 /**
- * 5. FAILED PAYMENT ALERT
+ * 6. FAILED PAYMENT ALERT
  */
 export async function sendFailedPaymentEmail(email: string, amount: number) {
   try {
