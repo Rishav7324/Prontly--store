@@ -82,11 +82,17 @@ export default function AdminNewsletter() {
     const emails = subscribers.map(s => s.email);
     
     try {
+      // Sanitize settings for Server Action
+      const plainEmailSettings = settings?.emailSettings ? {
+        fromEmail: settings.emailSettings.fromEmail,
+        senderName: settings.emailSettings.senderName
+      } : undefined;
+
       const res = await sendNewsletterCampaign({
         templateId: broadcastData.templateId,
         subject: broadcastData.subject || "Newsletter Update from Prontly",
         recipients: emails,
-        sender: settings?.emailSettings
+        sender: plainEmailSettings
       });
 
       if (res.success) {

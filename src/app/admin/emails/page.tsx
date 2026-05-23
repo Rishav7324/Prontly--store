@@ -195,12 +195,20 @@ export default function AdminEmailsPage() {
       return;
     }
     setIsTesting(true);
+
+    // Sanitize settings for Server Action
+    const plainEmailSettings = settings?.emailSettings ? {
+      fromEmail: settings.emailSettings.fromEmail,
+      senderName: settings.emailSettings.senderName
+    } : undefined;
+
     const res = await sendTestEmail({
       to: testEmail,
       subject: 'Prontly Template Test',
       templateId,
-      sender: settings?.emailSettings
+      sender: plainEmailSettings
     });
+
     if (res.success) {
       toast({ title: "Test Sent", description: `Check ${testEmail}` });
     } else {

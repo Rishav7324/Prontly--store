@@ -132,8 +132,23 @@ export default function CheckoutPage() {
 
       analytics.purchase({ id: docRef.id, ...orderData });
       
-      // Trigger Email Confirmation
-      sendOrderConfirmationEmail({ id: docRef.id, ...orderData }, settings);
+      // Trigger Email Confirmation - Sanitize objects for Server Action
+      const plainOrder = {
+        id: docRef.id,
+        userName: formData.name,
+        userEmail: formData.email,
+        items: orderData.items,
+        subtotal: orderData.subtotal,
+        discount: orderData.discount,
+        total: orderData.total,
+      };
+
+      const plainSettings = settings ? {
+        emailSettings: settings.emailSettings || null,
+        invoiceSettings: settings.invoiceSettings || null
+      } : null;
+
+      sendOrderConfirmationEmail(plainOrder, plainSettings);
 
       setIsSuccess(true);
       clearCart();

@@ -31,8 +31,11 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordResetEmail(auth, email);
       
-      // Send branded notification via Resend (Non-blocking)
-      sendResendResetEmail(email, settings);
+      // Send branded notification via Resend (Non-blocking) - Sanitize settings for Server Action
+      const plainSettings = settings ? {
+        emailSettings: settings.emailSettings || null
+      } : null;
+      sendResendResetEmail(email, plainSettings);
 
       setSent(true);
       toast({ title: "Email Sent", description: "Check your inbox for password reset instructions." });

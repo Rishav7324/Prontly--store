@@ -65,8 +65,11 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       });
 
-      // Send Welcome Email (Non-blocking)
-      sendWelcomeEmail(formData.email, formData.name, settings);
+      // Send Welcome Email (Non-blocking) - Sanitize settings for Server Action
+      const plainSettings = settings ? {
+        emailSettings: settings.emailSettings || null
+      } : null;
+      sendWelcomeEmail(formData.email, formData.name, plainSettings);
 
       toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
       router.push('/dashboard');
@@ -101,7 +104,10 @@ export default function SignupPage() {
 
       // Send Welcome Email (Non-blocking)
       if (user.email && user.displayName) {
-        sendWelcomeEmail(user.email, user.displayName, settings);
+        const plainSettings = settings ? {
+          emailSettings: settings.emailSettings || null
+        } : null;
+        sendWelcomeEmail(user.email, user.displayName, plainSettings);
       }
 
       router.push('/dashboard');
