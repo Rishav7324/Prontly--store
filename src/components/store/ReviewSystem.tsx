@@ -2,13 +2,12 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Star, 
   MessageSquare, 
@@ -17,8 +16,6 @@ import {
   CheckCircle2, 
   X, 
   Quote,
-  ChevronLeft,
-  ChevronRight,
   Sparkles,
   Filter
 } from 'lucide-react';
@@ -33,6 +30,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface ReviewSystemProps {
   productId: string;
@@ -51,44 +50,56 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
     Autoplay({ delay: 4000, stopOnInteraction: true })
   );
 
+  // Simplified query to avoid composite index requirement
   const reviewsQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !productId) return null;
     return query(
       collection(db, 'reviews'),
-      where('productId', '==', productId),
-      where('isApproved', '==', true),
-      orderBy('createdAt', 'desc')
+      where('productId', '==', productId)
     );
   }, [db, productId]);
 
   const { data: allReviews, loading } = useCollection(reviewsQuery);
 
+  // Client-side processing for sorting and filtering
+  const processedReviews = useMemo(() => {
+    if (!allReviews) return [];
+    
+    // 1. Filter by approval and star filter
+    let result = allReviews.filter(r => r.isApproved !== false);
+    if (starFilter !== null) {
+      result = result.filter(r => r.rating === starFilter);
+    }
+
+    // 2. Sort by date (descending)
+    return result.sort((a: any, b: any) => {
+      const dateA = a.createdAt?.toMillis?.() || 0;
+      const dateB = b.createdAt?.toMillis?.() || 0;
+      return dateB - dateA;
+    });
+  }, [allReviews, starFilter]);
+
   // Stats calculation
   const stats = useMemo(() => {
     if (!allReviews || allReviews.length === 0) return { avg: 0, count: 0, distribution: [0, 0, 0, 0, 0] };
     
-    const count = allReviews.length;
-    const distribution = [0, 0, 0, 0, 0]; // index 0=1star, 4=5star
+    const approvedReviews = allReviews.filter(r => r.isApproved !== false);
+    const count = approvedReviews.length;
+    const distribution = [0, 0, 0, 0, 0];
     let totalSum = 0;
 
-    allReviews.forEach(r => {
+    approvedReviews.forEach(r => {
       totalSum += r.rating;
       const index = Math.min(Math.max(1, r.rating), 5) - 1;
       distribution[index]++;
     });
 
     return {
-      avg: (totalSum / count).toFixed(1),
+      avg: count > 0 ? (totalSum / count).toFixed(1) : 0,
       count,
-      distribution: [...distribution].reverse() // [5, 4, 3, 2, 1]
+      distribution: [...distribution].reverse()
     };
   }, [allReviews]);
-
-  const filteredReviews = useMemo(() => {
-    if (!allReviews) return [];
-    if (starFilter === null) return allReviews;
-    return allReviews.filter(r => r.rating === starFilter);
-  }, [allReviews, starFilter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,37 +114,39 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
     }
 
     setIsSubmitting(true);
-    try {
-      await addDoc(collection(db, 'reviews'), {
-        productId,
-        userId: user.uid,
-        userName: user.displayName || 'Verified User',
-        userAvatar: user.photoURL || '',
-        rating,
-        comment,
-        isApproved: true,
-        createdAt: serverTimestamp()
+    const reviewData = {
+      productId,
+      productName,
+      userId: user.uid,
+      userName: user.displayName || 'Verified User',
+      userAvatar: user.photoURL || '',
+      rating,
+      comment,
+      isApproved: true,
+      createdAt: serverTimestamp()
+    };
+
+    addDoc(collection(db, 'reviews'), reviewData)
+      .then(() => {
+        setComment('');
+        setRating(5);
+        toast({ title: "Review Shared", description: `Thank you for reviewing ${productName}!` });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'reviews',
+          operation: 'create',
+          requestResourceData: reviewData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-
-      // Optimistically update product counters if possible
-      const productRef = doc(db, 'products', productId);
-      updateDoc(productRef, {
-        reviewCount: increment(1)
-      }).catch(() => {}); // Non-blocking
-
-      setComment('');
-      setRating(5);
-      toast({ title: "Review Shared", description: `Thank you for reviewing ${productName}!` });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Could not post review." });
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
     <div className="space-y-20">
-      {/* 1. Review Summary Dashboard */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-4 space-y-8">
           <div className="space-y-4">
@@ -247,8 +260,7 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
         </div>
       </section>
 
-      {/* 2. Spotlight Carousel */}
-      {allReviews && allReviews.length > 0 && (
+      {processedReviews.length > 0 && (
         <section className="space-y-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -273,7 +285,7 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
             }}
           >
             <CarouselContent className="-ml-6">
-              {allReviews.map((review: any) => (
+              {processedReviews.slice(0, 10).map((review: any) => (
                 <CarouselItem key={review.id} className="pl-6 md:basis-1/2 lg:basis-1/3">
                   <Card className="h-full bg-card/60 backdrop-blur-md border-white/5 rounded-[2.5rem] p-10 space-y-8 transition-all hover:bg-card/80 hover:border-primary/30 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -314,7 +326,6 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
         </section>
       )}
 
-      {/* 3. Detailed Community Feed */}
       <section className="space-y-10 pt-10 border-t border-white/5">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
@@ -361,9 +372,9 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
               <Card key={i} className="h-48 w-full animate-pulse bg-muted rounded-[2.5rem]" />
             ))}
           </div>
-        ) : filteredReviews.length > 0 ? (
+        ) : processedReviews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredReviews.map((review: any) => (
+            {processedReviews.map((review: any) => (
               <div 
                 key={review.id} 
                 className="p-8 rounded-[2.5rem] border border-white/5 bg-card/30 space-y-6 transition-all hover:bg-card/50 hover:border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-500"

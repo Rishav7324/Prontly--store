@@ -1,12 +1,11 @@
-
 'use client';
 
 import { useMemo } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { Card, CardContent } from '@/components/ui/card';
+import { collection, query, where, limit } from 'firebase/firestore';
+import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Star, Quote, Heart, Sparkles, ShoppingBag } from 'lucide-react';
@@ -17,18 +16,27 @@ import Link from 'next/link';
 export default function TestimonialsPage() {
   const db = useFirestore();
 
+  // Simplified query to avoid composite index requirements
   const testimonialsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
       collection(db, 'reviews'),
       where('rating', '>=', 4),
-      orderBy('rating', 'desc'),
-      orderBy('createdAt', 'desc'),
-      limit(50)
+      limit(100)
     );
   }, [db]);
 
-  const { data: reviews, loading } = useCollection(testimonialsQuery);
+  const { data: allReviews, loading } = useCollection(testimonialsQuery);
+
+  // Client-side sorting for better reliability without manual indexes
+  const sortedReviews = useMemo(() => {
+    if (!allReviews) return [];
+    return [...allReviews].sort((a: any, b: any) => {
+      const dateA = a.createdAt?.toMillis?.() || 0;
+      const dateB = b.createdAt?.toMillis?.() || 0;
+      return dateB - dateA;
+    }).slice(0, 50);
+  }, [allReviews]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -54,9 +62,9 @@ export default function TestimonialsPage() {
               <div key={i} className="h-60 w-full bg-muted animate-pulse rounded-[2.5rem]" />
             ))}
           </div>
-        ) : reviews && reviews.length > 0 ? (
+        ) : sortedReviews.length > 0 ? (
           <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {reviews.map((review: any) => (
+            {sortedReviews.map((review: any) => (
               <Card 
                 key={review.id} 
                 className="break-inside-avoid bg-card/40 border-white/5 rounded-[2.5rem] p-8 transition-all hover:border-primary/20 hover:bg-card/60 group"
