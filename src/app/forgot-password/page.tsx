@@ -31,9 +31,10 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordResetEmail(auth, email);
       
-      // Send branded notification via Resend (Non-blocking) - Sanitize settings for Server Action
+      // Send branded notification via SMTP (Non-blocking)
       const plainSettings = settings ? {
-        emailSettings: settings.emailSettings || null
+        emailSettings: settings.emailSettings,
+        smtpConfig: settings.smtpConfig
       } : null;
       sendResendResetEmail(email, plainSettings);
 

@@ -65,9 +65,10 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       });
 
-      // Send Welcome Email (Non-blocking) - Sanitize settings for Server Action
+      // Send Welcome Email (Non-blocking)
       const plainSettings = settings ? {
-        emailSettings: settings.emailSettings || null
+        emailSettings: settings.emailSettings,
+        smtpConfig: settings.smtpConfig
       } : null;
       sendWelcomeEmail(formData.email, formData.name, plainSettings);
 
@@ -105,7 +106,8 @@ export default function SignupPage() {
       // Send Welcome Email (Non-blocking)
       if (user.email && user.displayName) {
         const plainSettings = settings ? {
-          emailSettings: settings.emailSettings || null
+          emailSettings: settings.emailSettings,
+          smtpConfig: settings.smtpConfig
         } : null;
         sendWelcomeEmail(user.email, user.displayName, plainSettings);
       }

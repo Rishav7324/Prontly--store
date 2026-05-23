@@ -215,11 +215,9 @@ export default function CheckoutPage() {
       };
 
       const plainSettings = settings ? {
-        emailSettings: {
-          fromEmail: settings.emailSettings?.fromEmail,
-          senderName: settings.emailSettings?.senderName
-        },
-        invoiceSettings: settings.invoiceSettings
+        emailSettings: settings.emailSettings,
+        invoiceSettings: settings.invoiceSettings,
+        smtpConfig: settings.smtpConfig
       } : null;
 
       sendOrderConfirmationEmail(plainOrder, plainSettings);

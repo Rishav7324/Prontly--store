@@ -66,13 +66,19 @@ const emailWrapper = (content: string, preheader: string) => `
 function getTransporter(settings?: any) {
   const smtp = settings?.smtpConfig || {};
   
+  // Use settings if provided, otherwise fallback to env
+  const host = smtp.host || process.env.SMTP_HOST || 'smtp.zoho.in';
+  const port = parseInt(smtp.port || process.env.SMTP_PORT || '465');
+  const user = smtp.user || process.env.SMTP_USER || 'store.support@prontly.in';
+  const pass = smtp.pass || process.env.SMTP_PASS;
+
   return nodemailer.createTransport({
-    host: smtp.host || process.env.SMTP_HOST || 'smtp.zoho.in',
-    port: parseInt(smtp.port || process.env.SMTP_PORT || '465'),
+    host,
+    port,
     secure: smtp.secure !== undefined ? smtp.secure : true,
     auth: {
-      user: smtp.user || process.env.SMTP_USER || 'store.support@prontly.in',
-      pass: smtp.pass || process.env.SMTP_PASS || process.env.RESEND_API_KEY,
+      user,
+      pass,
     },
   });
 }
@@ -243,7 +249,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     return { success: true };
   } catch (error) {
     console.error('Order email failed:', error);
-    return { success: false };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -275,7 +281,7 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
     return { success: true };
   } catch (error) {
     console.error('Welcome email failed:', error);
-    return { success: false };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -304,7 +310,9 @@ export async function sendPasswordResetEmail(email: string, settings?: any) {
       subject: 'Security Alert: Password Reset',
       html,
     });
-  } catch (e) {
-    console.error('Reset notification failed:', e);
+    return { success: true };
+  } catch (error) {
+    console.error('Reset notification failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
