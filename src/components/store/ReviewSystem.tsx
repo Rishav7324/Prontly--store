@@ -22,6 +22,7 @@ import {
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 import {
   Carousel,
   CarouselContent,
