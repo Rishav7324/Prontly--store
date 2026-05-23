@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -9,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Download, Package, ExternalLink, Settings, LogOut, LayoutDashboard, ShoppingBag, Loader2, Sparkles, Activity, Clock, FileCode } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useUser, useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, doc, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { format } from 'date-fns';
@@ -23,22 +24,29 @@ export default function Dashboard() {
   const auth = useAuth();
   const db = useFirestore();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const ordersQuery = useMemo(() => {
+  // Use useMemoFirebase to stabilize the query
+  // IMPORTANT: Removed orderBy('createdAt', 'desc') to avoid composite index requirement
+  // Sorting is now handled on the client side for better reliability
+  const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
       collection(db, 'orders'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [db, user]);
 
-  const { data: orders, loading: ordersLoading } = useCollection(ordersQuery);
+  const { data: rawOrders, loading: ordersLoading } = useCollection(ordersQuery);
+
+  // Client-side sorting for orders
+  const orders = useMemo(() => {
+    if (!rawOrders) return [];
+    return [...rawOrders].sort((a: any, b: any) => {
+      const dateA = a.createdAt?.toMillis?.() || 0;
+      const dateB = b.createdAt?.toMillis?.() || 0;
+      return dateB - dateA;
+    });
+  }, [rawOrders]);
 
   const handleSignOut = async () => {
     if (auth) await signOut(auth);
@@ -124,7 +132,7 @@ export default function Dashboard() {
               <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
                 <Sparkles className="h-24 w-24 text-primary" />
               </div>
-              <h3 className="font-bold text-lg mb-1">{profile?.displayName || 'Creator'}</h3>
+              <h3 className="font-bold text-lg mb-1">{profile?.displayName || user.displayName || 'Creator'}</h3>
               <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">{profile?.role || 'Member'}</p>
               <div className="mt-8 pt-8 border-t border-white/5 space-y-2">
                 <Button variant="secondary" className="w-full justify-start gap-4 h-12 rounded-xl bg-primary/10 text-primary hover:bg-primary/20">
