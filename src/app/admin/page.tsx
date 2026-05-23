@@ -16,7 +16,9 @@ import {
   Ticket,
   Star,
   Activity,
-  Loader2
+  Loader2,
+  History,
+  ShieldCheck
 } from "lucide-react";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
@@ -40,6 +42,7 @@ import {
   Tooltip, 
   ResponsiveContainer,
 } from 'recharts';
+import { format } from 'date-fns';
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -51,8 +54,14 @@ export default function AdminDashboard() {
   const productsQuery = useMemoFirebase(() => db ? query(collection(db, 'products'), orderBy('salesCount', 'desc'), limit(5)) : null, [db]);
   const { data: topProducts, loading: productsLoading } = useCollection(productsQuery);
 
+  const allProductsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
+  const { data: allProducts } = useCollection(allProductsQuery);
+
   const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
   const { data: users } = useCollection(usersQuery);
+
+  const logsQuery = useMemoFirebase(() => db ? query(collection(db, 'admin_logs'), orderBy('timestamp', 'desc'), limit(5)) : null, [db]);
+  const { data: adminLogs, loading: logsLoading } = useCollection(logsQuery);
 
   // Dynamic Stats Calculation
   const calculatedStats = useMemo(() => {
@@ -65,16 +74,15 @@ export default function AdminDashboard() {
       revenue: totalRev,
       orders: recentOrders.length,
       users: users?.length || 0,
-      products: topProducts?.length || 0
+      products: allProducts?.length || 0
     };
-  }, [recentOrders, users, topProducts]);
+  }, [recentOrders, users, allProducts]);
 
-  // Mock trend logic based on current counts (can be further advanced by fetching last month's stats)
   const stats = [
     { name: 'Total Revenue', value: `₹${calculatedStats.revenue.toLocaleString('en-IN')}`, trend: '+12.5%', isUp: true, icon: TrendingUp },
     { name: 'Active Users', value: calculatedStats.users.toString(), trend: '+5.2%', isUp: true, icon: UsersIcon },
     { name: 'Total Orders', value: calculatedStats.orders.toString(), trend: '+2.1%', isUp: true, icon: OrderIcon },
-    { name: 'Live Products', value: '...', trend: 'New', isUp: true, icon: ProductIcon },
+    { name: 'Live Products', value: calculatedStats.products.toString(), trend: 'Active', isUp: true, icon: ProductIcon },
   ];
 
   const chartData = [
@@ -191,6 +199,49 @@ export default function AdminDashboard() {
 
         <div className="space-y-6">
           <Card className="border-white/5 bg-card/30">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">System Activity</CardTitle>
+              <History className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {logsLoading ? (
+                [...Array(3)].map((_, i) => <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-xl" />)
+              ) : adminLogs && adminLogs.length > 0 ? (
+                adminLogs.map((log: any) => (
+                  <div key={log.id} className="flex items-start gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group">
+                    <div className={cn(
+                      "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
+                      log.action === 'CREATE' ? "bg-green-500/10 text-green-500" : 
+                      log.action === 'DELETE' ? "bg-destructive/10 text-destructive" : 
+                      "bg-primary/10 text-primary"
+                    )}>
+                      <ShieldCheck className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold leading-none truncate">
+                        {log.action} {log.resourceType}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-1 truncate">
+                        {log.details?.name || log.resourceId}
+                      </p>
+                      <p className="text-[8px] text-muted-foreground/60 uppercase font-mono mt-0.5">
+                        {log.timestamp ? format(new Date(log.timestamp.toDate()), 'HH:mm • MMM dd') : 'Just now'}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-10 opacity-30">
+                  <p className="text-xs">No recent actions.</p>
+                </div>
+              )}
+              <Button variant="ghost" size="sm" className="w-full text-[10px] uppercase font-bold tracking-widest h-8" asChild>
+                <Link href="/admin/logs">Full Audit Log</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Top Sellers</CardTitle>
             </CardHeader>
@@ -214,32 +265,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-primary/5 border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
-              <Button variant="outline" size="sm" className="justify-start gap-3 rounded-xl" asChild>
-                <Link href="/admin/settings">
-                  <Star className="h-4 w-4" />
-                  Feature Products
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="justify-start gap-3 rounded-xl" asChild>
-                <Link href="/admin/coupons">
-                  <Ticket className="h-4 w-4" />
-                  Active Coupons
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" className="justify-start gap-3 rounded-xl" asChild>
-                <Link href="/admin/blog">
-                  <FileText className="h-4 w-4" />
-                  Write Article
-                </Link>
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -302,4 +327,8 @@ export default function AdminDashboard() {
       </Card>
     </div>
   );
+}
+
+function cn(...classes: any[]) {
+  return classes.filter(Boolean).join(' ');
 }

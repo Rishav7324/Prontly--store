@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,8 @@ import {
   Clock,
   XCircle,
   Download,
-  ArrowUpRight
+  ArrowUpRight,
+  Loader2
 } from 'lucide-react';
 import {
   Table,
@@ -37,10 +38,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { generateInvoicePdf } from '@/app/actions/email-actions';
+import { toast } from '@/hooks/use-toast';
 
 export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const db = useFirestore();
   
   const ordersQuery = useMemoFirebase(() => {
@@ -48,6 +52,9 @@ export default function AdminOrders() {
   }, [db]);
 
   const { data: orders, loading } = useCollection(ordersQuery);
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const filteredOrders = orders?.filter(order => {
     const matchesSearch = 
@@ -64,6 +71,38 @@ export default function AdminOrders() {
     if (!db) return;
     const ref = doc(db, 'orders', id);
     await updateDoc(ref, { status: newStatus });
+    toast({ title: "Status Updated", description: `Order ${id.slice(-6)} set to ${newStatus}.` });
+  };
+
+  const handleDownloadInvoice = async (order: any) => {
+    setDownloadingId(order.id);
+    try {
+      const plainOrder = {
+        id: order.id,
+        userName: order.userName,
+        userEmail: order.userEmail,
+        items: order.items,
+        subtotal: order.subtotal,
+        discount: order.discount,
+        total: order.total
+      };
+
+      const plainSettings = settings ? {
+        invoiceSettings: settings.invoiceSettings || {}
+      } : null;
+
+      const pdfBase64 = await generateInvoicePdf(plainOrder, plainSettings);
+      
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${pdfBase64}`;
+      link.download = `invoice-${order.id.slice(-8)}.pdf`;
+      link.click();
+      toast({ title: "Invoice Generated" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Download Error" });
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -182,21 +221,21 @@ export default function AdminOrders() {
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuLabel>Order Management</DropdownMenuLabel>
                           <DropdownMenuItem asChild>
-                            <Link href={`/admin/orders/${order.id}`}>
+                            <Link href={`/admin/orders/${order.id}`} className="cursor-pointer">
                               <Eye className="mr-2 h-4 w-4" />
                               Inspect Details
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Download className="mr-2 h-4 w-4" />
+                          <DropdownMenuItem onClick={() => handleDownloadInvoice(order)} disabled={downloadingId === order.id} className="cursor-pointer">
+                            {downloadingId === order.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                             Download Invoice
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'paid')}>
+                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'paid')} className="cursor-pointer">
                             <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
                             Mark as Paid
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'refunded')} className="text-destructive">
+                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'refunded')} className="text-destructive cursor-pointer">
                             <XCircle className="mr-2 h-4 w-4" />
                             Refund Order
                           </DropdownMenuItem>

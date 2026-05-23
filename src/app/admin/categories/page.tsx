@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,11 +36,13 @@ import {
 } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { logAdminAction } from '@/lib/admin-logs';
 
 export default function AdminCategories() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const { user } = useUser();
   const db = useFirestore();
   
   const categoriesQuery = useMemoFirebase(() => {
@@ -62,13 +64,18 @@ export default function AdminCategories() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!db || !user) return;
 
     if (editingCategory) {
       const ref = doc(db, 'categories', editingCategory.id);
       updateDoc(ref, {
         ...formData,
         updatedAt: serverTimestamp()
+      }).then(() => {
+        logAdminAction({
+          db, adminId: user.uid, adminEmail: user.email!,
+          action: 'UPDATE', resourceType: 'CATEGORY', resourceId: editingCategory.id, details: { name: formData.name }
+        });
       }).catch(async () => {
         const permissionError = new FirestorePermissionError({
           path: ref.path,
@@ -84,6 +91,11 @@ export default function AdminCategories() {
         isActive: true,
         productCount: 0,
         createdAt: serverTimestamp()
+      }).then((docRef) => {
+        logAdminAction({
+          db, adminId: user.uid, adminEmail: user.email!,
+          action: 'CREATE', resourceType: 'CATEGORY', resourceId: docRef.id, details: { name: formData.name }
+        });
       }).catch(async () => {
         const permissionError = new FirestorePermissionError({
           path: 'categories',
@@ -99,10 +111,15 @@ export default function AdminCategories() {
     setFormData({ name: '', slug: '', iconEmoji: '📦', description: '' });
   };
 
-  const handleDelete = async (id: string) => {
-    if (!db || !confirm('Are you sure you want to delete this category?')) return;
+  const handleDelete = async (id: string, name: string) => {
+    if (!db || !user || !confirm('Are you sure you want to delete this category?')) return;
     const ref = doc(db, 'categories', id);
-    deleteDoc(ref).catch(async () => {
+    deleteDoc(ref).then(() => {
+      logAdminAction({
+        db, adminId: user.uid, adminEmail: user.email!,
+        action: 'DELETE', resourceType: 'CATEGORY', resourceId: id, details: { name }
+      });
+    }).catch(async () => {
       const permissionError = new FirestorePermissionError({
         path: ref.path,
         operation: 'delete',
@@ -235,7 +252,7 @@ export default function AdminCategories() {
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(category.id)}>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(category.id, category.name)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
