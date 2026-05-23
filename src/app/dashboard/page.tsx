@@ -202,7 +202,11 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Member Since</span>
-                  <span className="font-medium">{profile?.createdAt ? format(new Date(profile.createdAt), 'MMM yyyy') : 'Recently'}</span>
+                  <span className="font-medium">
+                    {profile?.createdAt 
+                      ? format(profile.createdAt.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt), 'MMM yyyy') 
+                      : 'Recently'}
+                  </span>
                 </div>
               </div>
             </Card>

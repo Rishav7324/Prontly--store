@@ -184,7 +184,11 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                 </div>
                 <div>
                   <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Member Since</p>
-                  <p className="text-sm font-bold">{profile.createdAt ? format(new Date(profile.createdAt), 'MMMM yyyy') : 'Recently'}</p>
+                  <p className="text-sm font-bold">
+                    {profile.createdAt 
+                      ? format(profile.createdAt.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt), 'MMMM yyyy') 
+                      : 'Recently'}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-5">
