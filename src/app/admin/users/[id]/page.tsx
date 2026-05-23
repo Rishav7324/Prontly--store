@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useMemo } from 'react';
-import { useDoc, useFirestore, useCollection } from '@/firebase';
+import { use, useMemo, useState, useEffect } from 'react';
+import { useDoc, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,21 +15,50 @@ import {
   Calendar, 
   TrendingUp, 
   ShieldCheck, 
-  Star, 
   Sparkles, 
   ArrowUpRight,
   User as UserIcon,
-  Phone
+  Phone,
+  Send,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { listTemplates, sendTestEmail } from '@/app/actions/resend-actions';
+import { toast } from '@/hooks/use-toast';
 
 export default function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const db = useFirestore();
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
 
-  const userRef = useMemo(() => (db ? doc(db, 'users', id) : null), [db, id]);
+  const userRef = useMemoFirebase(() => (db ? doc(db, 'users', id) : null), [db, id]);
   const { data: profile, loading: userLoading } = useDoc(userRef);
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   const ordersQuery = useMemo(() => {
     if (!db || !id) return null;
@@ -47,6 +76,44 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
     };
   }, [orders]);
 
+  useEffect(() => {
+    if (isEmailModalOpen) {
+      const fetchTemplates = async () => {
+        setLoadingTemplates(true);
+        const res = await listTemplates();
+        if (res.success) setTemplates(res.data);
+        setLoadingTemplates(false);
+      };
+      fetchTemplates();
+    }
+  }, [isEmailModalOpen]);
+
+  const handleSendEmail = async () => {
+    if (!selectedTemplateId || !profile?.email) return;
+    setIsSending(true);
+
+    // Sanitize settings for Server Action
+    const plainEmailSettings = settings?.emailSettings ? {
+      fromEmail: settings.emailSettings.fromEmail,
+      senderName: settings.emailSettings.senderName
+    } : undefined;
+
+    const res = await sendTestEmail({
+      to: profile.email,
+      subject: `Update from ${settings?.siteName || 'Prontly Store'}`,
+      templateId: selectedTemplateId,
+      sender: plainEmailSettings
+    });
+
+    if (res.success) {
+      toast({ title: "Email Dispatched", description: `Template sent to ${profile.email}` });
+      setIsEmailModalOpen(false);
+    } else {
+      toast({ variant: "destructive", title: "Dispatch Failed", description: res.error });
+    }
+    setIsSending(false);
+  };
+
   if (userLoading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
   }
@@ -62,20 +129,71 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-12">
-      <header className="flex items-center gap-6">
-        <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/5 h-14 w-14">
-          <Link href="/admin/users"><ChevronLeft className="h-6 w-6" /></Link>
-        </Button>
+      <header className="flex items-center justify-between gap-6">
         <div className="flex items-center gap-6">
-          <Avatar className="h-20 w-20 border-4 border-primary/20 shadow-2xl">
-            <AvatarImage src={profile.photoURL} />
-            <AvatarFallback className="text-2xl font-bold text-primary bg-primary/10">{profile.displayName?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-4xl font-bold font-headline">{profile.displayName || 'Anonymous User'}</h1>
-            <p className="text-muted-foreground text-lg">{profile.email}</p>
+          <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/5 h-14 w-14">
+            <Link href="/admin/users"><ChevronLeft className="h-6 w-6" /></Link>
+          </Button>
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20 border-4 border-primary/20 shadow-2xl">
+              <AvatarImage src={profile.photoURL} />
+              <AvatarFallback className="text-2xl font-bold text-primary bg-primary/10">{profile.displayName?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-4xl font-bold font-headline">{profile.displayName || 'Anonymous User'}</h1>
+              <p className="text-muted-foreground text-lg">{profile.email}</p>
+            </div>
           </div>
         </div>
+
+        <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+          <DialogTrigger asChild>
+            <Button size="lg" className="h-14 px-8 rounded-2xl gap-3 font-bold shadow-xl shadow-primary/20">
+              <Mail className="h-5 w-5" />
+              Send Outreach Email
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Template Outreach</DialogTitle>
+              <DialogDescription>Send a pre-designed template from your verified sender: <strong>{settings?.emailSettings?.fromEmail || 'System Default'}</strong></DialogDescription>
+            </DialogHeader>
+            <div className="py-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Select Template</label>
+                <Select onValueChange={setSelectedTemplateId} value={selectedTemplateId}>
+                  <SelectTrigger className="h-12 bg-muted/30 rounded-xl">
+                    <SelectValue placeholder={loadingTemplates ? "Fetching templates..." : "Choose a message template"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {!settings?.emailSettings?.fromEmail && (
+                <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-start gap-3">
+                  <AlertCircle className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-yellow-500/90 leading-relaxed">
+                    Custom sender not configured. This will be sent from <strong>support@store.prontly.in</strong>. Verify your domain in Admin Settings.
+                  </p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button 
+                onClick={handleSendEmail} 
+                disabled={isSending || !selectedTemplateId} 
+                className="w-full h-12 rounded-xl"
+              >
+                {isSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                Dispatch to Customer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -216,7 +334,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             <div className="pt-10 mt-10 border-t border-white/5">
               <Button className="w-full h-14 rounded-2xl gap-3 font-bold text-lg" variant="outline" asChild>
                 <a href={`mailto:${profile.email}`}>
-                  <Mail className="h-5 w-5" /> Outreach Member
+                  <ExternalLink className="h-5 w-5" /> Launch Mail Client
                 </a>
               </Button>
             </div>

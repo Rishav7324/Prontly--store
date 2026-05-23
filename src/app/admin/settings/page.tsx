@@ -26,7 +26,8 @@ import {
   ImageIcon,
   CreditCard,
   Sparkles,
-  Type
+  Type,
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -350,14 +351,17 @@ export default function AdminSettings() {
         <TabsContent value="email" className="space-y-6">
           <Card className="rounded-[2rem] border-white/5 bg-card/30">
             <CardHeader>
-              <CardTitle>Resend Sender Details</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                Resend Sender Details
+              </CardTitle>
               <CardDescription>Configure how your automated emails appear in customer inboxes.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>Friendly Sender Name</Label>
-                  <Input id="senderName" value={formData.emailSettings?.senderName || ''} onChange={handleEmailChange} className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="senderName" value={formData.emailSettings?.senderName || ''} onChange={handleEmailChange} placeholder="Prontly Support" className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
                   <Label>Verified From Address</Label>
@@ -366,9 +370,10 @@ export default function AdminSettings() {
               </div>
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
                 <AlertCircle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Ensure the <strong>"From Address"</strong> is fully verified in your Resend dashboard. Unverified domains will block all transactional email delivery.
-                </p>
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p><strong>Crucial Step:</strong> The <strong>"From Address"</strong> must be fully verified in your <a href="https://resend.com/domains" target="_blank" className="text-primary underline">Resend Dashboard</a>.</p>
+                  <p>If you use an unverified domain, Resend will block all transactional email delivery (Welcome emails, Receipts, etc.).</p>
+                </div>
               </div>
             </CardContent>
           </Card>
