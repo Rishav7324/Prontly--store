@@ -44,7 +44,7 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
     });
     toast({
       title: "Added to cart",
-      description: `${title} has been added to your shopping cart.`,
+      description: `${title} is ready for checkout.`,
     });
   };
 
@@ -55,7 +55,12 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
     const isAdded = !isInWishlist(id);
     toast({
       title: isAdded ? "Added to wishlist" : "Removed from wishlist",
-      description: isAdded ? `${title} saved for later.` : `${title} removed.`,
+      description: isAdded ? (
+        <div className="flex flex-col gap-2">
+          <span>{title} saved for later.</span>
+          <Link href="/wishlist" className="text-xs font-bold underline text-primary">View Wishlist</Link>
+        </div>
+      ) : `${title} removed.`,
     });
   };
 

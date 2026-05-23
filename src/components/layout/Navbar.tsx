@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck, ArrowRight, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
 import { CartDrawer } from '../store/CartDrawer';
 import { doc } from 'firebase/firestore';
 
@@ -27,6 +28,7 @@ export function Navbar() {
   const db = useFirestore();
   const router = useRouter();
   const { getItemCount } = useCart();
+  const { itemIds } = useWishlist();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -55,6 +57,7 @@ export function Navbar() {
   };
 
   const cartItemCount = mounted ? getItemCount() : 0;
+  const wishlistCount = mounted ? itemIds.length : 0;
 
   return (
     <>
@@ -107,18 +110,27 @@ export function Navbar() {
                 />
               </form>
               
-              <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => setIsCartOpen(true)}>
-                <ShoppingCart className="h-5 w-5" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white ring-2 ring-background">
-                    {cartItemCount}
-                  </span>
-                )}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-red-500/10 hover:text-red-500" asChild>
+                  <Link href="/wishlist">
+                    <Heart className="h-5 w-5" />
+                    {wishlistCount > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-background">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                </Button>
 
-              <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 rounded-full">
-                <Menu className="h-5 w-5" />
-              </Button>
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary" onClick={() => setIsCartOpen(true)}>
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white ring-2 ring-background">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </Button>
+              </div>
 
               {user ? (
                 <DropdownMenu>

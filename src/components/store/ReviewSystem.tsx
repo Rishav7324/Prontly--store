@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -50,7 +50,6 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
     Autoplay({ delay: 4000, stopOnInteraction: true })
   );
 
-  // Simplified query to avoid composite index requirement
   const reviewsQuery = useMemoFirebase(() => {
     if (!db || !productId) return null;
     return query(
@@ -61,17 +60,12 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
 
   const { data: allReviews, loading } = useCollection(reviewsQuery);
 
-  // Client-side processing for sorting and filtering
   const processedReviews = useMemo(() => {
     if (!allReviews) return [];
-    
-    // 1. Filter by approval and star filter
     let result = allReviews.filter(r => r.isApproved !== false);
     if (starFilter !== null) {
       result = result.filter(r => r.rating === starFilter);
     }
-
-    // 2. Sort by date (descending)
     return result.sort((a: any, b: any) => {
       const dateA = a.createdAt?.toMillis?.() || 0;
       const dateB = b.createdAt?.toMillis?.() || 0;
@@ -79,10 +73,8 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
     });
   }, [allReviews, starFilter]);
 
-  // Stats calculation
   const stats = useMemo(() => {
     if (!allReviews || allReviews.length === 0) return { avg: 0, count: 0, distribution: [0, 0, 0, 0, 0] };
-    
     const approvedReviews = allReviews.filter(r => r.isApproved !== false);
     const count = approvedReviews.length;
     const distribution = [0, 0, 0, 0, 0];
@@ -126,23 +118,43 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
       createdAt: serverTimestamp()
     };
 
-    addDoc(collection(db, 'reviews'), reviewData)
-      .then(() => {
-        setComment('');
-        setRating(5);
-        toast({ title: "Review Shared", description: `Thank you for reviewing ${productName}!` });
-      })
-      .catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: 'reviews',
-          operation: 'create',
-          requestResourceData: reviewData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+    try {
+      // 1. Add Review Doc
+      await addDoc(collection(db, 'reviews'), reviewData);
+
+      // 2. Sync Stats to Product Doc
+      const productRef = doc(db, 'products', productId);
+      const productSnap = await getDoc(productRef);
+      
+      if (productSnap.exists()) {
+        const prodData = productSnap.data();
+        const currentCount = prodData.reviewCount || 0;
+        const currentAvg = prodData.averageRating || 5.0;
+        
+        // Recalculate rolling average
+        const newCount = currentCount + 1;
+        const newAvg = Number(((currentAvg * currentCount + rating) / newCount).toFixed(1));
+
+        await updateDoc(productRef, {
+          reviewCount: newCount,
+          averageRating: newAvg,
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      setComment('');
+      setRating(5);
+      toast({ title: "Review Shared", description: `Thank you for reviewing ${productName}!` });
+    } catch (serverError: any) {
+      const permissionError = new FirestorePermissionError({
+        path: 'reviews',
+        operation: 'create',
+        requestResourceData: reviewData,
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -253,7 +265,7 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
                 <p className="text-muted-foreground font-medium">Have you used this asset? Sign in to share your thoughts with the community.</p>
               </div>
               <Button size="lg" className="rounded-full px-12" asChild>
-                <a href="/login">Sign In to Review</a>
+                <Link href="/login">Sign In to Review</Link>
               </Button>
             </Card>
           )}
