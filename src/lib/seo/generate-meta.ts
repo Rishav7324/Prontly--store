@@ -8,10 +8,12 @@ interface GenerateMetaProps {
   path: string;
   image?: string;
   noIndex?: boolean;
+  type?: 'website' | 'article' | 'product';
 }
 
 /**
- * Generates standardized Next.js Metadata objects for Prontly Store pages.
+ * Generates production-grade SEO Metadata for Prontly Store.
+ * Integrates OpenGraph, Twitter Cards, and Canonical URLs.
  */
 export function generateMeta({
   title,
@@ -19,10 +21,17 @@ export function generateMeta({
   path,
   image,
   noIndex = false,
+  type = 'website',
 }: GenerateMetaProps): Metadata {
   const fullTitle = `${title} | Prontly Store`.slice(0, 60);
   const canonical = `${SITE_URL}${path}`;
-  const defaultOg = `${SITE_URL}/og-default.png`; // Fallback branded OG image
+  
+  // Use dynamic OG generator if no specific image is provided
+  const dynamicOgUrl = new URL(`${SITE_URL}/api/og`);
+  dynamicOgUrl.searchParams.set('title', title);
+  dynamicOgUrl.searchParams.set('type', type);
+  
+  const ogImageUrl = image || dynamicOgUrl.toString();
 
   return {
     title: fullTitle,
@@ -41,21 +50,22 @@ export function generateMeta({
       siteName: 'Prontly Store',
       images: [
         {
-          url: image || defaultOg,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: title,
         },
       ],
       locale: 'en_US',
-      type: 'website',
+      type: type,
     },
     twitter: {
       card: 'summary_large_image',
       title: fullTitle,
       description,
       site: '@prontly',
-      images: [image || defaultOg],
+      creator: '@prontly',
+      images: [ogImageUrl],
     },
   };
 }

@@ -5,10 +5,36 @@ import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+
 export const metadata: Metadata = {
-  title: 'Prontly Store | Premium Digital Marketplace',
+  title: {
+    default: 'Prontly Store | Premium Digital Marketplace',
+    template: '%s | Prontly Store'
+  },
   description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in'),
+  metadataBase: new URL(SITE_URL),
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: SITE_URL,
+    siteName: 'Prontly Store',
+    images: [
+      {
+        url: '/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: 'Prontly Store'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Prontly Store',
+    description: 'Premium Digital Asset Marketplace',
+    images: ['/og-default.png'],
+    creator: '@prontly'
+  }
 };
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-MKC3EVCGSH';
