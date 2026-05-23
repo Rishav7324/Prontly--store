@@ -73,24 +73,22 @@ const ProductHeader = ({ product, isWishlisted, onToggleWishlist }: any) => (
         <Heart className={cn("h-5 w-5", isWishlisted && "fill-current")} />
       </Button>
     </div>
-    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline leading-tight">{product.name}</h1>
+    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-headline leading-tight">{product.name}</h1>
   </div>
 );
 
 /**
  * --- SUB-COMPONENT: Visuals ---
- * Supports multiple images with thumbnail navigation
  */
 const ProductVisuals = ({ product }: { product: any }) => {
   const images = product.images || ['https://picsum.photos/seed/placeholder/1200/1200'];
   const [selectedImage, setSelectedImage] = useState(images[0]);
 
-  // Update selected image if product data changes
   useEffect(() => {
     if (images.length > 0) {
       setSelectedImage(images[0]);
     }
-  }, [product.id]);
+  }, [product.id, images]);
 
   return (
     <div className="space-y-6">
@@ -207,7 +205,7 @@ const TechnicalTabs = ({ product }: { product: any }) => (
  */
 const PurchaseSidebar = ({ product, onBuyNow, onAddToCart }: any) => (
   <div className="sticky top-28 space-y-6">
-    <Card className="p-6 border-white/5 bg-card/30 backdrop-blur-xl rounded-[2rem] shadow-2xl overflow-hidden relative group">
+    <Card className="p-6 border-white/5 bg-card/30 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden relative group">
       <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
         <ShoppingCart className="h-24 w-24" />
       </div>
@@ -346,7 +344,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       <main className="container mx-auto px-4 py-12 flex-1">
         <ProductBreadcrumbs name={product.name} />
 
-        {/* TOP SECTION: Visuals + Action Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20">
           <div className="lg:col-span-8">
             <ProductHeader 
@@ -366,7 +363,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {/* FULL WIDTH: Description (Shifted after buttons) */}
         <section className="mb-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <div className="lg:col-span-8">
@@ -378,12 +374,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
         </section>
 
-        {/* FULL WIDTH: Review System */}
         <section className="py-20 border-t border-white/5">
           <ReviewSystem productId={id} productName={product.name} />
         </section>
 
-        {/* FULL WIDTH: Suggested Products */}
         {suggestedProducts.length > 0 && (
           <section className="space-y-10 border-t border-white/5 pt-20">
             <div className="flex items-center justify-between">
