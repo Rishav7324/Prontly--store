@@ -25,7 +25,8 @@ import {
   FileText,
   Palette,
   AlertCircle,
-  Megaphone
+  Megaphone,
+  ImageIcon
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -56,7 +57,7 @@ export default function AdminSettings() {
       address: '',
       color: '#5b52d6',
       footerText: 'Thank you for choosing Prontly Store.',
-      logoUrl: ''
+      logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
     }
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -81,7 +82,7 @@ export default function AdminSettings() {
           address: '',
           color: '#5b52d6',
           footerText: 'Thank you for choosing Prontly Store.',
-          logoUrl: ''
+          logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
         }
       });
     }
@@ -104,6 +105,22 @@ export default function AdminSettings() {
     setFormData(prev => ({
       ...prev,
       announcementBar: { ...prev.announcementBar, [id]: value }
+    }));
+  };
+
+  const handleInvoiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      invoiceSettings: { ...prev.invoiceSettings, [id]: value }
+    }));
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      emailSettings: { ...prev.emailSettings, [id]: value }
     }));
   };
 
@@ -246,12 +263,51 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="email" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sender Configuration</CardTitle>
+              <CardDescription>Customizing your Resend outgoing mail details.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="senderName">Sender Display Name</Label>
+                  <Input id="senderName" value={formData.emailSettings?.senderName || ''} onChange={handleEmailChange} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="fromEmail">Verified From Email</Label>
+                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="hello@yourdomain.com" />
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+                <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong>Important:</strong> The "From Email" must be a verified domain within your Resend dashboard. Using an unverified address will result in failed delivery.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="invoicing" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Invoice Template Settings</CardTitle>
+              <CardDescription>Configure the dynamic PDF invoices sent to customers.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label htmlFor="logoUrl">Invoice Logo URL</Label>
+                <div className="flex items-center gap-4">
+                  <Input id="logoUrl" value={formData.invoiceSettings?.logoUrl || ''} onChange={handleInvoiceChange} placeholder="https://..." />
+                  {formData.invoiceSettings?.logoUrl && (
+                    <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center p-1 overflow-hidden">
+                      <img src={formData.invoiceSettings.logoUrl} alt="Logo" className="object-contain" />
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="businessName">Registered Business Name</Label>
@@ -267,7 +323,11 @@ export default function AdminSettings() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="address">Business Address</Label>
-                <Textarea id="address" value={formData.invoiceSettings?.address || ''} onChange={handleInvoiceChange} className="h-20" />
+                <Textarea id="address" value={formData.invoiceSettings?.address || ''} onChange={handleInvoiceChange} className="h-24" placeholder="Full address including tax IDs..." />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="footerText">Invoice Footer Legal Text</Label>
+                <Input id="footerText" value={formData.invoiceSettings?.footerText || ''} onChange={handleInvoiceChange} />
               </div>
             </CardContent>
           </Card>
@@ -275,8 +335,4 @@ export default function AdminSettings() {
       </Tabs>
     </div>
   );
-}
-
-function handleInvoiceChange(e: any): void {
-  throw new Error('Function not implemented.');
 }

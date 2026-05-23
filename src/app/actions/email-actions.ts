@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BRAND_COLOR = '#5b52d6';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+const DEFAULT_LOGO = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico';
 
 /**
  * Common HTML wrapper for premium email look.
@@ -61,10 +62,24 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   const margin = 20;
   const primaryColor = inv.color || BRAND_COLOR;
   
-  // Header
-  docPdf.setFontSize(22);
-  docPdf.setTextColor(primaryColor);
-  docPdf.text(inv.businessName || 'PRONTLY STORE', margin, 30);
+  // Header with Logo
+  const logoUrl = inv.logoUrl || DEFAULT_LOGO;
+  try {
+    const response = await fetch(logoUrl);
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    // Try to add as PNG/ICO - jsPDF usually handles base64 string well
+    docPdf.addImage(base64, 'PNG', margin, 15, 12, 12);
+    
+    docPdf.setFontSize(22);
+    docPdf.setTextColor(primaryColor);
+    docPdf.text(inv.businessName || 'PRONTLY STORE', margin + 15, 25);
+  } catch (e) {
+    // Fallback if image fails
+    docPdf.setFontSize(22);
+    docPdf.setTextColor(primaryColor);
+    docPdf.text(inv.businessName || 'PRONTLY STORE', margin, 30);
+  }
   
   docPdf.setFontSize(9);
   docPdf.setTextColor(100);
@@ -96,9 +111,10 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   ]);
 
   // Convert Hex to RGB for AutoTable
-  const r = parseInt(primaryColor.slice(1, 3), 16);
-  const g = parseInt(primaryColor.slice(3, 5), 16);
-  const b = parseInt(primaryColor.slice(5, 7), 16);
+  const hex = primaryColor.replace('#', '');
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
 
   docPdf.autoTable({
     startY: 100,
