@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,13 +14,34 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Upload, Trash2, Image as ImageIcon, File as FileIcon, Sparkles, Search, Wand2, CheckCircle2 } from 'lucide-react';
+import { 
+  Loader2, 
+  Upload, 
+  Trash2, 
+  Image as ImageIcon, 
+  File as FileIcon, 
+  Sparkles, 
+  Search, 
+  Wand2, 
+  CheckCircle2,
+  Camera
+} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFileAction } from '@/app/actions/r2-actions';
 import { logAdminAction } from '@/lib/admin-logs';
 import { generateProductCopy } from '@/ai/flows/generate-product-copy';
+import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 interface ProductFormProps {
   initialData?: any;
@@ -34,7 +54,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   const { user } = useUser();
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [isAiImageModalOpen, setIsAiImageModalOpen] = useState(false);
+  const [aiImagePrompt, setAiImagePrompt] = useState('');
 
   const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
 
@@ -61,7 +84,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     }
   });
 
-  // Sync state if initialData arrives late
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -102,40 +124,9 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     }));
   };
 
-  const optimizeImage = (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.createElement('img');
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const MAX_WIDTH = 1920;
-          if (width > MAX_WIDTH) {
-            height = (MAX_WIDTH / width) * height;
-            width = MAX_WIDTH;
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Canvas conversion failed'));
-          }, 'image/webp', 0.85);
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleAiGenerate = async () => {
     if (!formData.name) {
-      toast({ variant: "destructive", title: "Name Required", description: "Enter a product name to help AI generate content." });
+      toast({ variant: "destructive", title: "Name Required", description: "Enter a product name first." });
       return;
     }
     setIsGenerating(true);
@@ -156,11 +147,45 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           description: result.shortDescription
         }
       }));
-      toast({ title: "AI Generation Complete", description: "Description and metadata have been updated." });
+      toast({ title: "AI Generation Complete" });
     } catch (error) {
-      toast({ variant: "destructive", title: "AI Error", description: "Failed to generate product copy." });
+      toast({ variant: "destructive", title: "AI Error" });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateAiImage = async () => {
+    if (!aiImagePrompt || !formData.slug) return;
+    setIsGeneratingImage(true);
+    try {
+      const { imageUrl } = await generateProductImage({ prompt: aiImagePrompt });
+      
+      // Convert data URI to File object for R2 upload
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const suffix = Math.random().toString(36).substring(2, 6);
+      const fileName = `product/${formData.slug}/ai-gen-${suffix}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('key', fileName);
+
+      const result = await uploadFileAction(uploadFormData);
+
+      if (result.success) {
+        setFormData(prev => ({ ...prev, images: [...prev.images, result.url!] }));
+        toast({ title: "AI Image Generated", description: "Visual has been added to your gallery." });
+        setIsAiImageModalOpen(false);
+        setAiImagePrompt('');
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "AI Image Failed", description: error.message });
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -169,21 +194,19 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     if (!file) return;
 
     if (!formData.slug) {
-      toast({ variant: "destructive", title: "Slug Required", description: "Please set a product name/slug before uploading assets." });
+      toast({ variant: "destructive", title: "Slug Required" });
       return;
     }
 
     const fileId = Math.random().toString(36).substring(7);
     let fileName = "";
-    let finalBlob: Blob | File = file;
 
     try {
       setUploadProgress(prev => ({ ...prev, [fileId]: 20 }));
 
       if (type === 'image') {
-        finalBlob = await optimizeImage(file);
         const suffix = Math.random().toString(36).substring(2, 6);
-        fileName = `product/${formData.slug}/gallery-${suffix}.webp`;
+        fileName = `product/${formData.slug}/gallery-${suffix}.${file.name.split('.').pop()}`;
       } else {
         const ext = file.name.split('.').pop();
         fileName = `product/${formData.slug}/source-${Date.now()}.${ext}`;
@@ -192,7 +215,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       setUploadProgress(prev => ({ ...prev, [fileId]: 50 }));
 
       const uploadFormData = new FormData();
-      uploadFormData.append('file', finalBlob, fileName);
+      uploadFormData.append('file', file);
       uploadFormData.append('key', fileName);
 
       const result = await uploadFileAction(uploadFormData);
@@ -208,12 +231,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             fileFormat: file.name.split('.').pop()?.toUpperCase() || ''
           }));
         }
-        toast({ title: "Sync Success", description: `${file.name} is now stored securely.` });
-      } else {
-        toast({ variant: "destructive", title: "Sync Error", description: result.error });
+        toast({ title: "File Synced" });
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Process Failed", description: error.message || "An unexpected error occurred." });
+      toast({ variant: "destructive", title: "Upload Failed" });
     } finally {
       setUploadProgress(prev => {
         const newProgress = { ...prev };
@@ -243,11 +264,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       };
 
       if (id) {
-        await setDoc(doc(db, 'products', id), {
-          ...productData,
-          createdAt: initialData?.createdAt || serverTimestamp()
-        }, { merge: true });
-
+        await setDoc(doc(db, 'products', id), productData, { merge: true });
         await logAdminAction({
           db, adminId: user.uid, adminEmail: user.email!,
           action: 'UPDATE', resourceType: 'PRODUCT', resourceId: id, details: { name: formData.name }
@@ -267,10 +284,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         });
       }
 
-      toast({ title: "Success", description: id ? "Product updated." : "Product launched." });
+      toast({ title: "Product Saved" });
       router.push('/admin/products');
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to save product database record." });
+      toast({ variant: "destructive", title: "Error Saving Product" });
     } finally {
       setIsSaving(false);
     }
@@ -281,16 +298,16 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       <div className="lg:col-span-2 space-y-8">
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="bg-muted/50 p-1 mb-6">
-            <TabsTrigger value="content" className="gap-2"><ImageIcon className="h-4 w-4" /> Content & Media</TabsTrigger>
-            <TabsTrigger value="seo" className="gap-2"><Search className="h-4 w-4" /> SEO Optimization</TabsTrigger>
+            <TabsTrigger value="content" className="gap-2"><ImageIcon className="h-4 w-4" /> Content</TabsTrigger>
+            <TabsTrigger value="seo" className="gap-2"><Search className="h-4 w-4" /> SEO</TabsTrigger>
           </TabsList>
 
           <TabsContent value="content" className="space-y-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Visual identity and primary descriptions.</CardDescription>
+                  <CardTitle>Basic Details</CardTitle>
+                  <CardDescription>Product identity and story.</CardDescription>
                 </div>
                 <Button 
                   type="button" 
@@ -301,98 +318,114 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                   disabled={isGenerating}
                 >
                   {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                  AI Assistant
+                  AI Copy
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Product Name</Label>
-                  <Input id="name" value={formData.name} onChange={handleNameChange} required placeholder="e.g. Premium UI Design System" />
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" value={formData.name} onChange={handleNameChange} required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="slug">URL Slug</Label>
-                  <Input id="slug" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} required placeholder="premium-ui-design-system" />
+                  <Label htmlFor="shortDescription">Short Summary</Label>
+                  <Input id="shortDescription" value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="shortDescription">Short Description</Label>
-                  <Input id="shortDescription" value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} placeholder="Punchy one-liner for listing pages" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Product Narrative</Label>
+                  <Label>Detailed Description</Label>
                   <RichTextEditor 
                     content={formData.description} 
                     onChange={(content) => setFormData({...formData, description: content})} 
-                    placeholder="Go deep into features, benefits, and specifications..."
                   />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Assets & Media</CardTitle>
-                <CardDescription>Gallery images and digital fulfillment files.</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Gallery & Fulfillment</CardTitle>
+                  <CardDescription>Visuals and the actual asset file.</CardDescription>
+                </div>
+                
+                <Dialog open={isAiImageModalOpen} onOpenChange={setIsAiImageModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      size="sm" 
+                      className="gap-2 bg-primary/10 text-primary border-primary/20"
+                      disabled={!formData.slug}
+                    >
+                      <Camera className="h-4 w-4" />
+                      AI Designer
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>AI Product Visualization</DialogTitle>
+                      <DialogDescription>Describe the product visual you want to generate. We'll optimize it for high-end photography.</DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                      <div className="grid gap-2">
+                        <Label>Visual Description</Label>
+                        <Textarea 
+                          placeholder="e.g. A sleek dark-themed SaaS dashboard on a premium laptop screen with soft purple neon lighting"
+                          value={aiImagePrompt}
+                          onChange={(e) => setAiImagePrompt(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={handleGenerateAiImage} disabled={isGeneratingImage || !aiImagePrompt} className="w-full">
+                        {isGeneratingImage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                        Generate & Upload
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Product Gallery (4:5 or 16:9)</Label>
-                    <Badge variant="outline" className="text-[10px]">Optimized to WebP automatically</Badge>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {formData.images.map((img, i) => (
-                      <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden border group bg-muted">
-                        <Image src={img} alt="Preview" fill className="object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button 
-                            type="button" 
-                            onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
-                            className="bg-destructive text-white p-2 rounded-full hover:scale-110 transition-transform"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        {i === 0 && <Badge className="absolute top-2 left-2 bg-primary shadow-lg">Thumbnail</Badge>}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {formData.images.map((img, i) => (
+                    <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden border group bg-muted">
+                      <Image src={img} alt="Preview" fill className="object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                          className="bg-destructive text-white p-2 rounded-full"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
-                    ))}
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted transition-colors border-white/5 bg-white/5">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-[10px] text-muted-foreground font-medium text-center px-2">Upload Photo</span>
-                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
-                    </label>
-                  </div>
+                    </div>
+                  ))}
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg aspect-[4/5] cursor-pointer hover:bg-muted border-white/5 bg-white/5">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                    <span className="text-[10px] text-muted-foreground">Upload Image</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
+                  </label>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Source File (Secure ZIP/PDF)</Label>
-                    {formData.fileKey && <Badge variant="outline" className="text-green-500 border-green-500/20"><CheckCircle2 className="h-3 w-3 mr-1" /> Payload Linked</Badge>}
-                  </div>
+                <div className="space-y-2">
+                  <Label>Source File (Secure Storage)</Label>
                   <div className="flex items-center gap-4">
-                    <div className="flex-1 relative">
-                      <FileIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        value={formData.fileKey} 
-                        readOnly 
-                        placeholder="No asset linked yet" 
-                        className="bg-muted pl-9 text-[10px] opacity-60 font-mono"
-                      />
-                    </div>
-                    <Button type="button" variant="outline" className="relative overflow-hidden shrink-0 h-10">
+                    <Input value={formData.fileKey} readOnly placeholder="No file linked" className="bg-muted font-mono text-xs" />
+                    <Button type="button" variant="outline" className="relative shrink-0">
                       <Upload className="h-4 w-4 mr-2" />
-                      Browse Files
+                      Browse
                       <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'file')} />
                     </Button>
                   </div>
                 </div>
 
                 {Object.keys(uploadProgress).map(id => (
-                  <div key={id} className="space-y-1 animate-in fade-in">
-                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-primary">
-                      <span>Syncing with storage provider...</span>
+                  <div key={id} className="space-y-1">
+                    <div className="flex justify-between text-[10px] uppercase font-bold text-primary">
+                      <span>Uploading...</span>
                       <span>{uploadProgress[id]}%</span>
                     </div>
-                    <Progress value={uploadProgress[id]} className="h-1 bg-primary/20" />
+                    <Progress value={uploadProgress[id]} className="h-1" />
                   </div>
                 ))}
               </CardContent>
@@ -402,37 +435,16 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           <TabsContent value="seo" className="space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle>Search Optimization</CardTitle>
-                <CardDescription>How search engines see this product.</CardDescription>
+                <CardTitle>SEO Optimization</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
                   <Label htmlFor="seoTitle">Meta Title</Label>
-                  <Input 
-                    id="seoTitle" 
-                    value={formData.seo.title} 
-                    onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} 
-                    placeholder="Focus Keyword | Brand Name"
-                  />
+                  <Input id="seoTitle" value={formData.seo.title} onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="seoDesc">Meta Description</Label>
-                  <Textarea 
-                    id="seoDesc" 
-                    value={formData.seo.description} 
-                    onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} 
-                    placeholder="Catchy snippet for Google results..."
-                    className="resize-none h-24"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="seoKeywords">LSI Keywords</Label>
-                  <Input 
-                    id="seoKeywords" 
-                    value={formData.seo.keywords} 
-                    onChange={(e) => setFormData({...formData, seo: {...formData.seo, keywords: e.target.value}})} 
-                    placeholder="ui kit, design system, figma template"
-                  />
+                  <Textarea id="seoDesc" value={formData.seo.description} onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} />
                 </div>
               </CardContent>
             </Card>
@@ -442,16 +454,12 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
       <div className="space-y-8">
         <Card>
-          <CardHeader>
-            <CardTitle>Categorization</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Pricing & Section</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="category">Store Section</Label>
+              <Label>Store Category</Label>
               <Select value={formData.categoryId} onValueChange={(val) => setFormData({...formData, categoryId: val})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select section" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {categories?.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -460,40 +468,16 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="tags">Discovery Tags</Label>
-              <Input id="tags" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} placeholder="design, react, toolkit" />
+              <Label>Price (INR)</Label>
+              <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Financials</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="price">Sales Price (INR)</Label>
-              <Input id="price" type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="comparePrice">List Price (Strikethrough)</Label>
-              <Input id="comparePrice" type="number" step="0.01" value={formData.compareAtPrice} onChange={(e) => setFormData({...formData, compareAtPrice: Number(e.target.value)})} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="featured" checked={formData.isFeatured} onCheckedChange={(checked) => setFormData({...formData, isFeatured: !!checked})} />
-              <Label htmlFor="featured" className="cursor-pointer">Homepage Featured</Label>
-            </div>
-            <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isSaving}>
-              {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5 mr-2" />}
-              {id ? 'Sync Updates' : 'Launch Asset'}
-            </Button>
-          </CardContent>
-        </Card>
+        <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={isSaving}>
+          {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5 mr-2" />}
+          {id ? 'Update Product' : 'Launch Product'}
+        </Button>
       </div>
     </form>
   );
