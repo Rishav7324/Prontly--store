@@ -35,6 +35,10 @@ export function generateMeta({
   // Platforms prefer absolute URLs for images
   const ogImageUrl = image?.startsWith('http') ? image : dynamicOgUrl.toString();
 
+  // Next.js Metadata validation only allows specific OGP types. 
+  // 'product' is mapped to 'website' to prevent runtime errors.
+  const ogType = type === 'article' ? 'article' : 'website';
+
   return {
     title: fullTitle,
     description: description.slice(0, 160),
@@ -59,7 +63,7 @@ export function generateMeta({
         },
       ],
       locale: 'en_US',
-      type: type,
+      type: ogType,
     },
     twitter: {
       card: 'summary_large_image',
