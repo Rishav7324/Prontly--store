@@ -192,7 +192,7 @@ export default function AdminSettings() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Announcement Banner</CardTitle>
+                  <CardTitle>Announcement Bar</CardTitle>
                   <CardDescription>Visual call-to-action at the top of every page.</CardDescription>
                 </div>
                 <Switch 
@@ -263,7 +263,7 @@ export default function AdminSettings() {
                 <AlertCircle className="h-6 w-6 text-accent shrink-0 mt-0.5" />
                 <div className="text-sm text-muted-foreground space-y-2">
                   <p><strong>Note:</strong> Your <code>RAZORPAY_KEY_SECRET</code> must be set in your server environment variables (e.g. <code>.env</code>) for verification to work.</p>
-                  <p>You can find these in the Razorpay Dashboard under <code>Settings > API Keys</code>.</p>
+                  <p>You can find these in the Razorpay Dashboard under <code>Settings &gt; API Keys</code>.</p>
                 </div>
               </div>
             </CardContent>
