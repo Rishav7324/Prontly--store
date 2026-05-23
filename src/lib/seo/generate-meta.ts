@@ -1,3 +1,4 @@
+
 import { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
@@ -13,7 +14,7 @@ interface GenerateMetaProps {
 
 /**
  * Generates production-grade SEO Metadata for Prontly Store.
- * Integrates OpenGraph, Twitter Cards, and Canonical URLs.
+ * Integrates OpenGraph, Twitter Cards, and dynamic Edge-generated images.
  */
 export function generateMeta({
   title,
@@ -26,12 +27,13 @@ export function generateMeta({
   const fullTitle = `${title} | Prontly Store`.slice(0, 60);
   const canonical = `${SITE_URL}${path}`;
   
-  // Use dynamic OG generator if no specific image is provided
+  // Use our dynamic OG generator if no direct image is provided or for consistent branding
   const dynamicOgUrl = new URL(`${SITE_URL}/api/og`);
   dynamicOgUrl.searchParams.set('title', title);
-  dynamicOgUrl.searchParams.set('type', type);
+  dynamicOgUrl.searchParams.set('type', type === 'product' ? 'Digital Asset' : 'Article');
   
-  const ogImageUrl = image || dynamicOgUrl.toString();
+  // Platforms prefer absolute URLs for images
+  const ogImageUrl = image?.startsWith('http') ? image : dynamicOgUrl.toString();
 
   return {
     title: fullTitle,
@@ -45,7 +47,7 @@ export function generateMeta({
       : { index: true, follow: true, googleBot: { index: true, follow: true } },
     openGraph: {
       title: fullTitle,
-      description,
+      description: description.slice(0, 160),
       url: canonical,
       siteName: 'Prontly Store',
       images: [
@@ -62,7 +64,7 @@ export function generateMeta({
     twitter: {
       card: 'summary_large_image',
       title: fullTitle,
-      description,
+      description: description.slice(0, 160),
       site: '@prontly',
       creator: '@prontly',
       images: [ogImageUrl],
