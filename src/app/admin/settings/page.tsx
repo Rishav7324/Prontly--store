@@ -24,7 +24,9 @@ import {
   AlertCircle,
   Megaphone,
   ImageIcon,
-  CreditCard
+  CreditCard,
+  Sparkles,
+  Type
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -48,6 +50,12 @@ export default function AdminSettings() {
       backgroundColor: '#5b52d6',
       textColor: '#ffffff'
     },
+    homepageHeroCopy: {
+      headline: "Master the Future with Expert Digital Assets",
+      subheadline: "Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.",
+      badge: "New: GPT-4o Optimized Prompts Now Available!"
+    },
+    featuredProductIds: [],
     emailSettings: {
       fromEmail: 'support@store.prontly.in',
       senderName: 'Prontly Store'
@@ -61,6 +69,7 @@ export default function AdminSettings() {
     }
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [featuredIdsInput, setFeaturedIdsInput] = useState('');
 
   useEffect(() => {
     if (settings) {
@@ -73,6 +82,12 @@ export default function AdminSettings() {
           backgroundColor: '#5b52d6',
           textColor: '#ffffff'
         },
+        homepageHeroCopy: settings.homepageHeroCopy || {
+          headline: "Master the Future with Expert Digital Assets",
+          subheadline: "Unlock high-performance AI prompts, UI kits, and professional guides.",
+          badge: "New: GPT-4o Optimized Prompts Now Available!"
+        },
+        featuredProductIds: settings.featuredProductIds || [],
         emailSettings: settings.emailSettings || {
           fromEmail: 'support@store.prontly.in',
           senderName: 'Prontly Store'
@@ -85,12 +100,21 @@ export default function AdminSettings() {
           logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
         }
       });
+      setFeaturedIdsInput(settings.featuredProductIds?.join(', ') || '');
     }
   }, [settings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleHeroChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      homepageHeroCopy: { ...prev.homepageHeroCopy, [id]: value }
+    }));
   };
 
   const handleToggleAnnouncement = (checked: boolean) => {
@@ -128,12 +152,15 @@ export default function AdminSettings() {
     if (!db) return;
     setIsSaving(true);
     try {
+      const finalFeaturedIds = featuredIdsInput.split(',').map(id => id.trim()).filter(id => id);
+      
       await setDoc(doc(db, 'site_settings', 'main'), {
         ...formData,
+        featuredProductIds: finalFeaturedIds,
         updatedAt: serverTimestamp(),
       }, { merge: true });
       
-      toast({ title: "Settings Updated" });
+      toast({ title: "Settings Updated", description: "Global configuration has been deployed." });
     } catch (error) {
       toast({ variant: "destructive", title: "Save Failed" });
     } finally {
@@ -142,7 +169,7 @@ export default function AdminSettings() {
   };
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
   }
 
   return (
@@ -161,6 +188,7 @@ export default function AdminSettings() {
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto h-auto flex flex-nowrap rounded-2xl">
           <TabsTrigger value="general" className="gap-2 px-6 py-3 rounded-xl"><Globe className="h-4 w-4" /> General</TabsTrigger>
+          <TabsTrigger value="homepage" className="gap-2 px-6 py-3 rounded-xl"><Home className="h-4 w-4" /> Homepage</TabsTrigger>
           <TabsTrigger value="marketing" className="gap-2 px-6 py-3 rounded-xl"><Megaphone className="h-4 w-4" /> Growth</TabsTrigger>
           <TabsTrigger value="payments" className="gap-2 px-6 py-3 rounded-xl"><CreditCard className="h-4 w-4" /> Payments</TabsTrigger>
           <TabsTrigger value="email" className="gap-2 px-6 py-3 rounded-xl"><Mail className="h-4 w-4" /> Sender</TabsTrigger>
@@ -182,6 +210,55 @@ export default function AdminSettings() {
               <div className="grid gap-2">
                 <Label htmlFor="logoUrl">Public Logo URL</Label>
                 <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="h-12 bg-background/50 rounded-xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="homepage" className="space-y-6">
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Type className="h-5 w-5 text-primary" />
+                Hero Content
+              </CardTitle>
+              <CardDescription>Customize the primary headline and value proposition on your landing page.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label htmlFor="headline">Main Headline</Label>
+                <Input id="headline" value={formData.homepageHeroCopy?.headline || ''} onChange={handleHeroChange} className="h-12 bg-background/50 rounded-xl" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="subheadline">Hero Sub-headline</Label>
+                <Textarea id="subheadline" value={formData.homepageHeroCopy?.subheadline || ''} onChange={handleHeroChange} className="bg-background/50 rounded-xl min-h-[80px]" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="badge">Animated Badge Text</Label>
+                <Input id="badge" value={formData.homepageHeroCopy?.badge || ''} onChange={handleHeroChange} className="h-12 bg-background/50 rounded-xl" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500" />
+                Featured Selection
+              </CardTitle>
+              <CardDescription>List product IDs (comma-separated) to display them in the Trending section.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2">
+                <Label htmlFor="featuredIds">Featured Product IDs</Label>
+                <Input 
+                  id="featuredIds" 
+                  value={featuredIdsInput} 
+                  onChange={(e) => setFeaturedIdsInput(e.target.value)} 
+                  placeholder="e.g. prod_123, prod_456, prod_789"
+                  className="h-12 bg-background/50 rounded-xl font-mono text-xs" 
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">Leave empty to show the most recent products automatically.</p>
               </div>
             </CardContent>
           </Card>

@@ -83,7 +83,7 @@ export default function AdminAnalytics() {
       
       return {
         month: format(monthDate, 'MMM'),
-        revenue: monthOrders.reduce((sum, o) => sum + (o.total || 0), 0) / 100,
+        revenue: Math.round(monthOrders.reduce((sum, o) => sum + (o.total || 0), 0) / 100),
         orders: monthOrders.length
       };
     });
@@ -91,11 +91,34 @@ export default function AdminAnalytics() {
 
   const categoryMix = useMemo(() => {
     if (!orders) return [];
-    return [
+    
+    // In a real app, you'd iterate through line items
+    // For this MVP analytics, we derive mix from category slugs found in recent orders
+    const counts: Record<string, number> = {};
+    orders.forEach(o => {
+      o.items?.forEach((item: any) => {
+        const cat = item.category || 'Digital Asset';
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+    });
+
+    const sorted = Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 3);
+
+    // Fallback if no orders
+    if (sorted.length === 0) return [
       { name: 'AI Prompts', value: 45 },
       { name: 'UI Systems', value: 30 },
       { name: 'Guides', value: 25 },
     ];
+
+    const totalItems = sorted.reduce((sum, s) => sum + s.value, 0);
+    return sorted.map(s => ({
+      name: s.name,
+      value: Math.round((s.value / totalItems) * 100)
+    }));
   }, [orders]);
 
   return (

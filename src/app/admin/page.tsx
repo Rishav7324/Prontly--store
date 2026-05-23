@@ -42,13 +42,14 @@ import {
   Tooltip, 
   ResponsiveContainer,
 } from 'recharts';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const db = useFirestore();
   
   // Fetch real data for stats
-  const ordersQuery = useMemoFirebase(() => db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100)) : null, [db]);
+  const ordersQuery = useMemoFirebase(() => db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(500)) : null, [db]);
   const { data: recentOrders, loading: ordersLoading } = useCollection(ordersQuery);
 
   const productsQuery = useMemoFirebase(() => db ? query(collection(db, 'products'), orderBy('salesCount', 'desc'), limit(5)) : null, [db]);
@@ -78,21 +79,41 @@ export default function AdminDashboard() {
     };
   }, [recentOrders, users, allProducts]);
 
+  // Real Daily Revenue Logic
+  const chartData = useMemo(() => {
+    if (!recentOrders) return [];
+    
+    // Last 7 days
+    const last7Days = Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return format(d, 'eee');
+    }).reverse();
+
+    const dailyRevenueMap = last7Days.reduce((acc, day) => {
+      acc[day] = 0;
+      return acc;
+    }, {} as any);
+
+    recentOrders.filter(o => o.status === 'paid').forEach(order => {
+      const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+      const day = format(date, 'eee');
+      if (dailyRevenueMap[day] !== undefined) {
+        dailyRevenueMap[day] += (order.total || 0) / 100;
+      }
+    });
+
+    return last7Days.map(day => ({
+      name: day,
+      revenue: Math.round(dailyRevenueMap[day])
+    }));
+  }, [recentOrders]);
+
   const stats = [
     { name: 'Total Revenue', value: `₹${calculatedStats.revenue.toLocaleString('en-IN')}`, trend: '+12.5%', isUp: true, icon: TrendingUp },
     { name: 'Active Users', value: calculatedStats.users.toString(), trend: '+5.2%', isUp: true, icon: UsersIcon },
     { name: 'Total Orders', value: calculatedStats.orders.toString(), trend: '+2.1%', isUp: true, icon: OrderIcon },
     { name: 'Live Products', value: calculatedStats.products.toString(), trend: 'Active', isUp: true, icon: ProductIcon },
-  ];
-
-  const chartData = [
-    { name: 'Mon', revenue: calculatedStats.revenue * 0.1 },
-    { name: 'Tue', revenue: calculatedStats.revenue * 0.15 },
-    { name: 'Wed', revenue: calculatedStats.revenue * 0.2 },
-    { name: 'Thu', revenue: calculatedStats.revenue * 0.12 },
-    { name: 'Fri', revenue: calculatedStats.revenue * 0.18 },
-    { name: 'Sat', revenue: calculatedStats.revenue * 0.14 },
-    { name: 'Sun', revenue: calculatedStats.revenue * 0.11 },
   ];
 
   return (
@@ -153,8 +174,8 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <Card className="lg:col-span-2 overflow-hidden border-white/5 bg-card/30">
           <CardHeader>
-            <CardTitle>Revenue Insights</CardTitle>
-            <CardDescription>Daily performance of your marketplace sales.</CardDescription>
+            <CardTitle>Daily Performance</CardTitle>
+            <CardDescription>Actual revenue volume over the last 7 days.</CardDescription>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
             <div className="h-[320px] w-full pt-4">
@@ -182,6 +203,7 @@ export default function AdminDashboard() {
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }}
                     itemStyle={{ color: 'hsl(var(--primary))' }}
+                    formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
                   />
                   <Area 
                     type="monotone" 
@@ -298,7 +320,7 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentOrders.map((order: any) => (
+                {recentOrders.slice(0, 5).map((order: any) => (
                   <TableRow key={order.id} className="border-white/5 hover:bg-white/5 transition-colors">
                     <TableCell className="font-code text-primary text-xs uppercase">#{order.id?.slice(-6)}</TableCell>
                     <TableCell>
@@ -327,8 +349,4 @@ export default function AdminDashboard() {
       </Card>
     </div>
   );
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ');
 }
