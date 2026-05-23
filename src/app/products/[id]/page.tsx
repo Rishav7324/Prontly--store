@@ -96,8 +96,8 @@ const ProductVisuals = ({ product }: { product: any }) => (
  * --- SUB-COMPONENT: Description ---
  */
 const ProductDescription = ({ product }: { product: any }) => (
-  <Card className="p-10 border-white/5 bg-card/30 rounded-[3rem] shadow-xl">
-    <div className="flex items-center gap-3 mb-8">
+  <Card className="p-8 border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl">
+    <div className="flex items-center gap-3 mb-6">
       <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
         <Info className="h-5 w-5" />
       </div>
@@ -107,7 +107,7 @@ const ProductDescription = ({ product }: { product: any }) => (
       className="prose-content max-w-4xl"
       dangerouslySetInnerHTML={{ __html: product.description || '' }}
     />
-    <div className="flex flex-wrap gap-2 mt-10 pt-10 border-t border-white/5">
+    <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-white/5">
       {product.tags?.map((tag: string) => (
         <Badge key={tag} variant="outline" className="bg-white/5 border-white/5 text-muted-foreground rounded-full px-4 py-1.5 text-[10px] font-bold">
           #{tag}
@@ -128,17 +128,17 @@ const TechnicalTabs = ({ product }: { product: any }) => (
     </TabsList>
     
     <TabsContent value="details" className="space-y-6">
-      <Card className="p-8 bg-card/50 border-white/5 rounded-[2.5rem]">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
+      <Card className="p-6 bg-card/50 border-white/5 rounded-3xl">
+        <div className="grid grid-cols-1 gap-y-2">
           {[
             { label: 'Format', value: product.fileFormat || 'PDF/ZIP' },
             { label: 'Size', value: product.fileSize ? `${(product.fileSize / 1024 / 1024).toFixed(2)} MB` : 'N/A' },
             { label: 'Version', value: product.fileVersion || '1.0' },
             { label: 'Delivery', value: 'Instant Unlock' },
           ].map((spec) => (
-            <div key={spec.label} className="flex justify-between items-center py-4 border-b border-white/5">
-              <span className="text-muted-foreground font-medium text-sm">{spec.label}</span>
-              <span className="font-bold text-sm">{spec.value}</span>
+            <div key={spec.label} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
+              <span className="text-muted-foreground font-medium text-xs">{spec.label}</span>
+              <span className="font-bold text-xs">{spec.value}</span>
             </div>
           ))}
         </div>
@@ -146,20 +146,20 @@ const TechnicalTabs = ({ product }: { product: any }) => (
     </TabsContent>
 
     <TabsContent value="license">
-      <Card className="p-8 bg-primary/5 border-primary/20 rounded-[2.5rem]">
-        <div className="flex items-center gap-3 mb-6">
-          <ShieldCheck className="h-6 w-6 text-primary" />
-          <h3 className="text-xl font-bold">Creator Rights</h3>
+      <Card className="p-6 bg-primary/5 border-primary/20 rounded-3xl">
+        <div className="flex items-center gap-3 mb-4">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-bold">Creator Rights</h3>
         </div>
-        <ul className="space-y-4">
+        <ul className="space-y-3">
           {[
-            'Unlimited usage in personal projects',
-            'Perpetual access to all source files',
-            'Lifetime free technical updates',
-            'Commercial license for client work included'
+            'Unlimited personal usage',
+            'Perpetual access',
+            'Free updates',
+            'Commercial license'
           ].map((item, i) => (
-            <li key={i} className="flex items-start gap-3 text-muted-foreground text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+            <li key={i} className="flex items-start gap-3 text-muted-foreground text-xs">
+              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
               <span>{item}</span>
             </li>
           ))}
@@ -174,42 +174,42 @@ const TechnicalTabs = ({ product }: { product: any }) => (
  */
 const PurchaseSidebar = ({ product, onBuyNow, onAddToCart }: any) => (
   <div className="sticky top-28 space-y-6">
-    <Card className="p-8 border-white/5 bg-card/30 backdrop-blur-xl rounded-[2.5rem] shadow-2xl overflow-hidden relative group">
+    <Card className="p-6 border-white/5 bg-card/30 backdrop-blur-xl rounded-[2rem] shadow-2xl overflow-hidden relative group">
       <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-        <ShoppingCart className="h-32 w-32" />
+        <ShoppingCart className="h-24 w-24" />
       </div>
       <div className="relative z-10">
-        <div className="mb-8">
+        <div className="mb-6">
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-1">One-time Investment</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-4xl font-bold font-headline text-accent">
+            <span className="text-3xl font-bold font-headline text-accent">
               ₹{(product.price / 100).toLocaleString('en-IN')}
             </span>
             {product.compareAtPrice > product.price && (
-              <span className="text-lg text-muted-foreground line-through opacity-40">₹{(product.compareAtPrice / 100).toLocaleString('en-IN')}</span>
+              <span className="text-base text-muted-foreground line-through opacity-40">₹{(product.compareAtPrice / 100).toLocaleString('en-IN')}</span>
             )}
           </div>
         </div>
         
-        <div className="space-y-4 mb-10">
+        <div className="space-y-3 mb-8">
           {[
             { icon: ShieldCheck, text: 'Razorpay Verified', color: 'text-green-500' },
             { icon: Clock, text: 'Instant Delivery', color: 'text-primary' },
             { icon: Download, text: 'Perpetual Access', color: 'text-primary' },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-tighter">
-              <div className={cn("p-1.5 rounded-lg bg-white/5 border border-white/5", item.color)}>
-                <item.icon className="h-3.5 w-3.5" />
+            <div key={i} className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tighter">
+              <div className={cn("p-1 rounded-md bg-white/5 border border-white/5", item.color)}>
+                <item.icon className="h-3 w-3" />
               </div>
               <span className="text-muted-foreground/80">{item.text}</span>
             </div>
           ))}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Button 
             size="lg" 
-            className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="w-full h-14 rounded-xl text-base font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             onClick={onBuyNow}
           >
             Buy Now
@@ -217,25 +217,25 @@ const PurchaseSidebar = ({ product, onBuyNow, onAddToCart }: any) => (
           <Button 
             size="lg" 
             variant="secondary" 
-            className="w-full h-16 rounded-2xl text-lg font-bold border-white/5 hover:bg-white/10 transition-all"
+            className="w-full h-14 rounded-xl text-base font-bold border-white/5 hover:bg-white/10 transition-all"
             onClick={onAddToCart}
           >
-            <ShoppingCart className="mr-2 h-5 w-5" />
+            <ShoppingCart className="mr-2 h-4 w-4" />
             Add to Cart
           </Button>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-white/5 flex flex-col items-center justify-center gap-4">
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Secure Branded Ecosystem</p>
-          <div className="flex gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full bg-white/5 h-10 w-10 hover:bg-primary hover:text-white transition-all"><Share2 className="h-4 w-4" /></Button>
+        <div className="mt-6 pt-6 border-t border-white/5 flex flex-col items-center justify-center gap-3">
+          <p className="text-[8px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Secure Branded Ecosystem</p>
+          <div className="flex gap-3">
+            <Button variant="ghost" size="icon" className="rounded-full bg-white/5 h-9 w-9 hover:bg-primary hover:text-white transition-all"><Share2 className="h-4 w-4" /></Button>
           </div>
         </div>
       </div>
     </Card>
 
-    <div className="bg-muted/10 rounded-3xl p-6 border border-dashed border-muted-foreground/20 text-center">
-      <p className="text-xs text-muted-foreground leading-relaxed italic">
+    <div className="bg-muted/10 rounded-2xl p-5 border border-dashed border-muted-foreground/20 text-center">
+      <p className="text-[10px] text-muted-foreground leading-relaxed italic">
         Need assistance with this asset? <br />
         <Link href="/contact" className="text-primary font-bold hover:underline not-italic">Visit Help Center</Link>
       </p>
