@@ -115,7 +115,7 @@ export default function AdminUsers() {
                       </Badge>
                     </TableCell>
                     <TableCell className="font-bold text-primary">
-                      ₹{(user.totalSpent || 0 / 100).toLocaleString('en-IN')}
+                      ₹{((user.totalSpent || 0) / 100).toLocaleString('en-IN')}
                     </TableCell>
                     <TableCell>
                       <Badge variant={user.isActive !== false ? 'outline' : 'destructive'} className={user.isActive !== false ? "text-green-500 border-green-500/50" : ""}>

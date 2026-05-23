@@ -130,6 +130,14 @@ export default function CheckoutPage() {
         }).catch(err => console.error("Stats update failed", err));
       }
 
+      // Update Product Sales Counts
+      items.forEach((item) => {
+        const productRef = doc(db, 'products', item.id);
+        updateDoc(productRef, {
+          salesCount: increment(item.quantity)
+        }).catch(err => console.error("Product sales update failed", err));
+      });
+
       analytics.purchase({ id: docRef.id, ...orderData });
       
       // Trigger Email Confirmation - Sanitize objects for Server Action
