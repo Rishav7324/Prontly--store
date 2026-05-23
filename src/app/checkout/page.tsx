@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,15 +7,14 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCart } from '@/hooks/use-cart';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, where, limit, getDocs, doc, increment, updateDoc } from 'firebase/firestore';
-import { ShieldCheck, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, Ticket, X, CreditCard } from 'lucide-react';
+import { collection, addDoc, serverTimestamp, doc, increment, updateDoc } from 'firebase/firestore';
+import { ShoppingBag, Loader2, CheckCircle2, CreditCard } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
-import { analytics } from '@/lib/analytics';
 import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 import { createRazorpayOrder, verifyRazorpayPayment } from '@/app/actions/razorpay-actions';
 import Script from 'next/script';
@@ -29,9 +27,6 @@ export default function CheckoutPage() {
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
-  const [isApplying, setIsApplying] = useState(false);
 
   const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
   const { data: settings } = useDoc(settingsRef);
@@ -51,11 +46,7 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  const subtotal = getTotal();
-  const discount = appliedCoupon 
-    ? (appliedCoupon.type === 'percentage' ? Math.round(subtotal * (appliedCoupon.value / 100)) : appliedCoupon.value * 100)
-    : 0;
-  const total = Math.max(0, subtotal - discount);
+  const total = getTotal();
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,9 +93,9 @@ export default function CheckoutPage() {
         userName: formData.name,
         userEmail: formData.email,
         items: items.map(item => ({ productId: item.id, productName: item.name, price: item.price, quantity: item.quantity })),
-        subtotal, 
-        discount, 
-        total, 
+        subtotal: total, 
+        discount: 0, 
+        total: total, 
         status: 'paid', 
         paymentId: rzpResponse.razorpay_payment_id, 
         createdAt: serverTimestamp(), 
@@ -113,25 +104,20 @@ export default function CheckoutPage() {
 
       const docRef = await addDoc(collection(db!, 'orders'), orderData);
       
-      // SANITIZE: Convert to plain objects for Server Actions
+      // CRITICAL FIX: Convert items to plain JSON to prevent serialization errors
       const plainOrder = {
         id: docRef.id,
         userName: orderData.userName,
         userEmail: orderData.userEmail,
-        items: orderData.items,
-        subtotal: orderData.subtotal,
-        discount: orderData.discount,
+        items: JSON.parse(JSON.stringify(orderData.items)),
         total: orderData.total,
         paymentId: orderData.paymentId
       };
 
-      const plainSettings = settings ? {
-        siteName: settings.siteName,
-        invoiceSettings: settings.invoiceSettings || {}
-      } : undefined;
+      // CRITICAL FIX: Strip Firestore Timestamps and Protos from settings before sending to Server Action
+      const sanitizedSettings = settings ? JSON.parse(JSON.stringify(settings)) : {};
 
-      // Dispatch automatic order confirmation email
-      await sendOrderConfirmationEmail(plainOrder, plainSettings);
+      await sendOrderConfirmationEmail(plainOrder, sanitizedSettings);
 
       if (user) {
         await updateDoc(doc(db!, 'users', user.uid), { totalSpent: increment(total), orderCount: increment(1) });
@@ -152,8 +138,8 @@ export default function CheckoutPage() {
         <div className="max-w-md w-full text-center space-y-6">
           <CheckCircle2 className="h-24 w-24 text-primary mx-auto animate-bounce" />
           <h1 className="text-4xl font-bold font-headline">Order Confirmed!</h1>
-          <p className="text-muted-foreground">Your assets are ready and an invoice has been sent to your email.</p>
-          <Button asChild size="lg" className="w-full rounded-2xl h-14"><Link href="/dashboard">Access My Library</Link></Button>
+          <p className="text-muted-foreground">Your assets are ready. Branded receipt sent to your email.</p>
+          <Button asChild size="lg" className="w-full rounded-2xl h-14"><Link href="/dashboard">Access Library</Link></Button>
         </div>
       </div>
     );
@@ -164,11 +150,11 @@ export default function CheckoutPage() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
-        <div className="mb-8"><h1 className="text-4xl font-bold font-headline">Checkout</h1></div>
+        <div className="mb-8"><h1 className="text-4xl font-bold font-headline">Secure Checkout</h1></div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <form onSubmit={handleCheckout} className="lg:col-span-7 space-y-8">
             <Card className="border-white/5 bg-card/30 rounded-[2rem]">
-              <CardHeader><CardTitle>Customer Entity</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Customer Identification</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -184,7 +170,7 @@ export default function CheckoutPage() {
             </Card>
             <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl gap-3" disabled={isProcessing}>
               {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : <CreditCard className="h-6 w-6" />}
-              {isProcessing ? 'Synchronizing...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
+              {isProcessing ? 'Verifying...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
             </Button>
           </form>
           <div className="lg:col-span-5">
