@@ -15,15 +15,12 @@ import {
   Save, 
   Settings, 
   Layout, 
-  CreditCard, 
   Mail, 
   Globe,
   Loader2,
-  CheckCircle2,
   Home,
   Star,
   FileText,
-  Palette,
   AlertCircle,
   Megaphone,
   ImageIcon
@@ -38,9 +35,10 @@ export default function AdminSettings() {
   }, [db]);
 
   const { data: settings, loading } = useDoc(settingsRef);
-  const { data: products } = useCollection(db ? collection(db, 'products') : null);
   
   const [formData, setFormData] = useState<any>({
+    siteName: 'Prontly Store',
+    siteDescription: 'Premium Digital Asset Marketplace',
     announcementBar: {
       isActive: false,
       text: '',
@@ -53,10 +51,10 @@ export default function AdminSettings() {
       senderName: 'Prontly Store'
     },
     invoiceSettings: {
-      businessName: '',
+      businessName: 'PRONTLY DIGITAL',
       address: '',
       color: '#5b52d6',
-      footerText: 'Thank you for choosing Prontly Store.',
+      footerText: 'Thank you for choosing Prontly.',
       logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
     }
   });
@@ -78,10 +76,10 @@ export default function AdminSettings() {
           senderName: 'Prontly Store'
         },
         invoiceSettings: settings.invoiceSettings || {
-          businessName: '',
+          businessName: 'PRONTLY DIGITAL',
           address: '',
           color: '#5b52d6',
-          footerText: 'Thank you for choosing Prontly Store.',
+          footerText: 'Thank you for choosing Prontly.',
           logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
         }
       });
@@ -133,76 +131,66 @@ export default function AdminSettings() {
         updatedAt: serverTimestamp(),
       }, { merge: true });
       
-      toast({
-        title: "Settings Saved",
-        description: "Your store configuration has been updated successfully.",
-      });
+      toast({ title: "Settings Updated" });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save settings.",
-      });
+      toast({ variant: "destructive", title: "Save Failed" });
     } finally {
       setIsSaving(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="space-y-8 pb-20">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Settings</h1>
-          <p className="text-muted-foreground">Configure your store's global parameters.</p>
+          <h1 className="text-3xl font-bold font-headline">Store Control</h1>
+          <p className="text-muted-foreground">Global parameters and brand identity.</p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+        <Button onClick={handleSave} disabled={isSaving} className="gap-2 h-12 px-8 rounded-xl font-bold shadow-lg shadow-primary/20">
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Save All Changes
+          Deploy Changes
         </Button>
       </header>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto h-auto">
-          <TabsTrigger value="general" className="gap-2 px-4 py-2"><Globe className="h-4 w-4" /> General</TabsTrigger>
-          <TabsTrigger value="appearance" className="gap-2 px-4 py-2"><Layout className="h-4 w-4" /> Appearance</TabsTrigger>
-          <TabsTrigger value="marketing" className="gap-2 px-4 py-2"><Megaphone className="h-4 w-4" /> Marketing</TabsTrigger>
-          <TabsTrigger value="email" className="gap-2 px-4 py-2"><Mail className="h-4 w-4" /> Email</TabsTrigger>
-          <TabsTrigger value="invoicing" className="gap-2 px-4 py-2"><FileText className="h-4 w-4" /> Invoicing</TabsTrigger>
+        <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto h-auto flex flex-nowrap rounded-2xl">
+          <TabsTrigger value="general" className="gap-2 px-6 py-3 rounded-xl"><Globe className="h-4 w-4" /> General</TabsTrigger>
+          <TabsTrigger value="marketing" className="gap-2 px-6 py-3 rounded-xl"><Megaphone className="h-4 w-4" /> Growth</TabsTrigger>
+          <TabsTrigger value="email" className="gap-2 px-6 py-3 rounded-xl"><Mail className="h-4 w-4" /> Sender</TabsTrigger>
+          <TabsTrigger value="invoicing" className="gap-2 px-6 py-3 rounded-xl"><FileText className="h-4 w-4" /> Receipts</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Site Identity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
+            <CardHeader><CardTitle>Site Identity</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
               <div className="grid gap-2">
-                <Label htmlFor="siteName">Site Name</Label>
-                <Input id="siteName" value={formData.siteName || ''} onChange={handleChange} />
+                <Label htmlFor="siteName">Store Display Name</Label>
+                <Input id="siteName" value={formData.siteName || ''} onChange={handleChange} className="h-12 bg-background/50 rounded-xl" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="siteDescription">Meta Description</Label>
-                <Textarea id="siteDescription" value={formData.siteDescription || ''} onChange={handleChange} />
+                <Label htmlFor="siteDescription">Global Meta Description</Label>
+                <Textarea id="siteDescription" value={formData.siteDescription || ''} onChange={handleChange} className="bg-background/50 rounded-xl min-h-[100px]" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="logoUrl">Public Logo URL</Label>
+                <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="h-12 bg-background/50 rounded-xl" />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="marketing" className="space-y-6">
-          <Card>
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Announcement Bar</CardTitle>
-                  <CardDescription>Display a prominent message at the very top of your store.</CardDescription>
+                  <CardTitle>Announcement Banner</CardTitle>
+                  <CardDescription>Visual call-to-action at the top of every page.</CardDescription>
                 </div>
                 <Switch 
                   checked={formData.announcementBar?.isActive} 
@@ -210,80 +198,68 @@ export default function AdminSettings() {
                 />
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid gap-2">
-                <Label htmlFor="text">Message Text</Label>
+                <Label>Promotional Message</Label>
                 <Input 
                   id="text" 
-                  placeholder="e.g. Flash Sale: 20% OFF with code PRONTLY20" 
+                  placeholder="e.g. FLASH SALE: Use PRONTLY50 for half off!" 
                   value={formData.announcementBar?.text || ''} 
                   onChange={handleAnnouncementChange}
+                  className="h-12 bg-background/50 rounded-xl"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="link">Redirect Link (Optional)</Label>
+                <Label>Click Destination (Link)</Label>
                 <Input 
                   id="link" 
-                  placeholder="/products?category=prompts" 
+                  placeholder="/products" 
                   value={formData.announcementBar?.link || ''} 
                   onChange={handleAnnouncementChange}
+                  className="h-12 bg-background/50 rounded-xl"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="backgroundColor">Background Color</Label>
-                  <div className="flex gap-2">
-                    <Input id="backgroundColor" value={formData.announcementBar?.backgroundColor || '#5b52d6'} onChange={handleAnnouncementChange} />
-                    <div className="h-10 w-10 rounded border" style={{ backgroundColor: formData.announcementBar?.backgroundColor || '#5b52d6' }} />
+                  <Label>Background Accent</Label>
+                  <div className="flex gap-3">
+                    <Input id="backgroundColor" value={formData.announcementBar?.backgroundColor || '#5b52d6'} onChange={handleAnnouncementChange} className="h-12 bg-background/50 rounded-xl" />
+                    <div className="h-12 w-12 rounded-xl border border-white/10 shrink-0" style={{ backgroundColor: formData.announcementBar?.backgroundColor || '#5b52d6' }} />
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="textColor">Text Color</Label>
-                  <div className="flex gap-2">
-                    <Input id="textColor" value={formData.announcementBar?.textColor || '#ffffff'} onChange={handleAnnouncementChange} />
-                    <div className="h-10 w-10 rounded border" style={{ backgroundColor: formData.announcementBar?.textColor || '#ffffff' }} />
+                  <Label>Message Text Color</Label>
+                  <div className="flex gap-3">
+                    <Input id="textColor" value={formData.announcementBar?.textColor || '#ffffff'} onChange={handleAnnouncementChange} className="h-12 bg-background/50 rounded-xl" />
+                    <div className="h-12 w-12 rounded-xl border border-white/10 shrink-0" style={{ backgroundColor: formData.announcementBar?.textColor || '#ffffff' }} />
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="appearance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Branding Assets</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="logoUrl">Main Logo URL</Label>
-                <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="email" className="space-y-6">
-          <Card>
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
             <CardHeader>
-              <CardTitle>Sender Configuration</CardTitle>
-              <CardDescription>Customizing your Resend outgoing mail details.</CardDescription>
+              <CardTitle>Resend Sender Details</CardTitle>
+              <CardDescription>Configure how your automated emails appear in customer inboxes.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="senderName">Sender Display Name</Label>
-                  <Input id="senderName" value={formData.emailSettings?.senderName || ''} onChange={handleEmailChange} />
+                  <Label>Friendly Sender Name</Label>
+                  <Input id="senderName" value={formData.emailSettings?.senderName || ''} onChange={handleEmailChange} className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="fromEmail">Verified From Email</Label>
-                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="hello@yourdomain.com" />
+                  <Label>Verified From Address</Label>
+                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="hello@yourdomain.com" className="h-12 bg-background/50 rounded-xl" />
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-                <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>Important:</strong> The "From Email" must be a verified domain within your Resend dashboard. Using an unverified address will result in failed delivery.
+              <div className="flex items-start gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
+                <AlertCircle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Ensure the <strong>"From Address"</strong> is fully verified in your Resend dashboard. Unverified domains will block all transactional email delivery.
                 </p>
               </div>
             </CardContent>
@@ -291,43 +267,43 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="invoicing" className="space-y-6">
-          <Card>
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
             <CardHeader>
-              <CardTitle>Invoice Template Settings</CardTitle>
-              <CardDescription>Configure the dynamic PDF invoices sent to customers.</CardDescription>
+              <CardTitle>Custom PDF Receipt Settings</CardTitle>
+              <CardDescription>Customize the automated receipts sent after purchase.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-2">
-                <Label htmlFor="logoUrl">Invoice Logo URL</Label>
+                <Label>Brand Logo for PDF</Label>
                 <div className="flex items-center gap-4">
-                  <Input id="logoUrl" value={formData.invoiceSettings?.logoUrl || ''} onChange={handleInvoiceChange} placeholder="https://..." />
+                  <Input id="logoUrl" value={formData.invoiceSettings?.logoUrl || ''} onChange={handleInvoiceChange} placeholder="https://..." className="h-12 bg-background/50 rounded-xl" />
                   {formData.invoiceSettings?.logoUrl && (
-                    <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center p-1 overflow-hidden">
+                    <div className="h-12 w-12 rounded-xl border bg-muted flex items-center justify-center p-2 overflow-hidden shrink-0">
                       <img src={formData.invoiceSettings.logoUrl} alt="Logo" className="object-contain" />
                     </div>
                   )}
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="businessName">Registered Business Name</Label>
-                  <Input id="businessName" value={formData.invoiceSettings?.businessName || ''} onChange={handleInvoiceChange} />
+                  <Label>Legal Business Name</Label>
+                  <Input id="businessName" value={formData.invoiceSettings?.businessName || ''} onChange={handleInvoiceChange} className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="color">Accent Color (Hex)</Label>
-                  <div className="flex gap-2">
-                    <Input id="color" value={formData.invoiceSettings?.color || '#5b52d6'} onChange={handleInvoiceChange} />
-                    <div className="h-10 w-10 rounded border" style={{ backgroundColor: formData.invoiceSettings?.color || '#5b52d6' }} />
+                  <Label>Receipt Accent Color</Label>
+                  <div className="flex gap-3">
+                    <Input id="color" value={formData.invoiceSettings?.color || '#5b52d6'} onChange={handleInvoiceChange} className="h-12 bg-background/50 rounded-xl" />
+                    <div className="h-12 w-12 rounded-xl border shrink-0" style={{ backgroundColor: formData.invoiceSettings?.color || '#5b52d6' }} />
                   </div>
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="address">Business Address</Label>
-                <Textarea id="address" value={formData.invoiceSettings?.address || ''} onChange={handleInvoiceChange} className="h-24" placeholder="Full address including tax IDs..." />
+                <Label>Physical/Office Address</Label>
+                <Textarea id="address" value={formData.invoiceSettings?.address || ''} onChange={handleInvoiceChange} className="bg-background/50 rounded-xl min-h-[80px]" placeholder="Global Digital Sales Office..." />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="footerText">Invoice Footer Legal Text</Label>
-                <Input id="footerText" value={formData.invoiceSettings?.footerText || ''} onChange={handleInvoiceChange} />
+                <Label>Receipt Legal Disclaimer (Footer)</Label>
+                <Input id="footerText" value={formData.invoiceSettings?.footerText || ''} onChange={handleInvoiceChange} className="h-12 bg-background/50 rounded-xl" />
               </div>
             </CardContent>
           </Card>

@@ -14,11 +14,12 @@ import {
   Mail, 
   Calendar, 
   TrendingUp, 
-  CreditCard,
-  ShieldCheck,
-  Star,
-  Sparkles,
-  ArrowUpRight
+  ShieldCheck, 
+  Star, 
+  Sparkles, 
+  ArrowUpRight,
+  User as UserIcon,
+  Phone
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -47,122 +48,115 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   }, [orders]);
 
   if (userLoading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
   }
 
   if (!profile) {
     return (
       <div className="flex h-screen flex-col items-center justify-center p-4">
-        <h1 className="text-2xl font-bold mb-4">User not found</h1>
-        <Button asChild><Link href="/admin/users">Back to Users</Link></Button>
+        <h1 className="text-2xl font-bold mb-4">Member not found</h1>
+        <Button asChild><Link href="/admin/users">Back to Members</Link></Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/users"><ChevronLeft className="h-4 w-4" /></Link>
+    <div className="space-y-12">
+      <header className="flex items-center gap-6">
+        <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/5 h-14 w-14">
+          <Link href="/admin/users"><ChevronLeft className="h-6 w-6" /></Link>
         </Button>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 border-2 border-primary/20">
+        <div className="flex items-center gap-6">
+          <Avatar className="h-20 w-20 border-4 border-primary/20 shadow-2xl">
             <AvatarImage src={profile.photoURL} />
-            <AvatarFallback>{profile.displayName?.charAt(0) || 'U'}</AvatarFallback>
+            <AvatarFallback className="text-2xl font-bold text-primary bg-primary/10">{profile.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-3xl font-bold font-headline">{profile.displayName || 'Anonymous User'}</h1>
-            <p className="text-muted-foreground text-sm">{profile.email}</p>
+            <h1 className="text-4xl font-bold font-headline">{profile.displayName || 'Anonymous User'}</h1>
+            <p className="text-muted-foreground text-lg">{profile.email}</p>
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase font-bold text-primary">Lifetime Value</p>
-                <h3 className="text-3xl font-bold">₹{(stats.total / 100).toLocaleString('en-IN')}</h3>
-              </div>
-              <TrendingUp className="h-8 w-8 text-primary opacity-40" />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <Card className="bg-primary/5 border-primary/20 rounded-[2.5rem] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+            <TrendingUp className="h-16 w-16 text-primary" />
+          </div>
+          <CardContent className="pt-10">
+            <p className="text-xs uppercase font-bold tracking-widest text-primary mb-2">Lifetime Value (LTV)</p>
+            <h3 className="text-5xl font-bold font-headline">₹{(stats.total / 100).toLocaleString('en-IN')}</h3>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">Order Volume</p>
-                <h3 className="text-3xl font-bold">{stats.count} Orders</h3>
-              </div>
-              <ShoppingBag className="h-8 w-8 text-muted-foreground opacity-20" />
-            </div>
+        <Card className="rounded-[2.5rem] border-white/5 bg-card/30 relative overflow-hidden group">
+           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+            <ShoppingBag className="h-16 w-16 text-muted-foreground" />
+          </div>
+          <CardContent className="pt-10">
+            <p className="text-xs uppercase font-bold tracking-widest text-muted-foreground mb-2">Total Order Density</p>
+            <h3 className="text-5xl font-bold font-headline">{stats.count} Transactions</h3>
           </CardContent>
         </Card>
-        <Card className="bg-accent/5 border-accent/20">
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs flex items-center gap-2 text-accent">
-              <Sparkles className="h-3 w-3" /> AI Retention Insight
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <p className="text-sm font-medium text-foreground/80 leading-relaxed">
-              {stats.count > 3 
-                ? "Power user. Highly likely to recommend. Consider providing an 'early access' tag." 
-                : stats.count > 0 
-                ? "Active customer. Suggest a bundle based on their recent category affinity."
-                : "New potential lead. Automated welcome sequence complete."}
-            </p>
-          </CardContent>
+        <Card className="bg-accent/5 border-accent/20 rounded-[2.5rem] p-8">
+          <div className="flex items-center gap-3 text-accent mb-4">
+            <Sparkles className="h-5 w-5" />
+            <h4 className="font-bold text-sm uppercase tracking-widest">Retention Score</h4>
+          </div>
+          <p className="text-sm font-medium leading-relaxed italic text-foreground/80">
+            {stats.count > 5 
+              ? "Super User. High LTV potential. Recommend Enterprise-tier source file updates." 
+              : stats.count > 0 
+              ? "Active Creator. Suggest specialized bundle based on previous category affinity."
+              : "New User. Welcome sequence finalized. Monitoring lead velocity."}
+          </p>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Purchase History</CardTitle>
-              <CardDescription>Detailed transaction log for this customer.</CardDescription>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="lg:col-span-8 space-y-8">
+          <Card className="rounded-[2.5rem] border-white/5 bg-card/30 overflow-hidden shadow-2xl">
+            <CardHeader className="p-8 bg-muted/30 border-b border-white/5">
+              <CardTitle className="text-xl font-headline">Purchase Ledger</CardTitle>
+              <CardDescription>Verified cryptographic order records for this member.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-muted/50 border-b">
+                  <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-6 py-4 text-left">Order ID</th>
-                      <th className="px-6 py-4 text-left">Date</th>
-                      <th className="px-6 py-4 text-left">Status</th>
-                      <th className="px-6 py-4 text-right">Amount</th>
-                      <th className="px-6 py-4"></th>
+                      <th className="px-8 py-5 text-left font-bold uppercase tracking-widest text-[10px] text-muted-foreground">ID</th>
+                      <th className="px-8 py-5 text-left font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Execution Date</th>
+                      <th className="px-8 py-5 text-left font-bold uppercase tracking-widest text-[10px] text-muted-foreground">State</th>
+                      <th className="px-8 py-5 text-right font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Value</th>
+                      <th className="px-8 py-5"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y">
+                  <tbody className="divide-y divide-white/5">
                     {ordersLoading ? (
                       [...Array(3)].map((_, i) => (
-                        <tr key={i} className="animate-pulse"><td colSpan={5} className="h-12 bg-muted/20"></td></tr>
+                        <tr key={i} className="animate-pulse"><td colSpan={5} className="h-16 bg-muted/20"></td></tr>
                       ))
                     ) : orders?.map((order: any) => (
-                      <tr key={order.id} className="hover:bg-muted/5 transition-colors">
-                        <td className="px-6 py-4 font-mono text-xs text-primary uppercase">#{order.id.slice(-8)}</td>
-                        <td className="px-6 py-4 text-muted-foreground">
+                      <tr key={order.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-8 py-6 font-mono text-xs text-primary font-bold uppercase tracking-widest">#{order.id.slice(-8)}</td>
+                        <td className="px-8 py-6 text-muted-foreground font-medium">
                           {order.createdAt ? format(new Date(order.createdAt.toDate()), 'MMM dd, yyyy') : 'N/A'}
                         </td>
-                        <td className="px-6 py-4">
-                          <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className="text-[10px] uppercase font-bold">
+                        <td className="px-8 py-6">
+                          <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className="text-[9px] uppercase font-black tracking-[0.2em] px-3 py-1 rounded-lg">
                             {order.status}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-right font-bold">₹{(order.total / 100).toLocaleString('en-IN')}</td>
-                        <td className="px-6 py-4 text-right">
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/orders/${order.id}`}><ArrowUpRight className="h-4 w-4" /></Link>
+                        <td className="px-8 py-6 text-right font-bold text-lg">₹{(order.total / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-8 py-6 text-right">
+                          <Button variant="ghost" size="icon" asChild className="rounded-xl hover:bg-primary/10 text-primary">
+                            <Link href={`/admin/orders/${order.id}`}><ArrowUpRight className="h-5 w-5" /></Link>
                           </Button>
                         </td>
                       </tr>
                     ))}
                     {!ordersLoading && orders?.length === 0 && (
-                      <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">No purchases yet.</td></tr>
+                      <tr><td colSpan={5} className="px-8 py-20 text-center text-muted-foreground italic font-medium">No recorded transactions for this profile.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -171,51 +165,57 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Attributes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted"><Mail className="h-4 w-4 text-muted-foreground" /></div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Primary Email</p>
-                    <p className="text-sm font-bold truncate">{profile.email}</p>
-                  </div>
+        <div className="lg:col-span-4 space-y-8">
+          <Card className="rounded-[2.5rem] border-white/5 bg-card/30 p-8 shadow-2xl">
+            <h3 className="text-xl font-bold font-headline mb-8">Identity Attributes</h3>
+            <div className="space-y-8">
+              <div className="flex items-center gap-5">
+                <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center border border-white/10 shadow-inner">
+                  <Mail className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted"><Calendar className="h-4 w-4 text-muted-foreground" /></div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Joined Store On</p>
-                    <p className="text-sm font-bold">{profile.createdAt ? format(new Date(profile.createdAt), 'MMMM yyyy') : 'N/A'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted"><ShieldCheck className="h-4 w-4 text-muted-foreground" /></div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">System Role</p>
-                    <Badge variant="outline" className="mt-1">{profile.role}</Badge>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-muted"><CreditCard className="h-4 w-4 text-muted-foreground" /></div>
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">GST Identification</p>
-                    <p className="text-sm font-mono text-primary">{profile.gstNumber || 'None Provided'}</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Verified Email</p>
+                  <p className="text-sm font-bold truncate">{profile.email}</p>
                 </div>
               </div>
-              
-              <div className="pt-6 border-t">
-                <Button className="w-full gap-2" variant="outline" asChild>
-                  <a href={`mailto:${profile.email}`}>
-                    <Mail className="h-4 w-4" /> Send Direct Email
-                  </a>
-                </Button>
+              <div className="flex items-center gap-5">
+                <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center border border-white/10 shadow-inner">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Member Since</p>
+                  <p className="text-sm font-bold">{profile.createdAt ? format(new Date(profile.createdAt), 'MMMM yyyy') : 'Recently'}</p>
+                </div>
               </div>
-            </CardContent>
+              <div className="flex items-center gap-5">
+                <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center border border-white/10 shadow-inner">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Global Role</p>
+                  <Badge variant="outline" className="mt-2 rounded-lg border-primary/20 text-primary uppercase text-[9px] font-bold tracking-widest">{profile.role}</Badge>
+                </div>
+              </div>
+              {profile.phone && (
+                <div className="flex items-center gap-5">
+                  <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center border border-white/10 shadow-inner">
+                    <Phone className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Contact Phone</p>
+                    <p className="text-sm font-bold">{profile.phone}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="pt-10 mt-10 border-t border-white/5">
+              <Button className="w-full h-14 rounded-2xl gap-3 font-bold text-lg" variant="outline" asChild>
+                <a href={`mailto:${profile.email}`}>
+                  <Mail className="h-5 w-5" /> Outreach Member
+                </a>
+              </Button>
+            </div>
           </Card>
         </div>
       </div>
