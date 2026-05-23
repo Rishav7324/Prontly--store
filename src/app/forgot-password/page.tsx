@@ -2,8 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,8 @@ import { sendCustomPasswordResetEmail } from '@/app/actions/email-actions';
 
 /**
  * PRODUCTION RESET FLOW:
- * Replaces the default Firebase Auth email with a branded Resend notification.
+ * This completely bypasses the standard Firebase Auth template.
+ * It uses Resend to send a 100% branded Prontly email.
  */
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -30,6 +31,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       // 1. Generate a secure custom token in Firestore
+      // This token is used by our branded /reset-password page
       const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       const resetLink = `${window.location.origin}/reset-password?token=${token}`;
 
@@ -42,6 +44,7 @@ export default function ForgotPasswordPage() {
       });
 
       // 2. Dispatch branded email via Resend
+      // NOTE: This will only send the branded email, NOT the generic Firebase one.
       const res = await sendCustomPasswordResetEmail(email, resetLink);
       
       if (res.success) {
@@ -51,7 +54,11 @@ export default function ForgotPasswordPage() {
         throw new Error('Email delivery failure');
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Recovery Failed", description: "We couldn't process your request. Please check the address." });
+      toast({ 
+        variant: "destructive", 
+        title: "Recovery Failed", 
+        description: "We couldn't process your request. Check if RESEND_API_KEY is configured." 
+      });
     } finally {
       setLoading(false);
     }
