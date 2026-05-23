@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,7 +23,8 @@ import {
   FileText,
   AlertCircle,
   Megaphone,
-  ImageIcon
+  ImageIcon,
+  CreditCard
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -39,6 +40,7 @@ export default function AdminSettings() {
   const [formData, setFormData] = useState<any>({
     siteName: 'Prontly Store',
     siteDescription: 'Premium Digital Asset Marketplace',
+    razorpayKeyId: '',
     announcementBar: {
       isActive: false,
       text: '',
@@ -160,6 +162,7 @@ export default function AdminSettings() {
         <TabsList className="bg-muted/50 p-1 w-full justify-start overflow-x-auto h-auto flex flex-nowrap rounded-2xl">
           <TabsTrigger value="general" className="gap-2 px-6 py-3 rounded-xl"><Globe className="h-4 w-4" /> General</TabsTrigger>
           <TabsTrigger value="marketing" className="gap-2 px-6 py-3 rounded-xl"><Megaphone className="h-4 w-4" /> Growth</TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2 px-6 py-3 rounded-xl"><CreditCard className="h-4 w-4" /> Payments</TabsTrigger>
           <TabsTrigger value="email" className="gap-2 px-6 py-3 rounded-xl"><Mail className="h-4 w-4" /> Sender</TabsTrigger>
           <TabsTrigger value="invoicing" className="gap-2 px-6 py-3 rounded-xl"><FileText className="h-4 w-4" /> Receipts</TabsTrigger>
         </TabsList>
@@ -233,6 +236,34 @@ export default function AdminSettings() {
                     <Input id="textColor" value={formData.announcementBar?.textColor || '#ffffff'} onChange={handleAnnouncementChange} className="h-12 bg-background/50 rounded-xl" />
                     <div className="h-12 w-12 rounded-xl border border-white/10 shrink-0" style={{ backgroundColor: formData.announcementBar?.textColor || '#ffffff' }} />
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-6">
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
+            <CardHeader>
+              <CardTitle>Razorpay Configuration</CardTitle>
+              <CardDescription>Setup your public Key ID for the checkout modal.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label htmlFor="razorpayKeyId">Razorpay Key ID (Public)</Label>
+                <Input 
+                  id="razorpayKeyId" 
+                  value={formData.razorpayKeyId || ''} 
+                  onChange={handleChange} 
+                  placeholder="rzp_live_..."
+                  className="h-12 bg-background/50 rounded-xl font-mono text-xs" 
+                />
+              </div>
+              <div className="flex items-start gap-4 p-5 rounded-2xl bg-accent/5 border border-accent/20">
+                <AlertCircle className="h-6 w-6 text-accent shrink-0 mt-0.5" />
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p><strong>Note:</strong> Your <code>RAZORPAY_KEY_SECRET</code> must be set in your server environment variables (e.g. <code>.env</code>) for verification to work.</p>
+                  <p>You can find these in the Razorpay Dashboard under <code>Settings > API Keys</code>.</p>
                 </div>
               </div>
             </CardContent>

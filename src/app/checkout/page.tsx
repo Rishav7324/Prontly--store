@@ -11,12 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { useCart } from '@/hooks/use-cart';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, where, limit, getDocs, doc, increment, updateDoc } from 'firebase/firestore';
-import { ShieldCheck, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, Ticket, X } from 'lucide-react';
+import { ShieldCheck, ShoppingBag, ArrowLeft, Loader2, CheckCircle2, Ticket, X, CreditCard } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { analytics } from '@/lib/analytics';
 import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
+import { createRazorpayOrder, verifyRazorpayPayment } from '@/app/actions/razorpay-actions';
+import Script from 'next/script';
 
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCart();
@@ -91,14 +93,74 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
-    if (items.length === 0) return;
+    if (!db || items.length === 0) return;
 
     setIsProcessing(true);
 
     try {
+      // 1. Create Razorpay Order on Server
+      const orderRes = await createRazorpayOrder(total);
+      if (!orderRes.success || !orderRes.order) {
+        throw new Error(orderRes.error || 'Failed to initiate payment');
+      }
+
+      const razorpayKey = settings?.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      
+      if (!razorpayKey) {
+        throw new Error('Payment gateway not configured correctly.');
+      }
+
+      // 2. Configure Razorpay Modal
+      const options = {
+        key: razorpayKey,
+        amount: orderRes.order.amount,
+        currency: orderRes.order.currency,
+        name: settings?.siteName || "Prontly Store",
+        description: `Order for ${items.length} digital assets`,
+        order_id: orderRes.order.id,
+        handler: async (response: any) => {
+          // Verification logic after modal closes successfully
+          await finalizeOrder(response, orderRes.order!.id);
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+        },
+        theme: {
+          color: "#5b52d6",
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Checkout Error", description: error.message });
+      setIsProcessing(false);
+    }
+  };
+
+  const finalizeOrder = async (rzpResponse: any, razorpayOrderId: string) => {
+    try {
+      // 3. Verify Signature on Server
+      const verifyRes = await verifyRazorpayPayment(
+        razorpayOrderId,
+        rzpResponse.razorpay_payment_id,
+        rzpResponse.razorpay_signature
+      );
+
+      if (!verifyRes.success) {
+        throw new Error('Payment verification failed. Security alert logged.');
+      }
+
+      // 4. Save Order to Firestore
       const orderData = {
         userId: user?.uid || 'guest',
         userName: formData.name,
@@ -114,33 +176,33 @@ export default function CheckoutPage() {
         couponCode: appliedCoupon?.code || null,
         total,
         status: 'paid',
+        paymentId: rzpResponse.razorpay_payment_id,
+        razorpayOrderId: razorpayOrderId,
         createdAt: serverTimestamp(),
         paidAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      const docRef = await addDoc(collection(db!, 'orders'), orderData);
       
-      // Update User Stats for Analytics Reflection
+      // Update User Stats
       if (user) {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(db!, 'users', user.uid);
         updateDoc(userRef, {
           totalSpent: increment(total),
           orderCount: increment(1),
           updatedAt: serverTimestamp()
-        }).catch(err => console.error("Stats update failed", err));
+        });
       }
 
       // Update Product Sales Counts
       items.forEach((item) => {
-        const productRef = doc(db, 'products', item.id);
-        updateDoc(productRef, {
-          salesCount: increment(item.quantity)
-        }).catch(err => console.error("Product sales update failed", err));
+        const productRef = doc(db!, 'products', item.id);
+        updateDoc(productRef, { salesCount: increment(item.quantity) });
       });
 
       analytics.purchase({ id: docRef.id, ...orderData });
       
-      // Trigger Email Confirmation - Sanitize objects for Server Action
+      // Trigger Email Confirmation
       const plainOrder = {
         id: docRef.id,
         userName: formData.name,
@@ -152,24 +214,25 @@ export default function CheckoutPage() {
       };
 
       const plainSettings = settings ? {
-        emailSettings: settings.emailSettings || null,
-        invoiceSettings: settings.invoiceSettings || null
+        emailSettings: {
+          fromEmail: settings.emailSettings?.fromEmail,
+          senderName: settings.emailSettings?.senderName
+        },
+        invoiceSettings: settings.invoiceSettings
       } : null;
 
       sendOrderConfirmationEmail(plainOrder, plainSettings);
 
       setIsSuccess(true);
       clearCart();
-      
-      toast({ title: "Order Placed Successfully" });
+      toast({ title: "Order Confirmed" });
 
       setTimeout(() => {
         router.push('/dashboard');
       }, 2500);
 
-    } catch (error) {
-      toast({ variant: "destructive", title: "Checkout Error", description: "Something went wrong." });
-    } finally {
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Processing Error", description: error.message });
       setIsProcessing(false);
     }
   };
@@ -193,6 +256,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
         <div className="mb-8">
@@ -210,7 +274,7 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            <form onSubmit={handlePlaceOrder} className="lg:col-span-7 space-y-8">
+            <form onSubmit={handleCheckout} className="lg:col-span-7 space-y-8">
               <Card className="border-white/5 bg-card/30 rounded-[2rem]">
                 <CardHeader><CardTitle>Customer Details</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
@@ -233,14 +297,15 @@ export default function CheckoutPage() {
                     <ShieldCheck className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-bold">Secure Digital Delivery</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">By clicking pay, you'll gain instant access to your purchased digital assets. Downloads will be available in your personal dashboard immediately.</p>
+                    <h4 className="font-bold">Secure Gateway via Razorpay</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">Proceed to payment to finalize your acquisition. All transactions are encrypted and processed by Razorpay Node-API.</p>
                   </div>
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl shadow-primary/20" disabled={isProcessing}>
-                {isProcessing ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : `Complete Purchase • ₹${(total / 100).toLocaleString('en-IN')}`}
+              <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl shadow-primary/20 gap-3" disabled={isProcessing}>
+                {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : <CreditCard className="h-6 w-6" />}
+                {isProcessing ? 'Waiting for Payment...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
               </Button>
             </form>
 
@@ -306,7 +371,7 @@ export default function CheckoutPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="bg-muted/30 p-6 flex flex-col gap-2">
-                  <p className="text-[10px] text-muted-foreground text-center uppercase tracking-[0.2em] font-bold">Secure 256-bit Encryption</p>
+                  <p className="text-[10px] text-muted-foreground text-center uppercase tracking-[0.2em] font-bold">Secure Digital Export</p>
                 </CardFooter>
               </Card>
             </div>
