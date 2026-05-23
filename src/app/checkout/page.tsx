@@ -121,7 +121,7 @@ export default function CheckoutPage() {
         throw new Error(verifyRes.error || 'Security verification failed.');
       }
 
-      // FULFILLMENT: Log order and update stats
+      // FULFILLMENT: Log order in Firestore
       const orderData = {
         userId: user?.uid || 'guest',
         userName: formData.name,
@@ -133,6 +133,7 @@ export default function CheckoutPage() {
           quantity: item.quantity 
         })),
         subtotal: total,
+        discount: 0,
         total: total,
         status: 'paid',
         paymentId: rzpResponse.razorpay_payment_id,
@@ -142,24 +143,35 @@ export default function CheckoutPage() {
 
       const docRef = await addDoc(collection(db!, 'orders'), orderData);
       
-      // Send branded confirmation email
+      // Clean data for Server Action to avoid serialization issues
       const plainOrder = {
         id: docRef.id,
         userName: orderData.userName,
         userEmail: orderData.userEmail,
         items: JSON.parse(JSON.stringify(orderData.items)),
+        subtotal: orderData.subtotal,
+        discount: orderData.discount,
         total: orderData.total,
         paymentId: orderData.paymentId
       };
 
       const sanitizedSettings = settings ? JSON.parse(JSON.stringify(settings)) : {};
-      await sendOrderConfirmationEmail(plainOrder, sanitizedSettings).catch(console.error);
+      
+      // Dispatch email (Async)
+      sendOrderConfirmationEmail(plainOrder, sanitizedSettings)
+        .then((res) => {
+          if (!res.success) {
+            toast({ title: "Purchase Logged", description: "Payment verified. Invoice delivery might be delayed." });
+          }
+        })
+        .catch((e) => console.error("Invoice dispatch error:", e));
 
+      // Update user stats
       if (user) {
-        await updateDoc(doc(db!, 'users', user.uid), { 
+        updateDoc(doc(db!, 'users', user.uid), { 
           totalSpent: increment(total), 
           orderCount: increment(1) 
-        });
+        }).catch(console.error);
       }
 
       setIsSuccess(true);
@@ -240,7 +252,7 @@ export default function CheckoutPage() {
               disabled={isProcessing || !mounted || items.length === 0}
             >
               {isProcessing ? <Loader2 className="h-8 w-8 animate-spin" /> : <CreditCard className="h-8 w-8" />}
-              {isProcessing ? 'Verifying...' : !mounted ? 'Initialising...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
+              {isProcessing ? 'Verifying...' : !mounted ? 'Calculating...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
             </Button>
             
             <div className="flex items-center justify-center gap-6 opacity-40 grayscale group-hover:grayscale-0 transition-all">

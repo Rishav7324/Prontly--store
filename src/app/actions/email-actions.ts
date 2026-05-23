@@ -5,7 +5,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
 import nodemailer from 'nodemailer';
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -29,7 +29,9 @@ function getAdminAuth() {
  * Global SMTP Transporter Factory
  */
 const getTransporter = (config?: any) => {
-  if (!config || !config.host) return null;
+  // If host or pass is missing, return null to fallback to Resend
+  if (!config || !config.host || !config.pass) return null;
+  
   return nodemailer.createTransport({
     host: config.host,
     port: parseInt(config.port) || 465,
@@ -90,7 +92,7 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
     const smtp = getTransporter(settings?.smtpConfig);
     if (smtp) {
       await smtp.sendMail({
-        from: `"Prontly Store" <${settings?.emailSettings?.fromEmail || 'hello@store.prontly.in'}>`,
+        from: `"${settings?.emailSettings?.senderName || 'Prontly Store'}" <${settings?.emailSettings?.fromEmail || 'hello@store.prontly.in'}>`,
         to: email,
         subject: 'Welcome to the Ecosystem',
         html,
@@ -116,12 +118,10 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
 export async function initiateBrandedPasswordReset(email: string, settings?: any) {
   try {
     const adminAuth = getAdminAuth();
-    // Generate native Firebase reset link but redirect to OUR branded page
     const link = await adminAuth.generatePasswordResetLink(email, {
       url: `${SITE_URL}/login`,
     });
 
-    // Extract the oobCode from the generated link
     const oobCode = new URL(link).searchParams.get('oobCode');
     const brandedLink = `${SITE_URL}/reset-password?oobCode=${oobCode}`;
 
@@ -139,7 +139,7 @@ export async function initiateBrandedPasswordReset(email: string, settings?: any
 
     if (smtp) {
       await smtp.sendMail({
-        from: `"Prontly Security" <${from}>`,
+        from: `"${settings?.emailSettings?.senderName || 'Prontly Security'}" <${from}>`,
         to: email,
         subject: 'Reset your password',
         html,
@@ -178,11 +178,11 @@ export async function generateInvoicePdf(order: any, settings?: any) {
   docPdf.text(`ID: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
   docPdf.text(`DATE: ${format(new Date(), 'dd MMM yyyy')}`, 140, 37);
 
-  const tableData = order.items.map((item: any) => [
-    item.productName,
+  const tableData = (order.items || []).map((item: any) => [
+    item.productName || 'Digital Asset',
     item.quantity || 1,
-    `INR ${(item.price / 100).toLocaleString('en-IN')}`,
-    `INR ${((item.price * (item.quantity || 1)) / 100).toLocaleString('en-IN')}`
+    `INR ${((item.price || 0) / 100).toLocaleString('en-IN')}`,
+    `INR ${(((item.price || 0) * (item.quantity || 1)) / 100).toLocaleString('en-IN')}`
   ]);
 
   docPdf.autoTable({
@@ -193,6 +193,12 @@ export async function generateInvoicePdf(order: any, settings?: any) {
     headStyles: { fillColor: primaryColor },
     margin: { left: 20, right: 20 }
   });
+
+  // Final summary
+  const finalY = (docPdf as any).lastAutoTable.finalY + 10;
+  docPdf.setFontSize(12);
+  docPdf.setTextColor(0);
+  docPdf.text(`TOTAL AMOUNT: INR ${(order.total / 100).toLocaleString('en-IN')}`, 130, finalY);
 
   return docPdf.output('datauristring').split(',')[1];
 }
@@ -205,7 +211,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     const pdfBase64 = await generateInvoicePdf(order, settings);
     const html = emailWrapper(`
       <h1>Order Confirmed.</h1>
-      <p>Hello ${order.userName}, your purchase was successful. Your assets are now permanently unlocked.</p>
+      <p>Hello ${order.userName || 'Creator'}, your purchase was successful. Your assets are now permanently unlocked.</p>
       <div class="card">
         <strong>Total: ₹${(order.total / 100).toLocaleString('en-IN')}</strong><br/>
         <small>Payment ID: ${order.paymentId}</small>
@@ -215,10 +221,11 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 
     const smtp = getTransporter(settings?.smtpConfig);
     const from = settings?.emailSettings?.fromEmail || 'billing@store.prontly.in';
+    const senderName = settings?.emailSettings?.senderName || 'Prontly Billing';
 
     if (smtp) {
       await smtp.sendMail({
-        from: `"Prontly Billing" <${from}>`,
+        from: `"${senderName}" <${from}>`,
         to: order.userEmail,
         subject: `Receipt for Order #${order.id.slice(-6)}`,
         html,
@@ -226,7 +233,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
       });
     } else {
       await resend.emails.send({
-        from: `Prontly Billing <${from}>`,
+        from: `${senderName} <${from}>`,
         to: order.userEmail,
         subject: `Receipt for Order #${order.id.slice(-6)}`,
         html,
@@ -236,6 +243,6 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     return { success: true };
   } catch (e) {
     console.error('Order confirmation error:', e);
-    return { success: false };
+    return { success: false, error: 'Failed to dispatch email' };
   }
 }
