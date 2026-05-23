@@ -5,6 +5,8 @@ import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
+import { initializeFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const BRAND_COLOR = '#5b52d6';
@@ -34,7 +36,6 @@ const emailWrapper = (content: string, preheader: string) => `
     .card { background-color: #f8fafc; border: 1px solid #edf2f7; padding: 32px; border-radius: 24px; margin: 32px 0; }
     .card-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; display: block; }
     .card-value { font-size: 18px; font-weight: 700; color: #1e293b; }
-    .divider { height: 1px; background-color: #e2e8f0; margin: 32px 0; border: none; }
     a { color: ${BRAND_COLOR}; text-decoration: none; font-weight: 600; }
   </style>
 </head>
@@ -42,7 +43,7 @@ const emailWrapper = (content: string, preheader: string) => `
   <div style="display: none; max-height: 0px; overflow: hidden;">${preheader}</div>
   <div class="container">
     <div class="header">
-      <img src="${DEFAULT_LOGO}" class="logo-img" alt="Store Logo" />
+      <img src="${DEFAULT_LOGO}" class="logo-img" alt="Prontly Logo" />
       <p class="brand-name">Prontly Digital Ecosystem</p>
     </div>
     <div class="content">
@@ -54,8 +55,8 @@ const emailWrapper = (content: string, preheader: string) => `
         <a href="${SITE_URL}/dashboard" style="color: #64748b; margin: 0 12px;">My Library</a>
         <a href="${SITE_URL}/terms" style="color: #64748b; margin: 0 12px;">Terms</a>
       </div>
-      &copy; ${new Date().getFullYear()} Prontly Store. Verified Digital Merchant.<br/>
-      Securely delivered via Resend Infrastructure.
+      &copy; ${new Date().getFullYear()} Prontly Store. Branded Digital Commerce.<br/>
+      Delivered securely via Resend Infrastructure.
     </div>
   </div>
 </body>
@@ -63,22 +64,22 @@ const emailWrapper = (content: string, preheader: string) => `
 `;
 
 /**
- * 1. Welcome Email (noreply@store.prontly.in)
+ * 1. AUTOMATIC WELCOME EMAIL
  */
 export async function sendWelcomeEmail(email: string, name: string) {
   try {
     const html = emailWrapper(`
       <h1>Welcome to the Future.</h1>
-      <p>Hello ${name.split(' ')[0]}, your account has been successfully verified.</p>
-      <p>You now have access to a curated marketplace of production-ready AI prompts, UI kits, and professional guides.</p>
+      <p>Hello ${name.split(' ')[0]}, your creator account has been successfully verified.</p>
+      <p>You now have perpetual access to a curated marketplace of production-ready AI prompts, UI kits, and professional guides.</p>
       <center>
-        <a href="${SITE_URL}/products" class="button">Explore Trending Assets</a>
+        <a href="${SITE_URL}/products" class="button">Explore the Marketplace</a>
       </center>
       <div class="card">
-        <span class="card-label">Next Step</span>
-        <span class="card-value">Complete your profile to receive personalized creation tips.</span>
+        <span class="card-label">Getting Started</span>
+        <span class="card-value">Browse trending assets and add them to your library to accelerate your production workflow.</span>
       </div>
-    `, `Welcome to Prontly! Your account is ready.`);
+    `, `Welcome to Prontly! Your digital toolkit is ready.`);
 
     await resend.emails.send({
       from: 'Prontly <hello@store.prontly.in>',
@@ -93,21 +94,21 @@ export async function sendWelcomeEmail(email: string, name: string) {
 }
 
 /**
- * 2. Branded Password Reset (security@store.prontly.in)
+ * 2. BRANDED FORGOT PASSWORD
  */
 export async function sendCustomPasswordResetEmail(email: string, resetLink: string) {
   try {
     const html = emailWrapper(`
-      <h1>Security Access.</h1>
+      <h1>Access Recovery.</h1>
       <p>A request was made to update the credentials for your Prontly account.</p>
       <center>
         <a href="${resetLink}" class="button">Update Password</a>
       </center>
       <div class="card" style="background-color: #fffaf0; border-color: #feebc8;">
-        <span class="card-label" style="color: #c05621;">Warning</span>
+        <span class="card-label" style="color: #c05621;">Security Notice</span>
         <span class="card-value" style="color: #744210; font-size: 14px;">This link will expire in 60 minutes. If you did not request this, please contact our security team immediately.</span>
       </div>
-    `, `Security: Password reset requested.`);
+    `, `Security: Password reset requested for your Prontly account.`);
 
     await resend.emails.send({
       from: 'Prontly Security <noreply@store.prontly.in>',
@@ -122,7 +123,7 @@ export async function sendCustomPasswordResetEmail(email: string, resetLink: str
 }
 
 /**
- * 3. Order Confirmation & PDF Invoice (billing@store.prontly.in)
+ * 3. ORDER CONFIRMATION & PDF INVOICE
  */
 export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   try {
@@ -130,7 +131,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     const docPdf = new jsPDF() as any;
     const primaryColor = inv.color || BRAND_COLOR;
 
-    // Premium PDF Logic
+    // PDF Generation Logic
     docPdf.setFont('helvetica', 'bold');
     docPdf.setFontSize(22);
     docPdf.setTextColor(primaryColor);
@@ -139,7 +140,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     docPdf.setFontSize(10);
     docPdf.setTextColor(100);
     docPdf.text('TAX INVOICE & RECEIPT', 20, 42);
-    docPdf.text(`ID: #${order.id.toUpperCase()}`, 140, 30);
+    docPdf.text(`ID: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
     docPdf.text(`DATE: ${format(new Date(), 'dd MMM yyyy')}`, 140, 37);
 
     const tableData = order.items.map((item: any) => [
@@ -162,27 +163,27 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 
     const html = emailWrapper(`
       <h1>Order Confirmed.</h1>
-      <p>Hello ${order.userName.split(' ')[0]}, your purchase was successful. Your high-performance digital assets are now permanently unlocked.</p>
+      <p>Hello ${order.userName.split(' ')[0]}, your purchase was successful. Your high-performance digital assets are now permanently unlocked in your library.</p>
       <div class="card">
         <div style="margin-bottom: 16px;">
-          <span class="card-label">Transaction Total</span>
+          <span class="card-label">Total Transaction</span>
           <span class="card-value">₹${(order.total / 100).toLocaleString('en-IN')}</span>
         </div>
         <div>
-          <span class="card-label">Payment Provider</span>
-          <span class="card-value">Razorpay Secure</span>
+          <span class="card-label">Payment ID</span>
+          <span class="card-value">${order.paymentId || 'Verified Transaction'}</span>
         </div>
       </div>
       <center>
         <a href="${SITE_URL}/dashboard" class="button">Access My Digital Library</a>
       </center>
-      <p style="font-size: 13px; color: #94a3b8;">A formal PDF receipt is attached for your records.</p>
+      <p style="font-size: 13px; color: #94a3b8;">A formal PDF tax receipt is attached to this email for your records.</p>
     `, `Your digital assets are ready for download.`);
 
     await resend.emails.send({
       from: 'Prontly Billing <billing@store.prontly.in>',
       to: order.userEmail,
-      subject: `Receipt: #${order.id.toUpperCase().slice(-8)}`,
+      subject: `Receipt for Order #${order.id.toUpperCase().slice(-8)}`,
       html,
       attachments: [
         {
@@ -195,5 +196,59 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   } catch (e) {
     console.error('Order email failure:', e);
     return { success: false, error: e };
+  }
+}
+
+/**
+ * 4. SECURITY ALERT
+ */
+export async function sendSecurityAlertEmail(email: string, action: string) {
+  try {
+    const html = emailWrapper(`
+      <h1>Security Alert.</h1>
+      <p>This is an automated notification regarding recent activity on your Prontly account.</p>
+      <div class="card" style="background-color: #fff5f5; border-color: #feb2b2;">
+        <span class="card-label" style="color: #c53030;">Action Detected</span>
+        <span class="card-value" style="color: #2d3748;">${action}</span>
+      </div>
+      <p>If this was you, no further action is required. If you did not perform this action, please secure your account immediately.</p>
+      <center>
+        <a href="${SITE_URL}/dashboard/settings" class="button">Secure My Account</a>
+      </center>
+    `, `Security Alert: Recent activity on your account.`);
+
+    await resend.emails.send({
+      from: 'Prontly Security <noreply@store.prontly.in>',
+      to: email,
+      subject: 'Security Alert',
+      html,
+    });
+  } catch (e) {
+    console.error('Security alert failure:', e);
+  }
+}
+
+/**
+ * 5. FAILED PAYMENT ALERT
+ */
+export async function sendFailedPaymentEmail(email: string, amount: number) {
+  try {
+    const html = emailWrapper(`
+      <h1>Payment Unsuccessful.</h1>
+      <p>We were unable to process your recent transaction for ₹${(amount / 100).toLocaleString('en-IN')}.</p>
+      <p>Don't worry, your cart items have been saved. You can attempt the checkout again using a different payment method.</p>
+      <center>
+        <a href="${SITE_URL}/checkout" class="button">Retry Checkout</a>
+      </center>
+    `, `Action Required: Payment failed for your recent order.`);
+
+    await resend.emails.send({
+      from: 'Prontly Billing <billing@store.prontly.in>',
+      to: email,
+      subject: 'Payment Failed',
+      html,
+    });
+  } catch (e) {
+    console.error('Failed payment email error:', e);
   }
 }

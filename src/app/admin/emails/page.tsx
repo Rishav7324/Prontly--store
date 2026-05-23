@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -24,7 +25,10 @@ import {
   Users,
   UserPlus,
   UserX,
-  Check
+  Megaphone,
+  BarChart3,
+  CheckCircle2,
+  Clock
 } from "lucide-react";
 import { 
   listTemplates, 
@@ -32,7 +36,6 @@ import {
   deleteResendTemplate, 
   listResendDomains,
   sendTestEmail,
-  duplicateResendTemplate,
   listResendAudiences,
   listResendContacts,
   createResendContact,
@@ -59,8 +62,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 
 export default function AdminEmailsPage() {
   const db = useFirestore();
@@ -78,13 +81,17 @@ export default function AdminEmailsPage() {
   const [testEmail, setTestEmail] = useState('');
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
 
+  // Stats from Firestore logs
+  const eventsQuery = useMemoFirebase(() => db ? query(collection(db, 'email_events'), orderBy('timestamp', 'desc'), limit(100)) : null, [db]);
+  const { data: events } = useCollection(eventsQuery);
+
   const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
   const { data: settings } = useDoc(settingsRef);
 
   const [formData, setFormData] = useState({
     name: '',
     subject: '',
-    html: '<html>\n<body style="font-family: sans-serif;">\n  <h1>Welcome to Prontly</h1>\n  <p>Hello {{{name}}},</p>\n  <p>Your journey begins here.</p>\n</body>\n</html>'
+    html: '<html>\n<body style="font-family: sans-serif; color: #4a5568;">\n  <h1 style="color: #5b52d6;">Welcome to Prontly</h1>\n  <p>Hello {{{name}}},</p>\n  <p>Your journey into the digital ecosystem begins here.</p>\n</body>\n</html>'
   });
 
   const [contactData, setContactData] = useState({
@@ -171,24 +178,6 @@ export default function AdminEmailsPage() {
     }
   };
 
-  const handleDuplicate = async (id: string) => {
-    toast({ title: "Duplicating..." });
-    const res = await duplicateResendTemplate(id);
-    if (res.success) {
-      toast({ title: "Template Duplicated" });
-      fetchData();
-    }
-  };
-
-  const handleDeleteTemplate = async (id: string) => {
-    if (!confirm('Delete this template?')) return;
-    const res = await deleteResendTemplate(id);
-    if (res.success) {
-      toast({ title: "Template Removed" });
-      fetchData();
-    }
-  };
-
   const handleSendTest = async (templateId: string) => {
     if (!testEmail) {
       toast({ variant: "destructive", title: "Email Required" });
@@ -196,7 +185,6 @@ export default function AdminEmailsPage() {
     }
     setIsTesting(true);
 
-    // Sanitize settings for Server Action
     const plainEmailSettings = settings?.emailSettings ? {
       fromEmail: settings.emailSettings.fromEmail,
       senderName: settings.emailSettings.senderName
@@ -210,7 +198,7 @@ export default function AdminEmailsPage() {
     });
 
     if (res.success) {
-      toast({ title: "Test Sent", description: `Check ${testEmail}` });
+      toast({ title: "Test Sent", description: `Check ${testEmail} inbox.` });
     } else {
       toast({ variant: "destructive", title: "Test Failed", description: res.error });
     }
@@ -221,13 +209,13 @@ export default function AdminEmailsPage() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Email Control Center</h1>
-          <p className="text-muted-foreground">Administer Resend templates, audience contacts, and delivery health.</p>
+          <h1 className="text-3xl font-bold font-headline">Communication Center</h1>
+          <p className="text-muted-foreground">Administer Resend templates, campaigns, and delivery health.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
             <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-            Refresh
+            Refresh Data
           </Button>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
@@ -238,24 +226,24 @@ export default function AdminEmailsPage() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Create Template</DialogTitle>
-                <DialogDescription>Use <code>{"{{{variable}}}"}</code> for dynamic fields.</DialogDescription>
+                <DialogTitle>Create Branded Template</DialogTitle>
+                <DialogDescription>Supports <code>{"{{{variable}}}"}</code> syntax for dynamic personalization.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                  <Label htmlFor="name">Internal Name</Label>
+                  <Input id="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Welcome Series" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="subject">Default Subject</Label>
-                  <Input id="subject" value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} />
+                  <Label htmlFor="subject">Default Subject Line</Label>
+                  <Input id="subject" value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} placeholder="Welcome to Prontly Store!" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="html">HTML Content</Label>
-                  <Textarea id="html" value={formData.html} onChange={(e) => setFormData({...formData, html: e.target.value})} className="font-code text-[10px] h-60 bg-black/30" required />
+                  <Label htmlFor="html">HTML Layout</Label>
+                  <Textarea id="html" value={formData.html} onChange={(e) => setFormData({...formData, html: e.target.value})} className="font-code text-[11px] h-80 bg-black/30 leading-relaxed" required />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={isSaving}>Create & Publish</Button>
+                  <Button type="submit" disabled={isSaving}>Deploy & Publish</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -264,11 +252,11 @@ export default function AdminEmailsPage() {
       </header>
 
       <Tabs defaultValue="templates" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1 w-full justify-start h-12">
+        <TabsList className="bg-muted/50 p-1 w-full justify-start h-12 flex-nowrap overflow-x-auto">
           <TabsTrigger value="templates" className="gap-2 px-6"><Layout className="h-4 w-4" /> Templates</TabsTrigger>
-          <TabsTrigger value="audience" className="gap-2 px-6"><Users className="h-4 w-4" /> Audience</TabsTrigger>
-          <TabsTrigger value="domains" className="gap-2 px-6"><Globe className="h-4 w-4" /> Domains</TabsTrigger>
-          <TabsTrigger value="settings" className="gap-2 px-6"><Code2 className="h-4 w-4" /> Connection</TabsTrigger>
+          <TabsTrigger value="audience" className="gap-2 px-6"><Users className="h-4 w-4" /> Subscribers</TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2 px-6"><BarChart3 className="h-4 w-4" /> Analytics</TabsTrigger>
+          <TabsTrigger value="domains" className="gap-2 px-6"><Globe className="h-4 w-4" /> Verified Domains</TabsTrigger>
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
@@ -276,18 +264,15 @@ export default function AdminEmailsPage() {
             {loading && templates.length === 0 ? (
               [...Array(3)].map((_, i) => <Card key={i} className="h-48 animate-pulse bg-muted/20" />)
             ) : templates.map((template) => (
-              <Card key={template.id} className="bg-card/30 border-white/5 overflow-hidden group hover:border-primary/30 transition-all">
+              <Card key={template.id} className="bg-card/30 border-white/5 overflow-hidden group hover:border-primary/30 transition-all rounded-3xl">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-2">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-2">
                       <FileCode className="h-5 w-5" />
                     </div>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewTemplate(template)}>
                         <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(template.id)}>
-                        <Copy className="h-4 w-4" />
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
@@ -297,25 +282,27 @@ export default function AdminEmailsPage() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Send Test</DialogTitle>
+                            <DialogTitle>Send Test Blast</DialogTitle>
                           </DialogHeader>
                           <div className="py-4">
-                            <Input placeholder="Recipient Email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} />
+                            <Label className="mb-2 block">Recipient Email</Label>
+                            <Input placeholder="name@domain.com" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} />
                           </div>
                           <DialogFooter>
-                            <Button onClick={() => handleSendTest(template.id)} disabled={isTesting}>Dispatch Test</Button>
+                            <Button onClick={() => handleSendTest(template.id)} disabled={isTesting}>Dispatch Now</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteTemplate(template.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { if(confirm('Delete template?')) deleteResendTemplate(template.id).then(fetchData); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <CardTitle className="text-lg truncate">{template.name}</CardTitle>
+                  <CardDescription className="text-[10px] font-mono">{template.id}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Badge variant="outline" className="text-[10px] uppercase border-white/10 text-green-500 bg-green-500/5">Published</Badge>
+                  <Badge variant="outline" className="text-[10px] uppercase border-green-500/20 text-green-500 bg-green-500/5">Production Ready</Badge>
                 </CardContent>
               </Card>
             ))}
@@ -323,26 +310,26 @@ export default function AdminEmailsPage() {
         </TabsContent>
 
         <TabsContent value="audience" className="space-y-6">
-          <Card className="bg-card/20 border-white/5">
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Card className="bg-card/20 border-white/5 rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between p-8 border-b border-white/5">
               <div>
-                <CardTitle>Audience Contacts</CardTitle>
-                <CardDescription>Manage subscribers in your Resend list.</CardDescription>
+                <CardTitle>Subscriber Audience</CardTitle>
+                <CardDescription>Managed list of verified email contacts from your Resend list.</CardDescription>
               </div>
               <Dialog open={isContactModalOpen} onOpenChange={setIsContactModalOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="gap-2">
+                  <Button className="gap-2 rounded-xl">
                     <UserPlus className="h-4 w-4" />
-                    Add Contact
+                    New Contact
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>New Contact</DialogTitle>
+                    <DialogTitle>Manual Registration</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleCreateContact} className="space-y-4 py-4">
                     <div className="grid gap-2">
-                      <Label>Email Address</Label>
+                      <Label>Primary Email</Label>
                       <Input type="email" value={contactData.email} onChange={(e) => setContactData({...contactData, email: e.target.value})} required />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -356,104 +343,144 @@ export default function AdminEmailsPage() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" disabled={isSaving}>Add to List</Button>
+                      <Button type="submit" disabled={isSaving}>Add to Audience</Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
               </Dialog>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-md border border-white/5">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-white/5">
+                    <TableHead className="pl-8">Recipient</TableHead>
+                    <TableHead>Full Name</TableHead>
+                    <TableHead>State</TableHead>
+                    <TableHead className="text-right pr-8">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contacts.length > 0 ? contacts.map((contact) => (
+                    <TableRow key={contact.id} className="border-white/5 hover:bg-white/5">
+                      <TableCell className="pl-8 font-medium">{contact.email}</TableCell>
+                      <TableCell>{contact.firstName} {contact.lastName}</TableCell>
+                      <TableCell>
+                        <Badge variant={contact.unsubscribed ? "destructive" : "secondary"} className="text-[9px] uppercase font-bold px-2 py-0.5">
+                          {contact.unsubscribed ? "Unsubscribed" : "Subscribed"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => handleDeleteContact(contact.id)}>
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contacts.length > 0 ? contacts.map((contact) => (
-                      <TableRow key={contact.id}>
-                        <TableCell className="font-medium">{contact.email}</TableCell>
-                        <TableCell>{contact.firstName} {contact.lastName}</TableCell>
-                        <TableCell>
-                          <Badge variant={contact.unsubscribed ? "destructive" : "secondary"}>
-                            {contact.unsubscribed ? "Unsubscribed" : "Subscribed"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteContact(contact.id)}>
-                            <UserX className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
-                          No contacts found in this audience.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">
+                        No active contacts found in the selected audience.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              { label: 'Total Events', val: events?.length || 0, icon: BarChart3, color: 'text-primary' },
+              { label: 'Delivered', val: events?.filter(e => e.type === 'delivered').length || 0, icon: CheckCircle2, color: 'text-green-500' },
+              { label: 'Opened', val: events?.filter(e => e.type === 'opened').length || 0, icon: Eye, color: 'text-accent' },
+              { label: 'Engagement', val: `${Math.round(((events?.filter(e => e.type === 'clicked').length || 0) / (events?.length || 1)) * 100)}%`, icon: Megaphone, color: 'text-orange-500' },
+            ].map((stat, i) => (
+              <Card key={i} className="bg-card/30 border-white/5 rounded-3xl">
+                <CardContent className="pt-6">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{stat.label}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <h3 className="text-3xl font-bold font-headline">{stat.val}</h3>
+                    <stat.icon className={cn("h-6 w-6", stat.color)} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="bg-card/20 border-white/5 rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="p-8 border-b border-white/5"><CardTitle>Live Delivery Stream</CardTitle></CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-white/5">
+                    <TableHead className="pl-8">Event Type</TableHead>
+                    <TableHead>Recipient</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events?.map((ev) => (
+                    <TableRow key={ev.id} className="border-white/5">
+                      <TableCell className="pl-8">
+                        <Badge className={cn(
+                          "uppercase text-[9px] font-black tracking-widest px-2 py-0.5 border-none",
+                          ev.type === 'delivered' ? "bg-green-500/10 text-green-500" :
+                          ev.type === 'opened' ? "bg-blue-500/10 text-blue-500" :
+                          ev.type === 'clicked' ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"
+                        )}>
+                          {ev.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs">{ev.data?.to?.join(', ') || 'System'}</TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground font-mono">
+                        {ev.timestamp ? new Date(ev.timestamp.toDate()).toLocaleString() : 'Recent'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="domains" className="space-y-6">
-          <Card className="bg-card/20 border-white/5">
+          <Card className="bg-card/20 border-white/5 rounded-3xl">
             <CardHeader>
-              <CardTitle>Verified Domains</CardTitle>
+              <CardTitle>Infrastructure Verification</CardTitle>
+              <CardDescription>Resend domain identity and security validation.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {domains.map((domain) => (
-                <div key={domain.id} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5">
+                <div key={domain.id} className="flex items-center justify-between p-5 rounded-2xl border border-white/5 bg-white/5 group hover:border-primary/30 transition-all">
                   <div className="flex items-center gap-4">
-                    <div className={cn("h-3 w-3 rounded-full", domain.status === 'verified' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]")} />
+                    <div className={cn("h-4 w-4 rounded-full", domain.status === 'verified' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]")} />
                     <div>
-                      <p className="font-bold text-sm">{domain.name}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{domain.status}</p>
+                      <p className="font-bold text-sm tracking-tight">{domain.name}</p>
+                      <p className="text-[9px] text-muted-foreground uppercase font-black tracking-[0.2em]">{domain.status}</p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] uppercase">{domain.region}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="text-[9px] uppercase border-white/10">{domain.region}</Badge>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" asChild>
+                      <a href="https://resend.com/domains" target="_blank"><ExternalLink className="h-4 w-4" /></a>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="settings" className="space-y-6">
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                API Connectivity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5">
-                <div className="space-y-1">
-                  <p className="text-sm font-bold">Node.js SDK Status</p>
-                  <div className="flex items-center gap-2 text-xs text-green-500 font-medium">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    v4.x Integration Active
-                  </div>
-                </div>
-                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-none">CONNECTED</Badge>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
-      {/* Preview Dialog */}
+      {/* Full Screen Preview */}
       <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-        <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden bg-white">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 overflow-hidden bg-white">
           <div className="p-4 border-b bg-muted flex items-center justify-between">
-            <h3 className="font-bold text-black">Preview: {previewTemplate?.name}</h3>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary text-white"><Layout className="h-4 w-4" /></div>
+              <h3 className="font-bold text-black uppercase tracking-tight">{previewTemplate?.name}</h3>
+            </div>
             <Badge className="bg-primary">{previewTemplate?.id}</Badge>
           </div>
           <div className="flex-1 bg-white">
