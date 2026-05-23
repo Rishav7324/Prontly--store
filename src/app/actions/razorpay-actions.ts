@@ -1,4 +1,3 @@
-
 'use server';
 
 import Razorpay from 'razorpay';
@@ -6,14 +5,13 @@ import crypto from 'crypto';
 
 /**
  * Initialized Razorpay client with secure environment variables.
- * Initializing inside a getter to ensure env vars are loaded in the current execution context.
  */
 function getRazorpayClient() {
   const key_id = process.env.RAZORPAY_KEY_ID;
   const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!key_id || !key_secret) {
-    throw new Error('Razorpay credentials (RAZORPAY_KEY_ID/SECRET) are not configured on the server.');
+    throw new Error('Razorpay credentials are not configured on the server.');
   }
 
   return new Razorpay({
@@ -23,21 +21,22 @@ function getRazorpayClient() {
 }
 
 /**
- * Creates a Razorpay Order on the server.
- * @param amount Total amount in paise (e.g. 10000 for ₹100)
+ * STEP 1: Create Razorpay Order
+ * @param amount Total amount in paise (e.g. 100 for ₹1)
  */
 export async function createRazorpayOrder(amount: number) {
   try {
     const razorpay = getRazorpayClient();
 
+    // Razorpay minimum amount is 100 paise (₹1)
     if (amount < 100) {
-      throw new Error('Minimum amount must be ₹1 (100 paise).');
+      throw new Error('Minimum transaction amount is ₹1 (100 paise).');
     }
 
     const options = {
       amount: Math.round(amount),
       currency: "INR",
-      receipt: `order_rcpt_${Date.now()}`,
+      receipt: `receipt_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
@@ -51,48 +50,36 @@ export async function createRazorpayOrder(amount: number) {
       } 
     };
   } catch (error: any) {
-    console.error('Razorpay Order Creation Error:', error);
-    
-    // Extract the most descriptive error message possible from Razorpay response
-    let errorMessage = 'Failed to create payment order.';
-    
-    if (error.error && error.error.description) {
-      errorMessage = error.error.description;
-    } else if (error.description) {
-      errorMessage = error.description;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    // Specifically handle 401 Unauthorized
-    if (error.statusCode === 401 || errorMessage.includes('Authentication')) {
-      errorMessage = "Authentication failed: Please check if RAZORPAY_KEY_ID and SECRET are correct in your .env file.";
-    }
-      
-    return { success: false, error: errorMessage };
+    console.error('Razorpay Order Error:', error);
+    return { 
+      success: false, 
+      error: error.description || error.message || 'Authentication or API failure.' 
+    };
   }
 }
 
 /**
- * Verifies the Razorpay payment signature for security using HMAC SHA256.
+ * STEP 3: Verify Payment Signature
+ * Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
  */
 export async function verifyRazorpayPayment(orderId: string, paymentId: string, signature: string) {
   try {
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!secret) throw new Error("Key secret missing on server.");
 
-    const generatedSignature = crypto
+    const body = orderId + "|" + paymentId;
+    const expectedSignature = crypto
       .createHmac('sha256', secret)
-      .update(orderId + "|" + paymentId)
+      .update(body.toString())
       .digest('hex');
 
-    if (generatedSignature === signature) {
+    if (expectedSignature === signature) {
       return { success: true };
     } else {
-      console.warn("Signature mismatch detected for order:", orderId);
-      return { success: false, error: 'Cryptographic signature verification failed.' };
+      console.warn("Security Warning: Signature mismatch for order:", orderId);
+      return { success: false, error: 'Payment verification failed: Signature mismatch.' };
     }
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Internal verification error.' };
   }
 }
