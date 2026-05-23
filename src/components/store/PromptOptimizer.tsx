@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -6,7 +5,7 @@ import { Sparkles, Send, CheckCircle2, AlertCircle, RefreshCw } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { aiPromptOptimization, type AIPromptOptimizationOutput } from "@/ai/flows/ai-prompt-optimization";
 
@@ -37,16 +36,7 @@ export function PromptOptimizer({ basePrompt }: { basePrompt: string }) {
 
   return (
     <Card className="border-primary/20 bg-primary/5">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Sparkles className="h-5 w-5" />
-          Prompt Optimizer Pro
-        </CardTitle>
-        <CardDescription>
-          Test and refine this prompt before you buy. See how it handles your specific scenario.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Testing Scenario</label>
           <Input 
