@@ -51,7 +51,7 @@ const emailWrapper = (content: string, preheader: string) => `
 export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   if (!process.env.RESEND_API_KEY) return { success: false };
 
-  const fromEmail = settings?.emailSettings?.fromEmail || 'onboarding@resend.dev';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
   const inv = settings?.invoiceSettings || {};
 
@@ -169,7 +169,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 export async function sendWelcomeEmail(email: string, name: string, settings?: any) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API key missing' };
   
-  const fromEmail = settings?.emailSettings?.fromEmail || 'onboarding@resend.dev';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
@@ -196,7 +196,7 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
 export async function sendPasswordResetEmail(email: string, settings?: any) {
   if (!process.env.RESEND_API_KEY) return;
   
-  const fromEmail = settings?.emailSettings?.fromEmail || 'onboarding@resend.dev';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`

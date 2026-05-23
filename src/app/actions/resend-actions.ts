@@ -186,7 +186,7 @@ export async function sendTestEmail(payload: {
 }) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   
-  const fromEmail = payload.sender?.fromEmail || 'onboarding@resend.dev';
+  const fromEmail = payload.sender?.fromEmail || 'support@store.prontly.in';
   const senderName = payload.sender?.senderName || 'Prontly Store';
 
   try {
@@ -223,7 +223,7 @@ export async function sendNewsletterCampaign(payload: {
 }) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   
-  const fromEmail = payload.sender?.fromEmail || 'onboarding@resend.dev';
+  const fromEmail = payload.sender?.fromEmail || 'support@store.prontly.in';
   const senderName = payload.sender?.senderName || 'Prontly Store';
 
   try {

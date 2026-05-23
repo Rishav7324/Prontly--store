@@ -47,7 +47,7 @@ export default function AdminSettings() {
       textColor: '#ffffff'
     },
     emailSettings: {
-      fromEmail: 'onboarding@resend.dev',
+      fromEmail: 'support@store.prontly.in',
       senderName: 'Prontly Store'
     },
     invoiceSettings: {
@@ -72,7 +72,7 @@ export default function AdminSettings() {
           textColor: '#ffffff'
         },
         emailSettings: settings.emailSettings || {
-          fromEmail: 'onboarding@resend.dev',
+          fromEmail: 'support@store.prontly.in',
           senderName: 'Prontly Store'
         },
         invoiceSettings: settings.invoiceSettings || {
@@ -253,7 +253,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Verified From Address</Label>
-                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="hello@yourdomain.com" className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="support@store.prontly.in" className="h-12 bg-background/50 rounded-xl" />
                 </div>
               </div>
               <div className="flex items-start gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
