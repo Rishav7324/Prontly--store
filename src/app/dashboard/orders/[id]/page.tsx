@@ -1,9 +1,9 @@
 'use client';
 
-import { use, useMemo } from 'react';
+import { use, useMemo, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useDoc, useFirestore, useUser } from '@/firebase';
+import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,18 +16,59 @@ import {
   Printer, 
   ShieldCheck, 
   Package,
-  Receipt
+  Receipt,
+  FileDown
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { generateInvoicePdf } from '@/app/actions/email-actions';
+import { toast } from '@/hooks/use-toast';
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { user } = useUser();
   const db = useFirestore();
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const orderRef = useMemo(() => (db ? doc(db, 'orders', id) : null), [db, id]);
+  const orderRef = useMemoFirebase(() => (db ? doc(db, 'orders', id) : null), [db, id]);
   const { data: order, loading } = useDoc(orderRef);
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    setIsDownloading(true);
+    try {
+      // Create a plain order object for the server action
+      const plainOrder = {
+        id: order.id,
+        userName: order.userName,
+        userEmail: order.userEmail,
+        items: order.items,
+        subtotal: order.subtotal,
+        discount: order.discount,
+        total: order.total
+      };
+
+      // Create a plain settings object
+      const plainSettings = settings ? {
+        invoiceSettings: settings.invoiceSettings || {}
+      } : null;
+
+      const pdfBase64 = await generateInvoicePdf(plainOrder, plainSettings);
+      
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${pdfBase64}`;
+      link.download = `invoice-${id.slice(-8)}.pdf`;
+      link.click();
+      toast({ title: "Invoice Downloaded" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Download Failed" });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -68,10 +109,21 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <p className="text-muted-foreground text-sm uppercase tracking-widest font-mono font-bold mt-1">Transaction ID: {id.toUpperCase()}</p>
             </div>
           </div>
-          <Button variant="outline" className="h-14 px-8 rounded-2xl gap-3 border-white/10 font-bold" onClick={() => window.print()}>
-            <Printer className="h-5 w-5" />
-            Print Receipt
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              className="h-14 px-8 rounded-2xl gap-3 border-white/10 font-bold"
+              onClick={handleDownloadInvoice}
+              disabled={isDownloading}
+            >
+              {isDownloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileDown className="h-5 w-5" />}
+              PDF Invoice
+            </Button>
+            <Button variant="ghost" className="h-14 px-8 rounded-2xl gap-3 border-white/10 font-bold bg-white/5 md:flex hidden" onClick={() => window.print()}>
+              <Printer className="h-5 w-5" />
+              Print
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -132,7 +184,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed italic">
-                    Transaction processed on {order.paidAt ? format(new Date(order.paidAt.toDate()), 'PPP p') : 'Recently'}. Source files are stored in Global R2 edge.
+                    Transaction processed on {order.paidAt ? format(order.paidAt.toDate ? order.paidAt.toDate() : new Date(order.paidAt), 'PPP p') : 'Recently'}. Source files are stored in Global R2 edge.
                   </p>
                 </div>
               </Card>

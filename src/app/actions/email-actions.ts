@@ -48,18 +48,16 @@ const emailWrapper = (content: string, preheader: string) => `
 </html>
 `;
 
-export async function sendOrderConfirmationEmail(order: any, settings?: any) {
-  if (!process.env.RESEND_API_KEY) return { success: false };
-
-  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
-  const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
+/**
+ * Generates a base64 encoded PDF invoice.
+ */
+export async function generateInvoicePdf(order: any, settings?: any) {
   const inv = settings?.invoiceSettings || {};
-
   const docPdf = new jsPDF() as any;
   const margin = 20;
   const primaryColor = inv.color || BRAND_COLOR;
-  
   const logoUrl = inv.logoUrl || DEFAULT_LOGO;
+
   try {
     const response = await fetch(logoUrl);
     const arrayBuffer = await response.arrayBuffer();
@@ -95,9 +93,9 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 
   const tableData = order.items.map((item: any) => [
     item.productName,
-    item.quantity,
+    item.quantity || 1,
     `INR ${(item.price / 100).toLocaleString('en-IN')}`,
-    `INR ${(item.price * item.quantity / 100).toLocaleString('en-IN')}`
+    `INR ${((item.price * (item.quantity || 1)) / 100).toLocaleString('en-IN')}`
   ]);
 
   const hex = primaryColor.replace('#', '');
@@ -132,21 +130,30 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
   docPdf.setTextColor(150);
   docPdf.text(inv.footerText || 'Digital assets are delivered instantly. No physical shipping is required.', margin, 280);
 
-  const pdfBase64 = docPdf.output('datauristring').split(',')[1];
+  return docPdf.output('datauristring').split(',')[1];
+}
 
-  const html = emailWrapper(`
-    <h1>Thank you for your order!</h1>
-    <p>Hi ${order.userName}, your purchase was successful. Your high-performance digital assets are now permanently unlocked in your library.</p>
-    <div class="order-card">
-      <strong>Receipt ID:</strong> #${order.id.toUpperCase().slice(-8)}<br/>
-      <strong>Total Paid:</strong> ₹${(order.total / 100).toLocaleString('en-IN')}
-    </div>
-    <p>Access and download your assets anytime by visiting your personal dashboard.</p>
-    <center><a href="${SITE_URL}/dashboard" class="button">Access My Digital Library</a></center>
-    <p style="font-size: 12px; color: #777; margin-top: 32px; font-style: italic;">A copy of your purchase receipt is attached to this email for your records.</p>
-  `, `Your digital assets are ready for download.`);
+export async function sendOrderConfirmationEmail(order: any, settings?: any) {
+  if (!process.env.RESEND_API_KEY) return { success: false };
+
+  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
+  const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   try {
+    const pdfBase64 = await generateInvoicePdf(order, settings);
+
+    const html = emailWrapper(`
+      <h1>Thank you for your order!</h1>
+      <p>Hi ${order.userName}, your purchase was successful. Your high-performance digital assets are now permanently unlocked in your library.</p>
+      <div class="order-card">
+        <strong>Receipt ID:</strong> #${order.id.toUpperCase().slice(-8)}<br/>
+        <strong>Total Paid:</strong> ₹${(order.total / 100).toLocaleString('en-IN')}
+      </div>
+      <p>Access and download your assets anytime by visiting your personal dashboard.</p>
+      <center><a href="${SITE_URL}/dashboard" class="button">Access My Digital Library</a></center>
+      <p style="font-size: 12px; color: #777; margin-top: 32px; font-style: italic;">A copy of your purchase receipt is attached to this email for your records.</p>
+    `, `Your digital assets are ready for download.`);
+
     await resend.emails.send({
       from: `${senderName} <${fromEmail}>`,
       to: order.userEmail,

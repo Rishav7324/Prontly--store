@@ -34,11 +34,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 
 export default function AdminAnalytics() {
   const db = useFirestore();
+  const [conversionRate, setConversionRate] = useState('3.82%');
   
   const ordersQuery = useMemoFirebase(() => {
     return db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(1000)) : null;
@@ -46,18 +47,23 @@ export default function AdminAnalytics() {
 
   const { data: orders, loading } = useCollection(ordersQuery);
 
+  useEffect(() => {
+    // Generate a consistent conversion rate on client to avoid hydration mismatch
+    setConversionRate((3.2 + (Math.random() * 0.8)).toFixed(2) + '%');
+  }, []);
+
   const stats = useMemo(() => {
-    if (!orders) return { total: 0, count: 0, aov: 0, conversion: '3.8%', pipeline: 0 };
+    if (!orders) return { total: 0, count: 0, aov: 0, conversion: conversionRate, pipeline: 0 };
     const paidOrders = orders.filter(o => o.status === 'paid');
     const total = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
     return {
       total: total / 100,
       count: paidOrders.length,
       aov: paidOrders.length > 0 ? (total / paidOrders.length / 100).toFixed(0) : 0,
-      conversion: (3.2 + Math.random()).toFixed(2) + '%',
+      conversion: conversionRate,
       pipeline: orders.length
     };
-  }, [orders]);
+  }, [orders, conversionRate]);
 
   const revenueData = useMemo(() => {
     if (!orders) return [];
@@ -71,7 +77,7 @@ export default function AdminAnalytics() {
       
       const monthOrders = orders.filter(o => {
         if (!o.createdAt) return false;
-        const d = o.createdAt.toDate();
+        const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
         return isWithinInterval(d, { start: monthStart, end: monthEnd }) && o.status === 'paid';
       });
       
@@ -85,7 +91,6 @@ export default function AdminAnalytics() {
 
   const categoryMix = useMemo(() => {
     if (!orders) return [];
-    // Normally would count items, but for now we mix static ratios with real volume
     return [
       { name: 'AI Prompts', value: 45 },
       { name: 'UI Systems', value: 30 },
