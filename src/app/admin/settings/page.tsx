@@ -27,7 +27,8 @@ import {
   CreditCard,
   Sparkles,
   Type,
-  ShieldCheck
+  ShieldCheck,
+  Server
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -61,6 +62,13 @@ export default function AdminSettings() {
       fromEmail: 'support@store.prontly.in',
       senderName: 'Prontly Store'
     },
+    smtpConfig: {
+      host: '',
+      port: '587',
+      user: '',
+      pass: '',
+      secure: false
+    },
     invoiceSettings: {
       businessName: 'PRONTLY DIGITAL',
       address: '',
@@ -92,6 +100,13 @@ export default function AdminSettings() {
         emailSettings: settings.emailSettings || {
           fromEmail: 'support@store.prontly.in',
           senderName: 'Prontly Store'
+        },
+        smtpConfig: settings.smtpConfig || {
+          host: '',
+          port: '587',
+          user: '',
+          pass: '',
+          secure: false
         },
         invoiceSettings: settings.invoiceSettings || {
           businessName: 'PRONTLY DIGITAL',
@@ -146,6 +161,17 @@ export default function AdminSettings() {
     setFormData(prev => ({
       ...prev,
       emailSettings: { ...prev.emailSettings, [id]: value }
+    }));
+  };
+
+  const handleSmtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      smtpConfig: { 
+        ...prev.smtpConfig, 
+        [id]: type === 'checkbox' ? checked : value 
+      }
     }));
   };
 
@@ -353,7 +379,7 @@ export default function AdminSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-primary" />
-                Resend Sender Details
+                Sender Profile
               </CardTitle>
               <CardDescription>Configure how your automated emails appear in customer inboxes.</CardDescription>
             </CardHeader>
@@ -364,16 +390,49 @@ export default function AdminSettings() {
                   <Input id="senderName" value={formData.emailSettings?.senderName || ''} onChange={handleEmailChange} placeholder="Prontly Support" className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Verified From Address</Label>
+                  <Label>From Email Address</Label>
                   <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="support@store.prontly.in" className="h-12 bg-background/50 rounded-xl" />
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
-                <AlertCircle className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                <div className="text-sm text-muted-foreground space-y-2">
-                  <p><strong>Crucial Step:</strong> The <strong>"From Address"</strong> must be fully verified in your <a href="https://resend.com/domains" target="_blank" className="text-primary underline">Resend Dashboard</a>.</p>
-                  <p>If you use an unverified domain, Resend will block all transactional email delivery (Welcome emails, Receipts, etc.).</p>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2rem] border-white/5 bg-card/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5 text-primary" />
+                SMTP Configuration
+              </CardTitle>
+              <CardDescription>Enter your standard mail server details. This will override the Resend API for transactional emails.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>SMTP Host</Label>
+                  <Input id="host" value={formData.smtpConfig?.host || ''} onChange={handleSmtpChange} placeholder="smtp.gmail.com" className="h-12 bg-background/50 rounded-xl" />
                 </div>
+                <div className="grid gap-2">
+                  <Label>SMTP Port</Label>
+                  <Input id="port" value={formData.smtpConfig?.port || '587'} onChange={handleSmtpChange} placeholder="587" className="h-12 bg-background/50 rounded-xl" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>SMTP Username</Label>
+                  <Input id="user" value={formData.smtpConfig?.user || ''} onChange={handleSmtpChange} className="h-12 bg-background/50 rounded-xl" />
+                </div>
+                <div className="grid gap-2">
+                  <Label>SMTP Password</Label>
+                  <Input id="pass" type="password" value={formData.smtpConfig?.pass || ''} onChange={handleSmtpChange} className="h-12 bg-background/50 rounded-xl" />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="secure" 
+                  checked={formData.smtpConfig?.secure} 
+                  onChange={(e) => handleSmtpChange(e as any)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label htmlFor="secure">Use SSL/TLS (Port 465)</Label>
               </div>
             </CardContent>
           </Card>

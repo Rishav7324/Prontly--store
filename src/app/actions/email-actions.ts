@@ -1,11 +1,10 @@
 'use server';
 
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const BRAND_COLOR = '#5b52d6';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 const DEFAULT_LOGO = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico';
@@ -60,6 +59,23 @@ const emailWrapper = (content: string, preheader: string) => `
 </body>
 </html>
 `;
+
+/**
+ * Initialize SMTP Transporter dynamically from settings or env
+ */
+function getTransporter(settings?: any) {
+  const smtp = settings?.smtpConfig || {};
+  
+  return nodemailer.createTransport({
+    host: smtp.host || process.env.SMTP_HOST || 'smtp.resend.com',
+    port: parseInt(smtp.port || process.env.SMTP_PORT || '587'),
+    secure: smtp.secure || process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: smtp.user || process.env.SMTP_USER || 'resend',
+      pass: smtp.pass || process.env.SMTP_PASS || process.env.RESEND_API_KEY,
+    },
+  });
+}
 
 /**
  * Premium jsPDF Invoice Engine
@@ -177,14 +193,11 @@ export async function generateInvoicePdf(order: any, settings?: any) {
 }
 
 export async function sendOrderConfirmationEmail(order: any, settings?: any) {
-  if (!process.env.RESEND_API_KEY) return { success: false };
-
-  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'support@prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   try {
     const pdfBase64 = await generateInvoicePdf(order, settings);
-
     const html = emailWrapper(`
       <h1>Order Confirmed.</h1>
       <p>Hello ${order.userName.split(' ')[0]}, your purchase was successful. Your high-performance digital assets are now permanently unlocked in your personal library.</p>
@@ -213,15 +226,17 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
       </p>
     `, `Your digital assets are ready for download.`);
 
-    await resend.emails.send({
-      from: `${senderName} <${fromEmail}>`,
+    const transporter = getTransporter(settings);
+    await transporter.sendMail({
+      from: `"${senderName}" <${fromEmail}>`,
       to: order.userEmail,
       subject: `Invoice: #${order.id.toUpperCase().slice(-8)}`,
       html,
       attachments: [
         {
           filename: `receipt-${order.id.slice(-8)}.pdf`,
-          content: pdfBase64,
+          content: Buffer.from(pdfBase64, 'base64'),
+          contentType: 'application/pdf'
         }
       ]
     });
@@ -233,8 +248,6 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 }
 
 export async function sendWelcomeEmail(email: string, name: string, settings?: any) {
-  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API key missing' };
-  
   const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
@@ -252,21 +265,21 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
   `, `Welcome to the future of high-speed creation.`);
 
   try {
-    await resend.emails.send({
-      from: `${senderName} <${fromEmail}>`,
+    const transporter = getTransporter(settings);
+    await transporter.sendMail({
+      from: `"${senderName}" <${fromEmail}>`,
       to: email,
       subject: 'Welcome to Prontly!',
       html,
     });
     return { success: true };
   } catch (error) {
+    console.error('Welcome email failed:', error);
     return { success: false };
   }
 }
 
 export async function sendPasswordResetEmail(email: string, settings?: any) {
-  if (!process.env.RESEND_API_KEY) return;
-  
   const fromEmail = settings?.emailSettings?.fromEmail || 'support@prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
@@ -284,8 +297,9 @@ export async function sendPasswordResetEmail(email: string, settings?: any) {
   `, `Security Alert: Password Reset Requested.`);
 
   try {
-    await resend.emails.send({
-      from: `${senderName} Security <${fromEmail}>`,
+    const transporter = getTransporter(settings);
+    await transporter.sendMail({
+      from: `"${senderName} Security" <${fromEmail}>`,
       to: email,
       subject: 'Security Alert: Password Reset',
       html,
