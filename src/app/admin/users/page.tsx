@@ -14,7 +14,8 @@ import {
   UserMinus, 
   UserCheck,
   Mail,
-  Users
+  Users,
+  Eye
 } from 'lucide-react';
 import {
   Table,
@@ -33,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from 'next/link';
 
 export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,17 +57,11 @@ export default function AdminUsers() {
     await updateDoc(ref, { isActive: !currentStatus });
   };
 
-  const changeRole = async (id: string, newRole: string) => {
-    if (!db) return;
-    const ref = doc(db, 'users', id);
-    await updateDoc(ref, { role: newRole });
-  };
-
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold font-headline">Users</h1>
-        <p className="text-muted-foreground">Manage customer accounts and staff permissions.</p>
+        <h1 className="text-3xl font-bold font-headline">Customers & Users</h1>
+        <p className="text-muted-foreground">Manage accounts and monitor community growth.</p>
       </header>
 
       <Card>
@@ -93,15 +89,14 @@ export default function AdminUsers() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Orders</TableHead>
+                  <TableHead>LTV (Spend)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user: any) => (
-                  <TableRow key={user.uid}>
+                  <TableRow key={user.uid} className="hover:bg-muted/5 transition-colors">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
@@ -119,10 +114,9 @@ export default function AdminUsers() {
                         {user.role}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                    <TableCell className="font-bold text-primary">
+                      ₹{(user.totalSpent || 0 / 100).toLocaleString('en-IN')}
                     </TableCell>
-                    <TableCell className="font-bold">{user.orderCount || 0}</TableCell>
                     <TableCell>
                       <Badge variant={user.isActive !== false ? 'outline' : 'destructive'} className={user.isActive !== false ? "text-green-500 border-green-500/50" : ""}>
                         {user.isActive !== false ? 'Active' : 'Suspended'}
@@ -136,16 +130,12 @@ export default function AdminUsers() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Manage Permissions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => changeRole(user.uid, 'customer')}>
-                            Set as Customer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => changeRole(user.uid, 'editor')}>
-                            Set as Editor
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => changeRole(user.uid, 'admin')}>
-                            <ShieldCheck className="mr-2 h-4 w-4" />
-                            Set as Admin
+                          <DropdownMenuLabel>Intelligence</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/users/${user.uid}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Customer Profile
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
@@ -178,7 +168,6 @@ export default function AdminUsers() {
             <div className="flex h-60 flex-col items-center justify-center text-center p-8">
               <Users className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
               <h3 className="text-xl font-bold font-headline">No users found</h3>
-              <p className="text-muted-foreground">Try a different search term or wait for new signups.</p>
             </div>
           )}
         </CardContent>

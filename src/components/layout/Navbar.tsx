@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { 
   DropdownMenu, 
@@ -19,15 +19,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/hooks/use-cart';
 import { CartDrawer } from '../store/CartDrawer';
+import { doc } from 'firebase/firestore';
 
 export function Navbar() {
   const { user, role } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
   const { getItemCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mounted, setMounted] = useState(false);
+
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
 
   useEffect(() => {
     setMounted(true);
@@ -53,6 +58,25 @@ export function Navbar() {
 
   return (
     <>
+      {settings?.announcementBar?.isActive && (
+        <div 
+          className="w-full py-2 text-center text-xs font-bold uppercase tracking-widest relative z-[60]"
+          style={{ 
+            backgroundColor: settings.announcementBar.backgroundColor || '#5b52d6',
+            color: settings.announcementBar.textColor || '#ffffff'
+          }}
+        >
+          {settings.announcementBar.link ? (
+            <Link href={settings.announcementBar.link} className="flex items-center justify-center gap-2 hover:opacity-80 transition-opacity">
+              {settings.announcementBar.text}
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          ) : (
+            settings.announcementBar.text
+          )}
+        </div>
+      )}
+
       <header className="sticky top-4 z-50 w-full px-4 md:px-6">
         <nav className="mx-auto max-w-7xl rounded-2xl border border-white/10 bg-background/60 shadow-2xl backdrop-blur-xl transition-all duration-300">
           <div className="flex h-16 items-center justify-between px-4 md:px-8">
