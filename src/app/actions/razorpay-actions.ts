@@ -1,3 +1,4 @@
+
 'use server';
 
 import Razorpay from 'razorpay';
@@ -12,7 +13,7 @@ function getRazorpayClient() {
   const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!key_id || !key_secret) {
-    throw new Error('Razorpay credentials are not configured on the server.');
+    throw new Error('Razorpay credentials (RAZORPAY_KEY_ID/SECRET) are not configured on the server.');
   }
 
   return new Razorpay({
@@ -52,12 +53,21 @@ export async function createRazorpayOrder(amount: number) {
   } catch (error: any) {
     console.error('Razorpay Order Creation Error:', error);
     
-    // Extract the most descriptive error message possible
-    const errorMessage = 
-      error.description || 
-      (error.error && error.error.description) || 
-      error.message || 
-      'Failed to create payment order.';
+    // Extract the most descriptive error message possible from Razorpay response
+    let errorMessage = 'Failed to create payment order.';
+    
+    if (error.error && error.error.description) {
+      errorMessage = error.error.description;
+    } else if (error.description) {
+      errorMessage = error.description;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    // Specifically handle 401 Unauthorized
+    if (error.statusCode === 401 || errorMessage.includes('Authentication')) {
+      errorMessage = "Authentication failed: Please check if RAZORPAY_KEY_ID and SECRET are correct in your .env file.";
+    }
       
     return { success: false, error: errorMessage };
   }
