@@ -21,7 +21,7 @@ export function Footer() {
   const { data: settings } = useDoc(settingsRef);
 
   const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
+    (e).preventDefault();
     if (!db || !email) return;
 
     setIsSubmitting(true);
@@ -124,7 +124,7 @@ export function Footer() {
             )}
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Mail className="h-3 w-3" />
-              <span>support@prontly.in</span>
+              <span>store.support@prontly.in</span>
             </div>
           </div>
         </div>

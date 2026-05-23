@@ -59,15 +59,15 @@ export default function AdminSettings() {
     },
     featuredProductIds: [],
     emailSettings: {
-      fromEmail: 'support@store.prontly.in',
+      fromEmail: 'store.support@prontly.in',
       senderName: 'Prontly Store'
     },
     smtpConfig: {
-      host: '',
-      port: '587',
-      user: '',
+      host: 'smtp.zoho.in',
+      port: '465',
+      user: 'store.support@prontly.in',
       pass: '',
-      secure: false
+      secure: true
     },
     invoiceSettings: {
       businessName: 'PRONTLY DIGITAL',
@@ -98,15 +98,15 @@ export default function AdminSettings() {
         },
         featuredProductIds: settings.featuredProductIds || [],
         emailSettings: settings.emailSettings || {
-          fromEmail: 'support@store.prontly.in',
+          fromEmail: 'store.support@prontly.in',
           senderName: 'Prontly Store'
         },
         smtpConfig: settings.smtpConfig || {
-          host: '',
-          port: '587',
-          user: '',
+          host: 'smtp.zoho.in',
+          port: '465',
+          user: 'store.support@prontly.in',
           pass: '',
-          secure: false
+          secure: true
         },
         invoiceSettings: settings.invoiceSettings || {
           businessName: 'PRONTLY DIGITAL',
@@ -391,7 +391,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="grid gap-2">
                   <Label>From Email Address</Label>
-                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="support@store.prontly.in" className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="store.support@prontly.in" className="h-12 bg-background/50 rounded-xl" />
                 </div>
               </div>
             </CardContent>
@@ -401,7 +401,7 @@ export default function AdminSettings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Server className="h-5 w-5 text-primary" />
-                SMTP Configuration
+                SMTP Configuration (Zoho Optimized)
               </CardTitle>
               <CardDescription>Enter your standard mail server details. This will override the Resend API for transactional emails.</CardDescription>
             </CardHeader>
@@ -409,15 +409,15 @@ export default function AdminSettings() {
               <div className="grid gap-6 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>SMTP Host</Label>
-                  <Input id="host" value={formData.smtpConfig?.host || ''} onChange={handleSmtpChange} placeholder="smtp.gmail.com" className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="host" value={formData.smtpConfig?.host || 'smtp.zoho.in'} onChange={handleSmtpChange} placeholder="smtp.zoho.in" className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
                   <Label>SMTP Port</Label>
-                  <Input id="port" value={formData.smtpConfig?.port || '587'} onChange={handleSmtpChange} placeholder="587" className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="port" value={formData.smtpConfig?.port || '465'} onChange={handleSmtpChange} placeholder="465" className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
                   <Label>SMTP Username</Label>
-                  <Input id="user" value={formData.smtpConfig?.user || ''} onChange={handleSmtpChange} className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="user" value={formData.smtpConfig?.user || 'store.support@prontly.in'} onChange={handleSmtpChange} className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
                   <Label>SMTP Password</Label>
@@ -432,7 +432,7 @@ export default function AdminSettings() {
                   onChange={(e) => handleSmtpChange(e as any)}
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
-                <Label htmlFor="secure">Use SSL/TLS (Port 465)</Label>
+                <Label htmlFor="secure">Use SSL/TLS (Standard for Port 465)</Label>
               </div>
             </CardContent>
           </Card>

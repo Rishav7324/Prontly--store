@@ -67,11 +67,11 @@ function getTransporter(settings?: any) {
   const smtp = settings?.smtpConfig || {};
   
   return nodemailer.createTransport({
-    host: smtp.host || process.env.SMTP_HOST || 'smtp.resend.com',
-    port: parseInt(smtp.port || process.env.SMTP_PORT || '587'),
-    secure: smtp.secure || process.env.SMTP_SECURE === 'true',
+    host: smtp.host || process.env.SMTP_HOST || 'smtp.zoho.in',
+    port: parseInt(smtp.port || process.env.SMTP_PORT || '465'),
+    secure: smtp.secure !== undefined ? smtp.secure : true,
     auth: {
-      user: smtp.user || process.env.SMTP_USER || 'resend',
+      user: smtp.user || process.env.SMTP_USER || 'store.support@prontly.in',
       pass: smtp.pass || process.env.SMTP_PASS || process.env.RESEND_API_KEY,
     },
   });
@@ -193,7 +193,7 @@ export async function generateInvoicePdf(order: any, settings?: any) {
 }
 
 export async function sendOrderConfirmationEmail(order: any, settings?: any) {
-  const fromEmail = settings?.emailSettings?.fromEmail || 'support@prontly.in';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'store.support@prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   try {
@@ -248,7 +248,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
 }
 
 export async function sendWelcomeEmail(email: string, name: string, settings?: any) {
-  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'store.support@prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
@@ -280,7 +280,7 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
 }
 
 export async function sendPasswordResetEmail(email: string, settings?: any) {
-  const fromEmail = settings?.emailSettings?.fromEmail || 'support@prontly.in';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'store.support@prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
