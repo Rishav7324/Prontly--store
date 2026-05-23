@@ -2,6 +2,7 @@
 "use client";
 
 import { use, useMemo, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { ReviewSystem } from "@/components/store/ReviewSystem";
 import { ProductGrid } from "@/components/store/ProductGrid";
@@ -127,7 +128,15 @@ function TechnicalTabs({ product }: { product: any }) {
 /**
  * --- SUB-COMPONENT: Purchase Sidebar ---
  */
-function PurchaseSidebar({ product, onAddToCart }: { product: any; onAddToCart: () => void }) {
+function PurchaseSidebar({ 
+  product, 
+  onBuyNow, 
+  onAddToCart 
+}: { 
+  product: any; 
+  onBuyNow: () => void; 
+  onAddToCart: () => void;
+}) {
   return (
     <div className="sticky top-28 space-y-6">
       <Card className="p-8 border-white/5 bg-card/30 backdrop-blur-xl rounded-[2.5rem] shadow-2xl">
@@ -162,7 +171,7 @@ function PurchaseSidebar({ product, onAddToCart }: { product: any; onAddToCart: 
           <Button 
             size="lg" 
             className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-            onClick={onAddToCart}
+            onClick={onBuyNow}
           >
             Buy Now
           </Button>
@@ -200,6 +209,7 @@ function PurchaseSidebar({ product, onAddToCart }: { product: any; onAddToCart: 
  */
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const db = useFirestore();
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
@@ -244,6 +254,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     });
     analytics.addToCart(product);
     toast({ title: "Added to cart", description: `${product.name} is ready for checkout.` });
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    // Add to cart first
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.images?.[0] || '',
+      category: product.categorySlug || 'Digital Asset'
+    });
+    analytics.addToCart(product);
+    // Then navigate to checkout immediately
+    router.push('/checkout');
   };
 
   const isWishlisted = mounted ? isInWishlist(id) : false;
@@ -335,7 +360,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           {/* Pricing & CTA Sidebar */}
           <div className="lg:col-span-4">
-            <PurchaseSidebar product={product} onAddToCart={handleAddToCart} />
+            <PurchaseSidebar 
+              product={product} 
+              onBuyNow={handleBuyNow}
+              onAddToCart={handleAddToCart} 
+            />
           </div>
         </div>
 
