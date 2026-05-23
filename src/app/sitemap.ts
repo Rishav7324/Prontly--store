@@ -1,32 +1,18 @@
-import { MetadataRoute } from 'next';
-import { getApps, initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
 
-/**
- * Initialize Firebase Admin safely for Edge/Serverless execution
- */
-function getAdminDb() {
-  if (getApps().length === 0) {
-    initializeApp({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2478374494-a2ee0',
-    });
-  }
-  return getFirestore();
-}
+import { MetadataRoute } from 'next';
+import { firebaseConfig } from '@/firebase/config';
 
 /**
  * @fileOverview Automatic Sitemap Generator
- * Fetches products and blog posts directly from Firestore to ensure
- * Google always has the latest index of your marketplace.
+ * Uses Firestore REST API to avoid SDK authentication overhead during build/crawl.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+  const projectId = firebaseConfig.projectId;
   
   try {
-    const db = getAdminDb();
-
     // 1. Core static routes
-    const staticRoutes = [
+    const routes = [
       '',
       '/products',
       '/blog',
@@ -43,34 +29,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: route === '' ? 1.0 : 0.8,
     }));
 
-    // 2. Fetch all active products
-    const productsSnap = await db.collection('products').get();
-    const productRoutes = productsSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        url: `${siteUrl}/products/${doc.id}`,
-        lastModified: data.updatedAt?.toDate() || new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      };
-    });
+    // 2. Fetch all products via REST
+    const productsRes = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products?pageSize=100`,
+      { next: { revalidate: 3600 } }
+    );
 
-    // 3. Fetch all published blog posts
-    const blogSnap = await db.collection('blog_posts').where('status', '==', 'published').get();
-    const blogRoutes = blogSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        url: `${siteUrl}/blog/${data.slug}`,
-        lastModified: data.updatedAt?.toDate() || new Date(),
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
-      };
-    });
+    if (productsRes.ok) {
+      const productsData = await productsRes.json();
+      const productRoutes = (productsData.documents || []).map((doc: any) => {
+        const id = doc.name.split('/').pop();
+        return {
+          url: `${siteUrl}/products/${id}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.7,
+        };
+      });
+      routes.push(...productRoutes);
+    }
 
-    return [...staticRoutes, ...productRoutes, ...blogRoutes];
+    // 3. Fetch all published blog posts via REST
+    const blogRes = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blog_posts?pageSize=50`,
+      { next: { revalidate: 3600 } }
+    );
+
+    if (blogRes.ok) {
+      const blogData = await blogRes.json();
+      const blogRoutes = (blogData.documents || [])
+        .filter((doc: any) => doc.fields?.status?.stringValue === 'published')
+        .map((doc: any) => {
+          const slug = doc.fields?.slug?.stringValue;
+          return {
+            url: `${siteUrl}/blog/${slug}`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly' as const,
+            priority: 0.6,
+          };
+        });
+      routes.push(...blogRoutes);
+    }
+
+    return routes;
   } catch (error) {
     console.error('Sitemap generation failed, falling back to static:', error);
-    // Fallback if DB connection fails during build
     return [
       { url: siteUrl, lastModified: new Date(), priority: 1 },
       { url: `${siteUrl}/products`, lastModified: new Date(), priority: 0.8 },

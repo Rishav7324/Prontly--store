@@ -1,8 +1,12 @@
+
 'use server';
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
+/**
+ * Initialized Razorpay client with secure environment variables.
+ */
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || '',
   key_secret: process.env.RAZORPAY_KEY_SECRET || '',
@@ -18,15 +22,18 @@ export async function createRazorpayOrder(amount: number) {
       throw new Error('Razorpay credentials are not configured on the server.');
     }
 
+    if (amount < 100) {
+      throw new Error('Minimum amount must be ₹1 (100 paise).');
+    }
+
     const options = {
       amount: Math.round(amount),
       currency: "INR",
-      receipt: `receipt_${Date.now()}`,
+      receipt: `order_rcpt_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
     
-    // Return only serializable data
     return { 
       success: true, 
       order: {
@@ -42,19 +49,22 @@ export async function createRazorpayOrder(amount: number) {
 }
 
 /**
- * Verifies the Razorpay payment signature for security.
+ * Verifies the Razorpay payment signature for security using HMAC SHA256.
  */
 export async function verifyRazorpayPayment(orderId: string, paymentId: string, signature: string) {
   try {
-    const secret = process.env.RAZORPAY_KEY_SECRET || '';
-    const hmac = crypto.createHmac('sha256', secret);
-    
-    hmac.update(orderId + "|" + paymentId);
-    const generatedSignature = hmac.digest('hex');
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) throw new Error("Key secret missing on server.");
+
+    const generatedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(orderId + "|" + paymentId)
+      .digest('hex');
 
     if (generatedSignature === signature) {
       return { success: true };
     } else {
+      console.warn("Signature mismatch detected for order:", orderId);
       return { success: false, error: 'Cryptographic signature verification failed.' };
     }
   } catch (error: any) {
