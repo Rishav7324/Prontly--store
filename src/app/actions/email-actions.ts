@@ -10,38 +10,51 @@ const BRAND_COLOR = '#5b52d6';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 const DEFAULT_LOGO = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico';
 
+/**
+ * Modern, High-End Email Wrapper
+ */
 const emailWrapper = (content: string, preheader: string) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f9f9fb; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; overflow: hidden; border-radius: 24px; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #eef0f5; }
-    .header { background-color: #ffffff; padding: 40px; text-align: center; border-bottom: 1px solid #f1f1f4; }
-    .content { padding: 40px; line-height: 1.7; color: #333333; }
-    .footer { padding: 40px; text-align: center; font-size: 11px; color: #99aab5; background-color: #fcfcfd; border-top: 1px solid #f1f1f4; letter-spacing: 0.02em; }
-    .button { background-color: ${BRAND_COLOR}; color: #ffffff !important; padding: 16px 32px; text-decoration: none; border-radius: 14px; font-weight: bold; display: inline-block; margin-top: 24px; box-shadow: 0 10px 20px rgba(91,82,214,0.2); }
-    .logo-img { height: 40px; width: auto; margin-bottom: 16px; }
-    .brand-name { font-size: 20px; font-weight: 900; color: #111111; letter-spacing: -0.04em; }
-    h1 { margin-top: 0; color: #111111; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 24px; }
-    p { margin-bottom: 20px; font-size: 16px; color: #4a5568; }
-    .order-card { background-color: #f8fafc; border: 1px solid #edf2f7; padding: 24px; border-radius: 16px; margin: 32px 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.03); border: 1px solid #eef2f7; }
+    .header { padding: 48px 40px 32px; text-align: center; }
+    .logo-img { height: 48px; width: auto; margin-bottom: 16px; border-radius: 12px; }
+    .brand-name { font-size: 14px; font-weight: 800; color: #111111; letter-spacing: 0.2em; text-transform: uppercase; margin: 0; }
+    .content { padding: 0 48px 48px; line-height: 1.8; color: #4a5568; font-size: 16px; }
+    .footer { padding: 48px; text-align: center; font-size: 12px; color: #94a3b8; background-color: #fcfdfe; border-top: 1px solid #f1f5f9; }
+    .button { background-color: ${BRAND_COLOR}; color: #ffffff !important; padding: 18px 36px; text-decoration: none; border-radius: 16px; font-weight: 700; display: inline-block; margin: 32px 0; box-shadow: 0 10px 20px rgba(91,82,214,0.15); transition: all 0.2s ease; }
+    h1 { margin: 0 0 24px; color: #1a202c; font-size: 32px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
+    p { margin: 0 0 20px; }
+    .card { background-color: #f8fafc; border: 1px solid #edf2f7; padding: 32px; border-radius: 20px; margin: 32px 0; }
+    .card-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; display: block; }
+    .card-value { font-size: 18px; font-weight: 700; color: #1e293b; }
+    .divider { height: 1px; background-color: #e2e8f0; margin: 32px 0; border: none; }
+    a { color: ${BRAND_COLOR}; text-decoration: none; font-weight: 600; }
   </style>
 </head>
 <body>
   <div style="display: none; max-height: 0px; overflow: hidden;">${preheader}</div>
   <div class="container">
     <div class="header">
-      <img src="${DEFAULT_LOGO}" class="logo-img" alt="Logo" />
-      <div class="brand-name">PRONTLY</div>
+      <img src="${DEFAULT_LOGO}" class="logo-img" alt="Store Logo" />
+      <p class="brand-name">Prontly Store</p>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
-      &copy; ${new Date().getFullYear()} Prontly Digital Store. Verified Digital Goods.<br/>
-      <a href="${SITE_URL}/privacy" style="color: ${BRAND_COLOR}; font-weight: 600;">Privacy</a> &bull; <a href="${SITE_URL}/terms" style="color: ${BRAND_COLOR}; font-weight: 600;">Terms</a>
+      <div style="margin-bottom: 24px;">
+        <a href="${SITE_URL}" style="color: #64748b; margin: 0 12px;">Storefront</a>
+        <a href="${SITE_URL}/dashboard" style="color: #64748b; margin: 0 12px;">My Library</a>
+        <a href="${SITE_URL}/terms" style="color: #64748b; margin: 0 12px;">Terms</a>
+      </div>
+      &copy; ${new Date().getFullYear()} Prontly Digital Ecosystem. All Rights Reserved.<br/>
+      Patna, Bihar, India. Verified Digital Merchant.
     </div>
   </div>
 </body>
@@ -49,7 +62,7 @@ const emailWrapper = (content: string, preheader: string) => `
 `;
 
 /**
- * Generates a base64 encoded PDF invoice.
+ * Premium jsPDF Invoice Engine
  */
 export async function generateInvoicePdf(order: any, settings?: any) {
   const inv = settings?.invoiceSettings || {};
@@ -58,39 +71,58 @@ export async function generateInvoicePdf(order: any, settings?: any) {
   const primaryColor = inv.color || BRAND_COLOR;
   const logoUrl = inv.logoUrl || DEFAULT_LOGO;
 
+  // Header Branding
   try {
     const response = await fetch(logoUrl);
     const arrayBuffer = await response.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
-    docPdf.addImage(base64, 'PNG', margin, 15, 12, 12);
-    docPdf.setFontSize(22);
-    docPdf.setTextColor(primaryColor);
-    docPdf.text(inv.businessName || 'PRONTLY STORE', margin + 15, 25);
+    docPdf.addImage(base64, 'PNG', margin, 20, 12, 12);
   } catch (e) {
-    docPdf.setFontSize(22);
-    docPdf.setTextColor(primaryColor);
-    docPdf.text(inv.businessName || 'PRONTLY STORE', margin, 30);
+    // Fallback if logo fails
   }
   
+  docPdf.setFont('helvetica', 'bold');
+  docPdf.setFontSize(18);
+  docPdf.setTextColor(primaryColor);
+  docPdf.text(inv.businessName || 'PRONTLY STORE', margin + 15, 29);
+
+  // Document Info
+  docPdf.setFont('helvetica', 'normal');
   docPdf.setFontSize(9);
-  docPdf.setTextColor(100);
-  const addressLines = inv.address ? inv.address.split('\n') : ['Premium Digital Marketplace'];
-  addressLines.forEach((line: string, i: number) => {
-    docPdf.text(line, margin, 38 + (i * 5));
-  });
+  docPdf.setTextColor(120);
+  docPdf.text('TAX INVOICE & RECEIPT', margin, 42);
   
+  docPdf.setFontSize(11);
+  docPdf.setTextColor(0);
+  docPdf.text(`ID: #${order.id.toUpperCase().slice(-12)}`, 140, 30);
+  docPdf.text(`DATE: ${format(new Date(), 'dd MMM yyyy')}`, 140, 37);
+
+  // Divider
+  docPdf.setDrawColor(240);
+  docPdf.line(margin, 50, 190, 50);
+
+  // Billed To Section
+  docPdf.setFontSize(10);
+  docPdf.setTextColor(150);
+  docPdf.text('BILLED TO', margin, 65);
   docPdf.setFontSize(12);
   docPdf.setTextColor(0);
-  docPdf.text(`RECEIPT: #${order.id.toUpperCase().slice(-8)}`, 140, 30);
-  docPdf.text(`Date: ${format(new Date(), 'dd MMM yyyy')}`, 140, 36);
-
+  docPdf.setFont('helvetica', 'bold');
+  docPdf.text(order.userName, margin, 72);
+  docPdf.setFont('helvetica', 'normal');
   docPdf.setFontSize(10);
-  docPdf.text('Billed To:', margin, 75);
-  docPdf.setFont(undefined, 'bold');
-  docPdf.text(order.userName, margin, 80);
-  docPdf.setFont(undefined, 'normal');
-  docPdf.text(order.userEmail, margin, 85);
+  docPdf.text(order.userEmail, margin, 78);
 
+  // Company Address (From Settings)
+  docPdf.setTextColor(150);
+  docPdf.text('MERCHANT', 140, 65);
+  docPdf.setTextColor(0);
+  const addressLines = inv.address ? inv.address.split('\n') : ['Prontly Digital Marketplace', 'Patna, Bihar'];
+  addressLines.forEach((line: string, i: number) => {
+    docPdf.text(line, 140, 72 + (i * 5));
+  });
+
+  // Items Table
   const tableData = order.items.map((item: any) => [
     item.productName,
     item.quantity || 1,
@@ -105,30 +137,41 @@ export async function generateInvoicePdf(order: any, settings?: any) {
 
   docPdf.autoTable({
     startY: 100,
-    head: [['Asset Name', 'Qty', 'Unit Price', 'Total']],
+    head: [['Product Asset', 'Qty', 'Unit Price', 'Total']],
     body: tableData,
-    headStyles: { fillColor: [r, g, b] },
+    theme: 'striped',
+    headStyles: { fillColor: [r, g, b], fontSize: 10, cellPadding: 5 },
+    bodyStyles: { fontSize: 9, cellPadding: 5 },
+    alternateRowStyles: { fillColor: [250, 250, 252] },
     margin: { left: margin, right: margin }
   });
 
-  const finalY = (docPdf as any).lastAutoTable.finalY + 10;
-  docPdf.text('Subtotal:', 140, finalY);
-  docPdf.text(`INR ${(order.subtotal / 100).toLocaleString('en-IN')}`, 175, finalY, { align: 'right' });
+  // Summary
+  const finalY = (docPdf as any).lastAutoTable.finalY + 15;
+  docPdf.setFontSize(10);
+  docPdf.setTextColor(120);
+  docPdf.text('Subtotal:', 130, finalY);
+  docPdf.setTextColor(0);
+  docPdf.text(`INR ${(order.subtotal / 100).toLocaleString('en-IN')}`, 190, finalY, { align: 'right' });
   
   if (order.discount > 0) {
-    docPdf.text('Discount:', 140, finalY + 7);
-    docPdf.text(`-INR ${(order.discount / 100).toLocaleString('en-IN')}`, 175, finalY + 7, { align: 'right' });
+    docPdf.setTextColor(20, 150, 20);
+    docPdf.text(`Discount (${order.couponCode || 'PROMO'}):`, 130, finalY + 7);
+    docPdf.text(`-INR ${(order.discount / 100).toLocaleString('en-IN')}`, 190, finalY + 7, { align: 'right' });
   }
   
   docPdf.setFontSize(14);
-  docPdf.setFont(undefined, 'bold');
-  docPdf.text('Total Amount Paid:', 140, finalY + 16);
-  docPdf.text(`INR ${(order.total / 100).toLocaleString('en-IN')}`, 175, finalY + 16, { align: 'right' });
+  docPdf.setFont('helvetica', 'bold');
+  docPdf.setTextColor(primaryColor);
+  docPdf.text('Total Paid:', 130, finalY + 18);
+  docPdf.text(`INR ${(order.total / 100).toLocaleString('en-IN')}`, 190, finalY + 18, { align: 'right' });
 
+  // Footer
   docPdf.setFontSize(8);
-  docPdf.setFont(undefined, 'normal');
-  docPdf.setTextColor(150);
-  docPdf.text(inv.footerText || 'Digital assets are delivered instantly. No physical shipping is required.', margin, 280);
+  docPdf.setFont('helvetica', 'normal');
+  docPdf.setTextColor(180);
+  const footerText = inv.footerText || 'Digital assets are delivered instantly via your account dashboard. No physical shipment required.';
+  docPdf.text(footerText, margin, 280, { maxWidth: 170 });
 
   return docPdf.output('datauristring').split(',')[1];
 }
@@ -143,21 +186,37 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     const pdfBase64 = await generateInvoicePdf(order, settings);
 
     const html = emailWrapper(`
-      <h1>Thank you for your order!</h1>
-      <p>Hi ${order.userName}, your purchase was successful. Your high-performance digital assets are now permanently unlocked in your library.</p>
-      <div class="order-card">
-        <strong>Receipt ID:</strong> #${order.id.toUpperCase().slice(-8)}<br/>
-        <strong>Total Paid:</strong> ₹${(order.total / 100).toLocaleString('en-IN')}
+      <h1>Order Confirmed.</h1>
+      <p>Hello ${order.userName.split(' ')[0]}, your purchase was successful. Your high-performance digital assets are now permanently unlocked in your personal library.</p>
+      
+      <div class="card">
+        <div style="margin-bottom: 24px;">
+          <span class="card-label">Transaction ID</span>
+          <span class="card-value">#${order.id.toUpperCase().slice(-12)}</span>
+        </div>
+        <div>
+          <span class="card-label">Amount Invested</span>
+          <span class="card-value" style="color: ${BRAND_COLOR};">₹${(order.total / 100).toLocaleString('en-IN')}</span>
+        </div>
       </div>
-      <p>Access and download your assets anytime by visiting your personal dashboard.</p>
-      <center><a href="${SITE_URL}/dashboard" class="button">Access My Digital Library</a></center>
-      <p style="font-size: 12px; color: #777; margin-top: 32px; font-style: italic;">A copy of your purchase receipt is attached to this email for your records.</p>
+
+      <p>You can access and download your source files anytime by visiting your secure dashboard.</p>
+      
+      <center>
+        <a href="${SITE_URL}/dashboard" class="button">Access My Digital Library</a>
+      </center>
+
+      <div class="divider"></div>
+      
+      <p style="font-size: 13px; color: #94a3b8; font-style: italic;">
+        Note: A formal PDF receipt is attached to this email for your records. Digital assets are delivered under a perpetual usage license.
+      </p>
     `, `Your digital assets are ready for download.`);
 
     await resend.emails.send({
       from: `${senderName} <${fromEmail}>`,
       to: order.userEmail,
-      subject: `Your Receipt: #${order.id.toUpperCase().slice(-8)}`,
+      subject: `Invoice: #${order.id.toUpperCase().slice(-8)}`,
       html,
       attachments: [
         {
@@ -180,11 +239,16 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
-    <h1>Welcome to the Community, ${name}!</h1>
-    <p>We're thrilled to have you at Prontly. You now have access to a hand-curated marketplace of production-ready AI prompts, UI kits, and professional guides.</p>
-    <p>Get started by exploring our latest trending assets or complete your profile to receive personalized recommendations for your workflow.</p>
-    <center><a href="${SITE_URL}/products" class="button">Browse the Marketplace</a></center>
-    <p style="margin-top: 32px;">To your success,<br/>The Prontly Team</p>
+    <h1>Welcome to the Ecosystem.</h1>
+    <p>We're thrilled to have you, ${name.split(' ')[0]}. You now have access to a curated marketplace of production-ready AI prompts, UI kits, and professional guides.</p>
+    
+    <p>Our mission is to help you create at the speed of thought. Get started by exploring our trending assets or completing your profile to receive personalized recommendations.</p>
+    
+    <center>
+      <a href="${SITE_URL}/products" class="button">Explore the Marketplace</a>
+    </center>
+    
+    <p style="margin-top: 32px;">To your success,<br/><strong>The Prontly Team</strong></p>
   `, `Welcome to the future of high-speed creation.`);
 
   try {
@@ -203,14 +267,20 @@ export async function sendWelcomeEmail(email: string, name: string, settings?: a
 export async function sendPasswordResetEmail(email: string, settings?: any) {
   if (!process.env.RESEND_API_KEY) return;
   
-  const fromEmail = settings?.emailSettings?.fromEmail || 'support@store.prontly.in';
+  const fromEmail = settings?.emailSettings?.fromEmail || 'support@prontly.in';
   const senderName = settings?.emailSettings?.senderName || 'Prontly Store';
 
   const html = emailWrapper(`
-    <h1>Security Notification</h1>
+    <h1>Security Update.</h1>
     <p>A request was made to reset the password for your Prontly account. If you didn't initiate this, you can safely ignore this email.</p>
-    <p>Please follow the link sent by our authentication provider to choose a new password. For your security, this link is only valid for a limited time.</p>
-    <center><a href="${SITE_URL}/blog" class="button">Visit Security Center</a></center>
+    
+    <div class="card" style="text-align: center;">
+      <p style="margin-bottom: 0;">Please follow the secure link sent by our authentication provider to finalize your new credentials. For your protection, this link is only valid for 60 minutes.</p>
+    </div>
+    
+    <center>
+      <a href="${SITE_URL}/dashboard" class="button">Visit Security Center</a>
+    </center>
   `, `Security Alert: Password Reset Requested.`);
 
   try {
