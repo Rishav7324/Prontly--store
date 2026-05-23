@@ -2,7 +2,6 @@
 
 import { use, useMemo, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
-import { PromptOptimizer } from "@/components/store/PromptOptimizer";
 import { ReviewSystem } from "@/components/store/ReviewSystem";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,19 +124,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
               <h1 className="text-4xl md:text-6xl font-bold font-headline leading-tight">{product.name}</h1>
               
-              {/* Upgraded Description Rendering */}
               <div 
                 className="prose-content"
                 dangerouslySetInnerHTML={{ __html: product.description || '' }}
               />
             </div>
 
-            <Tabs defaultValue="optimizer" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-8 bg-muted/30 p-1 rounded-xl">
-                <TabsTrigger value="optimizer" className="gap-2 rounded-lg transition-all">
-                  <FileCode className="h-4 w-4" />
-                  Tester
-                </TabsTrigger>
+            <Tabs defaultValue="reviews" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/30 p-1 rounded-xl">
                 <TabsTrigger value="reviews" className="gap-2 rounded-lg transition-all">
                   <MessageSquare className="h-4 w-4" />
                   Reviews
@@ -146,10 +140,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <TabsTrigger value="license" className="rounded-lg transition-all">License</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="optimizer" className="animate-in fade-in duration-500">
-                <PromptOptimizer basePrompt={product.description || ''} />
-              </TabsContent>
-
               <TabsContent value="reviews" className="animate-in fade-in duration-500">
                 <ReviewSystem productId={id} productName={product.name} />
               </TabsContent>
