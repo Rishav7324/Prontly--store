@@ -102,13 +102,36 @@ export default function CheckoutPage() {
         userName: formData.name,
         userEmail: formData.email,
         items: items.map(item => ({ productId: item.id, productName: item.name, price: item.price, quantity: item.quantity })),
-        subtotal, discount, total, status: 'paid', paymentId: rzpResponse.razorpay_payment_id, createdAt: serverTimestamp(), paidAt: serverTimestamp()
+        subtotal, 
+        discount, 
+        total, 
+        status: 'paid', 
+        paymentId: rzpResponse.razorpay_payment_id, 
+        createdAt: serverTimestamp(), 
+        paidAt: serverTimestamp()
       };
 
       const docRef = await addDoc(collection(db!, 'orders'), orderData);
       
-      // Automatic Transactional Email with PDF Invoice
-      await sendOrderConfirmationEmail({ id: docRef.id, ...orderData }, settings);
+      // SANITIZE: Convert to plain objects for Server Actions
+      const plainOrder = {
+        id: docRef.id,
+        userName: orderData.userName,
+        userEmail: orderData.userEmail,
+        items: orderData.items,
+        subtotal: orderData.subtotal,
+        discount: orderData.discount,
+        total: orderData.total,
+        paymentId: orderData.paymentId
+      };
+
+      const plainSettings = settings ? {
+        siteName: settings.siteName,
+        invoiceSettings: settings.invoiceSettings || {}
+      } : undefined;
+
+      // Dispatch automatic order confirmation email
+      await sendOrderConfirmationEmail(plainOrder, plainSettings);
 
       if (user) {
         await updateDoc(doc(db!, 'users', user.uid), { totalSpent: increment(total), orderCount: increment(1) });
