@@ -20,9 +20,21 @@ export async function listTemplates() {
   }
 }
 
+export async function getResendTemplate(id: string) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
+  try {
+    const { data, error } = await resend.templates.get(id);
+    if (error) throw error;
+    return { success: true, data };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
 export async function createResendTemplate(payload: { name: string; html: string; subject?: string }) {
   if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
   try {
+    // Fluent pattern: Create and Publish in one sequence
     const { data, error } = await resend.templates.create(payload);
     if (error) throw error;
     
@@ -79,6 +91,20 @@ export async function listResendContacts(audienceId: string) {
     const { data, error } = await resend.contacts.list({ audienceId });
     if (error) throw error;
     return { success: true, data: data?.data || [] };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function getResendContact(audienceId: string, identifier: string | { email: string }) {
+  if (!process.env.RESEND_API_KEY) return { success: false, error: 'API Key missing' };
+  try {
+    const { data, error } = await resend.contacts.get({
+      audienceId,
+      ...(typeof identifier === 'string' ? { id: identifier } : { email: identifier.email })
+    });
+    if (error) throw error;
+    return { success: true, data };
   } catch (e: any) {
     return { success: false, error: e.message };
   }

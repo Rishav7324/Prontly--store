@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Zap, Github, Twitter, Instagram, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore';
 import { toast } from '@/hooks/use-toast';
+import { createResendContact, listResendAudiences } from '@/app/actions/resend-actions';
 
 export function Footer() {
   const db = useFirestore();
@@ -16,17 +17,32 @@ export function Footer() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
 
+  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
+  const { data: settings } = useDoc(settingsRef);
+
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !email) return;
 
     setIsSubmitting(true);
     try {
+      // 1. Log in Firestore
       await addDoc(collection(db, 'newsletter_subscribers'), {
         email: email.toLowerCase(),
         createdAt: serverTimestamp(),
         source: 'footer'
       });
+
+      // 2. Sync with Resend if audience ID exists (optional background sync)
+      const audiences = await listResendAudiences();
+      if (audiences.success && audiences.data.length > 0) {
+        await createResendContact({
+          audienceId: audiences.data[0].id,
+          email: email.toLowerCase(),
+          unsubscribed: false
+        });
+      }
+
       setIsSubscribed(true);
       toast({ title: "Subscribed!", description: "You've been added to our mailing list." });
     } catch (error) {

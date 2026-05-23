@@ -68,7 +68,7 @@ export async function sendOrderConfirmationEmail(order: any, settings?: any) {
     const response = await fetch(logoUrl);
     const arrayBuffer = await response.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
-    // Try to add as PNG/ICO - jsPDF usually handles base64 string well
+    // Add custom logo from settings
     docPdf.addImage(base64, 'PNG', margin, 15, 12, 12);
     
     docPdf.setFontSize(22);
