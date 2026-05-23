@@ -22,7 +22,8 @@ import {
   ArrowRight,
   ChevronRight,
   Info,
-  Loader2
+  Loader2,
+  Camera
 } from "lucide-react";
 import Image from "next/image";
 import { useDoc, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -78,19 +79,51 @@ const ProductHeader = ({ product, isWishlisted, onToggleWishlist }: any) => (
 
 /**
  * --- SUB-COMPONENT: Visuals ---
+ * Supports multiple images with thumbnail navigation
  */
-const ProductVisuals = ({ product }: { product: any }) => (
-  <div className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden rounded-[2.5rem] border border-white/5 bg-muted shadow-2xl">
-    <Image 
-      src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/1200/1200'} 
-      alt={product.name} 
-      fill 
-      className="object-cover" 
-      priority
-    />
-    <Badge className="absolute left-6 top-6 bg-primary/90 backdrop-blur-md px-4 py-1.5 border-none shadow-lg font-bold text-[10px] uppercase">Premium Asset</Badge>
-  </div>
-);
+const ProductVisuals = ({ product }: { product: any }) => {
+  const images = product.images || ['https://picsum.photos/seed/placeholder/1200/1200'];
+  const [selectedImage, setSelectedImage] = useState(images[0]);
+
+  // Update selected image if product data changes
+  useEffect(() => {
+    if (images.length > 0) {
+      setSelectedImage(images[0]);
+    }
+  }, [product.id]);
+
+  return (
+    <div className="space-y-6">
+      <div className="relative aspect-[4/5] md:aspect-square w-full overflow-hidden rounded-[2.5rem] border border-white/5 bg-muted shadow-2xl">
+        <Image 
+          src={selectedImage} 
+          alt={product.name} 
+          fill 
+          className="object-cover transition-all duration-700" 
+          priority
+        />
+        <Badge className="absolute left-6 top-6 bg-primary/90 backdrop-blur-md px-4 py-1.5 border-none shadow-lg font-bold text-[10px] uppercase">Premium Asset</Badge>
+      </div>
+      
+      {images.length > 1 && (
+        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+          {images.map((img: string, i: number) => (
+            <button 
+              key={i} 
+              onClick={() => setSelectedImage(img)}
+              className={cn(
+                "relative h-20 w-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 active:scale-95",
+                selectedImage === img ? "border-primary ring-4 ring-primary/10" : "border-white/5 opacity-60 hover:opacity-100 hover:border-white/20"
+              )}
+            >
+              <Image src={img} alt={`${product.name} preview ${i + 1}`} fill className="object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 /**
  * --- SUB-COMPONENT: Description ---
