@@ -106,10 +106,11 @@ export default function CheckoutPage() {
         throw new Error(orderRes.error || 'Failed to initiate payment');
       }
 
+      // Check settings first, then fallback to public environment variable
       const razorpayKey = settings?.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
       
       if (!razorpayKey) {
-        throw new Error('Payment gateway not configured correctly.');
+        throw new Error('Payment gateway not configured. Please set your Razorpay Key ID in Admin > Settings > Payments.');
       }
 
       // 2. Configure Razorpay Modal
