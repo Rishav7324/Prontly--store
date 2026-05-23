@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, ArrowRight, Heart, ShoppingCart, Eye } from 'lucide-react';
+import { Star, ArrowRight, Heart, ShoppingCart, Eye, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,13 +17,14 @@ interface ProductCardProps {
   title: string;
   price: string;
   priceRaw: number;
+  compareAtPrice?: number;
   category: string;
   imageUrl: string;
   rating: number;
   sales: string;
 }
 
-export function ProductCard({ id, title, price, priceRaw, category, imageUrl, rating, sales }: ProductCardProps) {
+export function ProductCard({ id, title, price, priceRaw, compareAtPrice, category, imageUrl, rating, sales }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
@@ -65,6 +66,8 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
   };
 
   const isWishlisted = mounted ? isInWishlist(id) : false;
+  const isSale = compareAtPrice && compareAtPrice > priceRaw;
+  const discountPercent = isSale ? Math.round(((compareAtPrice - priceRaw) / compareAtPrice) * 100) : 0;
 
   return (
     <Link href={`/products/${id}`} className="group block h-full">
@@ -95,6 +98,13 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
             {category}
           </Badge>
 
+          {isSale && (
+            <Badge className="absolute right-4 bottom-4 bg-green-500 text-white border-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg shadow-lg">
+              <Zap className="h-3 w-3 mr-1 fill-current" />
+              {discountPercent}% OFF
+            </Badge>
+          )}
+
           <button 
             onClick={handleWishlist}
             className={cn(
@@ -120,9 +130,16 @@ export function ProductCard({ id, title, price, priceRaw, category, imageUrl, ra
           </h3>
 
           <div className="flex items-center justify-between pt-2">
-            <p className="font-headline text-2xl font-bold text-accent">
-              {price}
-            </p>
+            <div className="flex flex-col">
+              {isSale && (
+                <span className="text-xs text-muted-foreground line-through font-medium mb-0.5">
+                  ₹{(compareAtPrice / 100).toLocaleString('en-IN')}
+                </span>
+              )}
+              <p className="font-headline text-2xl font-bold text-accent">
+                {price}
+              </p>
+            </div>
             <div className="h-8 w-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-white" />
             </div>

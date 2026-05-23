@@ -35,6 +35,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
           title={product.name}
           price={`₹${(product.price / 100).toLocaleString('en-IN')}`}
           priceRaw={product.price}
+          compareAtPrice={product.compareAtPrice}
           category={product.categorySlug || 'Digital Asset'}
           imageUrl={product.images?.[0] || 'https://picsum.photos/seed/placeholder/600/400'}
           rating={product.averageRating || 5.0}

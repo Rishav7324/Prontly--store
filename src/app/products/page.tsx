@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useMemo, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ProductGrid } from '@/components/store/ProductGrid';
@@ -11,12 +10,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, QueryConstraint } from 'firebase/firestore';
-import { Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Search, Loader2 } from 'lucide-react';
+import { Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Search, Loader2, Tag as TagIcon, X } from 'lucide-react';
 import Link from 'next/link';
 
 function MarketplaceContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const categoryFilter = searchParams.get('category');
+  const tagFilter = searchParams.get('tag');
   const searchQuery = searchParams.get('q');
   const db = useFirestore();
   
@@ -44,53 +45,111 @@ function MarketplaceContent() {
 
   const { data: products, loading } = useCollection(productsQuery);
 
-  // Client-side filtering for search query
+  // Client-side filtering for tags and search query
   const filteredProducts = useMemo(() => {
     if (!products) return [];
-    if (!searchQuery) return products;
+    let result = products;
+
+    if (tagFilter) {
+      result = result.filter(p => p.tags?.includes(tagFilter));
+    }
+
+    if (searchQuery) {
+      const term = searchQuery.toLowerCase();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(term) || 
+        p.shortDescription?.toLowerCase().includes(term) ||
+        p.tags?.some((t: string) => t.toLowerCase().includes(term))
+      );
+    }
     
-    const term = searchQuery.toLowerCase();
-    return products.filter(p => 
-      p.name.toLowerCase().includes(term) || 
-      p.shortDescription?.toLowerCase().includes(term) ||
-      p.tags?.some((t: string) => t.toLowerCase().includes(term))
-    );
-  }, [products, searchQuery]);
+    return result;
+  }, [products, searchQuery, tagFilter]);
+
+  // Derive top tags from products
+  const popularTags = useMemo(() => {
+    if (!products) return [];
+    const counts: Record<string, number> = {};
+    products.forEach(p => {
+      p.tags?.forEach((t: string) => {
+        counts[t] = (counts[t] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name]) => name);
+  }, [products]);
+
+  const removeTag = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('tag');
+    router.push(`/products?${params.toString()}`);
+  };
 
   return (
     <div className="flex flex-col gap-8 md:flex-row">
       {/* Sidebar / Filters */}
-      <aside className="w-full md:w-64 space-y-8 flex-shrink-0">
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Categories</h3>
-          <div className="space-y-1">
-            <Button 
-              asChild 
-              variant={!categoryFilter ? "secondary" : "ghost"} 
-              className="w-full justify-start font-medium"
-            >
-              <Link href="/products">All Assets</Link>
-            </Button>
-            {categories?.map((cat: any) => (
+      <aside className="w-full md:w-64 space-y-10 flex-shrink-0">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Categories</h3>
+            <div className="space-y-1">
               <Button 
-                key={cat.id}
                 asChild 
-                variant={categoryFilter === cat.slug ? "secondary" : "ghost"} 
-                className="w-full justify-start font-medium"
+                variant={!categoryFilter ? "secondary" : "ghost"} 
+                className="w-full justify-start font-medium h-9 rounded-lg"
               >
-                <Link href={`/products?category=${cat.slug}`}>
-                  <span className="mr-2">{cat.iconEmoji}</span> {cat.name}
-                </Link>
+                <Link href="/products">All Assets</Link>
               </Button>
-            ))}
+              {categories?.map((cat: any) => (
+                <Button 
+                  key={cat.id}
+                  asChild 
+                  variant={categoryFilter === cat.slug ? "secondary" : "ghost"} 
+                  className="w-full justify-start font-medium h-9 rounded-lg"
+                >
+                  <Link href={`/products?category=${cat.slug}`}>
+                    <span className="mr-2">{cat.iconEmoji}</span> {cat.name}
+                  </Link>
+                </Button>
+              ))}
+            </div>
           </div>
+
+          {popularTags.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
+                <TagIcon className="h-3 w-3" />
+                Popular Tags
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {popularTags.map(tag => (
+                  <Link 
+                    key={tag} 
+                    href={`/products?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), tag }).toString()}`}
+                  >
+                    <Badge 
+                      variant={tagFilter === tag ? "default" : "outline"}
+                      className={cn(
+                        "cursor-pointer hover:bg-primary hover:text-white transition-colors py-1 px-3 border-white/10",
+                        tagFilter === tag ? "bg-primary text-white" : "bg-white/5 text-muted-foreground"
+                      )}
+                    >
+                      {tag}
+                    </Badge>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20 rounded-2xl">
           <CardContent className="pt-6">
-            <h4 className="font-bold mb-2">Need a custom prompt?</h4>
-            <p className="text-sm text-muted-foreground mb-4">Our experts can build tailored AI solutions for your business.</p>
-            <Button variant="link" className="p-0 text-primary h-auto">Contact Sales</Button>
+            <h4 className="font-bold mb-2">Custom Request?</h4>
+            <p className="text-xs text-muted-foreground mb-4 leading-relaxed">Our design studio can build tailored AI systems for your specific pipeline.</p>
+            <Button variant="link" className="p-0 text-primary h-auto text-xs font-bold uppercase tracking-widest">Contact Studio</Button>
           </CardContent>
         </Card>
       </aside>
@@ -109,30 +168,39 @@ function MarketplaceContent() {
                   <span className="capitalize">{categoryFilter}</span>
                 </>
               )}
-              {searchQuery && (
-                <>
-                  <ChevronRight className="h-3 w-3" />
-                  <span className="italic">Search: "{searchQuery}"</span>
-                </>
-              )}
             </div>
-            <h1 className="text-3xl font-bold font-headline">
+            <h1 className="text-4xl font-bold font-headline">
               {searchQuery ? `Results for "${searchQuery}"` : (
                 categoryFilter ? (
                   categories?.find((c: any) => c.slug === categoryFilter)?.name || categoryFilter
-                ) : "All Marketplace Assets"
+                ) : "Digital Inventory"
               )}
             </h1>
+            
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              {tagFilter && (
+                <Badge className="bg-primary/20 text-primary border-primary/30 py-1.5 px-4 gap-2 rounded-full font-bold">
+                  Tag: {tagFilter}
+                  <button onClick={removeTag}><X className="h-3 w-3" /></button>
+                </Badge>
+              )}
+              {searchQuery && (
+                <Badge variant="outline" className="py-1.5 px-4 gap-2 rounded-full border-white/10">
+                  Search: {searchQuery}
+                  <Link href="/products"><X className="h-3 w-3" /></Link>
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2 rounded-full border-white/10">
               <SlidersHorizontal className="h-4 w-4" />
               Sort
             </Button>
-            <div className="hidden sm:flex border rounded-md overflow-hidden">
-              <Button variant="ghost" size="icon" className="rounded-none bg-muted"><LayoutGrid className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" className="rounded-none"><List className="h-4 w-4" /></Button>
+            <div className="hidden sm:flex border border-white/10 rounded-full overflow-hidden">
+              <Button variant="ghost" size="icon" className="rounded-none bg-muted h-9 w-9"><LayoutGrid className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="rounded-none h-9 w-9"><List className="h-4 w-4" /></Button>
             </div>
           </div>
         </header>
@@ -140,12 +208,12 @@ function MarketplaceContent() {
         <ProductGrid products={filteredProducts} loading={loading} />
         
         {!loading && filteredProducts.length === 0 && (
-          <div className="text-center py-20 bg-muted/10 border-dashed border-2 rounded-3xl">
-            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <h3 className="text-xl font-bold">No assets found</h3>
-            <p className="text-muted-foreground">Try adjusting your filters or search terms.</p>
-            <Button variant="link" asChild className="mt-4">
-              <Link href="/products">View all products</Link>
+          <div className="text-center py-32 bg-muted/10 border-dashed border-2 rounded-[3rem] border-white/5">
+            <Search className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-20" />
+            <h3 className="text-2xl font-bold font-headline">No matching assets</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto">Try adjusting your filters, removing tags, or searching for broader keywords.</p>
+            <Button variant="outline" asChild className="mt-8 rounded-full px-8 border-white/10">
+              <Link href="/products">Reset All Filters</Link>
             </Button>
           </div>
         )}

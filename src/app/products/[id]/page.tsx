@@ -3,14 +3,15 @@
 import { use, useMemo, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { ReviewSystem } from "@/components/store/ReviewSystem";
+import { ProductGrid } from "@/components/store/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Star, Share2, Download, ShieldCheck, Clock, FileCode, CheckCircle2, Heart, MessageSquare } from "lucide-react";
+import { ShoppingCart, Star, Share2, Download, ShieldCheck, Clock, FileCode, CheckCircle2, Heart, MessageSquare, ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { useDoc, useFirestore } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useDoc, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, collection, query, where, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Footer } from "@/components/layout/Footer";
 import { analytics } from "@/lib/analytics";
@@ -18,6 +19,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -32,6 +34,22 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   
   const productRef = useMemo(() => (db ? doc(db, 'products', id) : null), [db, id]);
   const { data: product, loading } = useDoc(productRef);
+
+  // Suggested Products Query
+  const suggestedQuery = useMemoFirebase(() => {
+    if (!db || !product?.categorySlug) return null;
+    return query(
+      collection(db, 'products'),
+      where('categorySlug', '==', product.categorySlug),
+      limit(5)
+    );
+  }, [db, product?.categorySlug]);
+
+  const { data: rawSuggested } = useCollection(suggestedQuery);
+  
+  const suggestedProducts = useMemo(() => {
+    return rawSuggested?.filter(p => p.id !== id).slice(0, 4) || [];
+  }, [rawSuggested, id]);
 
   useEffect(() => {
     if (product) {
@@ -89,10 +107,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       <Navbar />
       
       <main className="container mx-auto px-4 py-12 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
           
           <div className="lg:col-span-8 space-y-12">
-            <div className="relative aspect-[4/5] md:aspect-video w-full overflow-hidden rounded-3xl border border-white/5 bg-muted shadow-2xl">
+            <div className="relative aspect-[4/5] md:aspect-video w-full overflow-hidden rounded-[2.5rem] border border-white/5 bg-muted shadow-2xl">
               <Image 
                 src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/1200/1500'} 
                 alt={product.name} 
@@ -106,7 +124,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <div className="space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <Badge variant="secondary" className="bg-secondary/50 text-primary border-primary/20 px-3 py-1">{product.categorySlug || 'Digital Asset'}</Badge>
+                  <Badge variant="secondary" className="bg-secondary/50 text-primary border-primary/20 px-3 py-1 uppercase font-bold text-[10px] tracking-widest">{product.categorySlug || 'Digital Asset'}</Badge>
                   <div className="flex items-center gap-1.5 text-yellow-500">
                     <Star className="h-4 w-4 fill-current" />
                     <span className="font-bold text-foreground">{product.averageRating || '5.0'}</span>
@@ -128,16 +146,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 className="prose-content"
                 dangerouslySetInnerHTML={{ __html: product.description || '' }}
               />
+
+              <div className="flex flex-wrap gap-2 pt-4">
+                {product.tags?.map((tag: string) => (
+                  <Badge key={tag} variant="outline" className="bg-white/5 border-white/5 text-muted-foreground rounded-full px-4 py-1">
+                    #{tag}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <Tabs defaultValue="reviews" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/30 p-1 rounded-xl">
-                <TabsTrigger value="reviews" className="gap-2 rounded-lg transition-all">
+              <TabsList className="grid w-full grid-cols-3 mb-8 bg-muted/30 p-1 rounded-2xl">
+                <TabsTrigger value="reviews" className="gap-2 rounded-xl transition-all">
                   <MessageSquare className="h-4 w-4" />
                   Reviews
                 </TabsTrigger>
-                <TabsTrigger value="details" className="rounded-lg transition-all">Specs</TabsTrigger>
-                <TabsTrigger value="license" className="rounded-lg transition-all">License</TabsTrigger>
+                <TabsTrigger value="details" className="rounded-xl transition-all">Specs</TabsTrigger>
+                <TabsTrigger value="license" className="rounded-xl transition-all">License</TabsTrigger>
               </TabsList>
               
               <TabsContent value="reviews" className="animate-in fade-in duration-500">
@@ -145,14 +171,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </TabsContent>
               
               <TabsContent value="details" className="space-y-6 animate-in fade-in duration-500">
-                <Card className="p-8 bg-card/50 border-white/5 rounded-3xl">
+                <Card className="p-8 bg-card/50 border-white/5 rounded-[2rem]">
                   <h3 className="text-2xl font-bold font-headline mb-6 text-foreground">Technical Specifications</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
                     {[
                       { label: 'Format', value: product.fileFormat || 'PDF/ZIP' },
                       { label: 'Size', value: product.fileSize ? `${(product.fileSize / 1024 / 1024).toFixed(2)} MB` : 'N/A' },
                       { label: 'Version', value: product.fileVersion || '1.0' },
-                      { label: 'Compatibility', value: 'Any AI Model' },
+                      { label: 'Compatibility', value: 'Production Ready' },
                     ].map((spec) => (
                       <div key={spec.label} className="flex justify-between items-center py-3 border-b border-white/5">
                         <span className="text-muted-foreground font-medium">{spec.label}</span>
@@ -164,7 +190,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </TabsContent>
 
               <TabsContent value="license" className="animate-in fade-in duration-500">
-                <Card className="p-8 bg-primary/5 border-primary/20 rounded-3xl">
+                <Card className="p-8 bg-primary/5 border-primary/20 rounded-[2rem]">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center">
                       <ShieldCheck className="h-6 w-6 text-primary" />
@@ -195,7 +221,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <div className="flex items-baseline justify-between mb-8">
                   <span className="text-muted-foreground font-medium">Digital License</span>
                   <div className="text-right">
-                    {product.compareAtPrice > 0 && (
+                    {product.compareAtPrice > product.price && (
                       <span className="text-sm text-muted-foreground line-through block">₹{(product.compareAtPrice / 100).toLocaleString('en-IN')}</span>
                     )}
                     <span className="text-4xl font-bold font-headline text-accent">
@@ -247,14 +273,32 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </Card>
 
               <div className="bg-muted/20 rounded-3xl p-6 border border-dashed border-muted-foreground/20 text-center">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Need help with this purchase? <br />
-                  <button className="text-primary font-bold hover:underline">Chat with our support team</button>
+                <p className="text-sm text-muted-foreground leading-relaxed italic">
+                  Looking for a custom enterprise bundle? <br />
+                  <Link href="/contact" className="text-primary font-bold hover:underline not-italic">Reach out to our specialists</Link>
                 </p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Suggested Products Section */}
+        {suggestedProducts.length > 0 && (
+          <section className="space-y-10 border-t border-white/5 pt-20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold font-headline">Similar Assets</h2>
+                <p className="text-muted-foreground mt-1">Other top-tier items in the {product.categorySlug} category.</p>
+              </div>
+              <Button variant="ghost" asChild className="text-primary hover:text-accent font-bold gap-2">
+                <Link href={`/products?category=${product.categorySlug}`}>
+                  Explore Category <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <ProductGrid products={suggestedProducts} />
+          </section>
+        )}
       </main>
 
       <Footer />
