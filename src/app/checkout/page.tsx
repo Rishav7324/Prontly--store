@@ -27,6 +27,7 @@ export default function CheckoutPage() {
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
   const { data: settings } = useDoc(settingsRef);
@@ -37,6 +38,7 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    setMounted(true);
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -104,7 +106,6 @@ export default function CheckoutPage() {
 
       const docRef = await addDoc(collection(db!, 'orders'), orderData);
       
-      // CRITICAL FIX: Convert items to plain JSON to prevent serialization errors
       const plainOrder = {
         id: docRef.id,
         userName: orderData.userName,
@@ -114,7 +115,6 @@ export default function CheckoutPage() {
         paymentId: orderData.paymentId
       };
 
-      // CRITICAL FIX: Strip Firestore Timestamps and Protos from settings before sending to Server Action
       const sanitizedSettings = settings ? JSON.parse(JSON.stringify(settings)) : {};
 
       await sendOrderConfirmationEmail(plainOrder, sanitizedSettings);
@@ -168,24 +168,29 @@ export default function CheckoutPage() {
                 </div>
               </CardContent>
             </Card>
-            <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl gap-3" disabled={isProcessing}>
+            <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl gap-3" disabled={isProcessing || !mounted}>
               {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : <CreditCard className="h-6 w-6" />}
-              {isProcessing ? 'Verifying...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
+              {isProcessing ? 'Verifying...' : !mounted ? 'Calculating...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
             </Button>
           </form>
           <div className="lg:col-span-5">
             <Card className="border-white/5 bg-card/50 backdrop-blur-2xl rounded-[2.5rem] p-8">
               <h3 className="font-bold mb-6 flex items-center gap-2"><ShoppingBag className="h-4 w-4" /> Order Summary</h3>
               <div className="space-y-6">
-                {items.map((item) => (
+                {mounted ? items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span className="text-muted-foreground">{item.name} x {item.quantity}</span>
                     <span className="font-bold">₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}</span>
                   </div>
-                ))}
+                )) : (
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 bg-white/5 rounded w-3/4"></div>
+                    <div className="h-4 bg-white/5 rounded w-1/2"></div>
+                  </div>
+                )}
                 <div className="pt-6 border-t border-white/10 flex justify-between text-2xl font-bold">
                   <span>Total</span>
-                  <span className="text-primary">₹{(total / 100).toLocaleString('en-IN')}</span>
+                  <span className="text-primary">{mounted ? `₹${(total / 100).toLocaleString('en-IN')}` : '...'}</span>
                 </div>
               </div>
             </Card>

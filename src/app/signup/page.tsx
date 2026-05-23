@@ -65,12 +65,13 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       });
 
-      // Send Welcome Email (Non-blocking)
-      const plainSettings = settings ? {
-        emailSettings: settings.emailSettings,
-        smtpConfig: settings.smtpConfig
-      } : null;
-      sendWelcomeEmail(formData.email, formData.name, plainSettings);
+      // Dispatch Welcome Email using plain object to prevent serialization errors
+      if (settings) {
+        const plainSettings = JSON.parse(JSON.stringify(settings));
+        sendWelcomeEmail(formData.email, formData.name, plainSettings).catch(e => console.error("Email fail:", e));
+      } else {
+        sendWelcomeEmail(formData.email, formData.name).catch(e => console.error("Email fail:", e));
+      }
 
       toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
       router.push('/dashboard');
@@ -105,11 +106,8 @@ export default function SignupPage() {
 
       // Send Welcome Email (Non-blocking)
       if (user.email && user.displayName) {
-        const plainSettings = settings ? {
-          emailSettings: settings.emailSettings,
-          smtpConfig: settings.smtpConfig
-        } : null;
-        sendWelcomeEmail(user.email, user.displayName, plainSettings);
+        const plainSettings = settings ? JSON.parse(JSON.stringify(settings)) : null;
+        sendWelcomeEmail(user.email, user.displayName, plainSettings).catch(e => console.error("Email fail:", e));
       }
 
       router.push('/dashboard');
