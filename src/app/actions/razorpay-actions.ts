@@ -1,4 +1,3 @@
-
 'use server';
 
 import Razorpay from 'razorpay';
@@ -6,11 +5,21 @@ import crypto from 'crypto';
 
 /**
  * Initialized Razorpay client with secure environment variables.
+ * Initializing inside a getter to ensure env vars are loaded in the current execution context.
  */
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+function getRazorpayClient() {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay credentials are not configured on the server.');
+  }
+
+  return new Razorpay({
+    key_id,
+    key_secret,
+  });
+}
 
 /**
  * Creates a Razorpay Order on the server.
@@ -18,9 +27,7 @@ const razorpay = new Razorpay({
  */
 export async function createRazorpayOrder(amount: number) {
   try {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      throw new Error('Razorpay credentials are not configured on the server.');
-    }
+    const razorpay = getRazorpayClient();
 
     if (amount < 100) {
       throw new Error('Minimum amount must be ₹1 (100 paise).');
@@ -44,7 +51,15 @@ export async function createRazorpayOrder(amount: number) {
     };
   } catch (error: any) {
     console.error('Razorpay Order Creation Error:', error);
-    return { success: false, error: error.message || 'Failed to create payment order.' };
+    
+    // Extract the most descriptive error message possible
+    const errorMessage = 
+      error.description || 
+      (error.error && error.error.description) || 
+      error.message || 
+      'Failed to create payment order.';
+      
+    return { success: false, error: errorMessage };
   }
 }
 
