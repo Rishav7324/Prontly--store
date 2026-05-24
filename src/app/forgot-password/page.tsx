@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -22,6 +21,7 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     try {
+      // Step 1: Attempt branded recovery via custom API
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,21 +31,39 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to process request.');
+        // Step 2: Resilient Fallback
+        // If branded API fails (e.g. unverified domain or server creds missing),
+        // we automatically trigger the standard Firebase reset.
+        console.warn('Branded recovery unavailable, falling back to standard reset:', data.error);
+        
+        const { sendPasswordResetEmail } = await import('firebase/auth');
+        const { initializeFirebase } = await import('@/firebase');
+        const { auth: clientAuth } = initializeFirebase();
+        
+        if (!clientAuth) throw new Error('Auth system unavailable.');
+        
+        await sendPasswordResetEmail(clientAuth, email);
+        
+        setSent(true);
+        toast({ 
+          title: "Recovery Email Sent", 
+          description: "We've sent a standard security link to your inbox." 
+        });
+        return;
       }
 
       setSent(true);
       toast({ 
-        title: "Security Link Dispatched", 
-        description: "Check your inbox for your branded recovery link." 
+        title: "Branded Link Dispatched", 
+        description: "Check your inbox for a secure recovery link." 
       });
     } catch (err: any) {
-      console.error(err);
-      setError(err.message);
+      console.error('Recovery Flow Failure:', err);
+      setError(err.message || 'Recovery service is currently unavailable.');
       toast({ 
         variant: "destructive", 
-        title: "Dispatch Failed", 
-        description: err.message 
+        title: "Recovery Failed", 
+        description: "Please try again later or contact support." 
       });
     } finally {
       setLoading(false);
@@ -57,23 +75,20 @@ export default function ForgotPasswordPage() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md text-center space-y-8 animate-in fade-in zoom-in duration-500">
           <div className="flex justify-center">
-            <div className="h-24 w-24 bg-primary/10 rounded-[2rem] flex items-center justify-center border border-primary/20 shadow-2xl relative">
-              <MailCheck className="h-12 w-12 text-primary z-10" />
+            <div className="h-24 w-24 bg-primary/10 rounded-[2rem] flex items-center justify-center border border-primary/20 shadow-2xl">
+              <MailCheck className="h-12 w-12 text-primary" />
             </div>
           </div>
           <div className="space-y-3">
             <h1 className="text-4xl font-bold font-headline">Check Your Inbox</h1>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              If an account exists for <strong className="text-foreground">{email}</strong>, you will receive a secure branded link to reset your password.
+              If an account exists for <strong className="text-foreground">{email}</strong>, you will receive a secure link to reset your password.
             </p>
           </div>
           <div className="pt-8 border-t border-white/5">
             <Button asChild size="lg" className="w-full rounded-2xl h-14 font-bold shadow-xl shadow-primary/20">
               <Link href="/login">Back to Sign In</Link>
             </Button>
-            <p className="text-xs text-muted-foreground mt-6">
-              Didn't receive it? Check your spam folder or wait a few minutes.
-            </p>
           </div>
         </div>
       </div>
@@ -85,13 +100,13 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="flex items-center gap-3 mb-10 group">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary shadow-2xl shadow-primary/30 transition-all group-hover:scale-105 group-hover:rotate-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary shadow-2xl shadow-primary/30 transition-all group-hover:scale-105">
               <Zap className="h-8 w-8 text-white" fill="currentColor" />
             </div>
             <span className="font-headline text-3xl font-bold tracking-tighter uppercase">Prontly</span>
           </Link>
           <h1 className="text-4xl font-bold font-headline">Account Recovery</h1>
-          <p className="text-muted-foreground mt-3 text-lg">Enter your email to receive a secure recovery link.</p>
+          <p className="text-muted-foreground mt-3 text-lg">Enter your email to receive a recovery link.</p>
         </div>
 
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-xl">
@@ -124,7 +139,7 @@ export default function ForgotPasswordPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all" disabled={loading}>
+              <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 transition-all" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-3">
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -138,7 +153,7 @@ export default function ForgotPasswordPage() {
             <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-primary transition-all font-bold text-xs uppercase tracking-widest">
               <Link href="/login">
                 <ArrowLeft className="h-4 w-4" />
-                Return to Security Login
+                Return to Login
               </Link>
             </Button>
           </CardFooter>

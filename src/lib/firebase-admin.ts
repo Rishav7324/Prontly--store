@@ -1,10 +1,9 @@
-
 import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
 import { getAuth, Auth } from 'firebase-admin/auth';
 
 /**
  * @fileOverview Hardened Firebase Admin SDK Initialization.
- * Solves "Missing error payload" by sanitizing private keys and preventing multiple instances.
+ * Ensures Service Account credentials are correctly parsed and sanitized.
  */
 
 function getAdminApp(): App {
@@ -16,15 +15,13 @@ function getAdminApp(): App {
 
   if (getApps().length === 0) {
     try {
-      // 1. Parse JSON
-      const serviceAccount = JSON.parse(serviceAccountStr);
+      // Clean potential quotes and parse JSON
+      const cleanedStr = serviceAccountStr.trim().replace(/^['"]|['"]$/g, '');
+      const serviceAccount = JSON.parse(cleanedStr);
 
-      // 2. Critical: Sanitize the Private Key
-      // Handles both literal \n characters and real newlines from different env providers
+      // Critical: Sanitize the Private Key newlines
       if (serviceAccount.private_key) {
-        serviceAccount.private_key = serviceAccount.private_key
-          .replace(/\\n/g, '\n')
-          .replace(/"/g, ''); // Remove potential accidental quotes
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
 
       return initializeApp({
@@ -32,8 +29,8 @@ function getAdminApp(): App {
         projectId: serviceAccount.project_id,
       });
     } catch (e: any) {
-      console.error('Firebase Admin Init Failure:', e.message);
-      throw new Error(`Failed to initialize Firebase Admin: ${e.message}`);
+      console.error('Firebase Admin Initialization Failure:', e.message);
+      throw e;
     }
   }
   
@@ -41,7 +38,7 @@ function getAdminApp(): App {
 }
 
 /**
- * Singleton getter for Admin Auth.
+ * Singleton getter for Admin Auth instance.
  */
 export const getAdminAuth = (): Auth => {
   return getAuth(getAdminApp());
