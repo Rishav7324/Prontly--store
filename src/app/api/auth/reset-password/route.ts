@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
 
 /**
@@ -21,10 +21,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Valid email is required.' }, { status: 400 });
     }
 
+    const auth = getAdminAuth();
+
     // 2. Security: Check if user exists (Optional, but usually we proceed blindly to prevent enumeration)
     let user;
     try {
-      user = await adminAuth.getUserByEmail(email);
+      user = await auth.getUserByEmail(email);
     } catch (e: any) {
       // If user not found, we return a generic success to prevent email discovery attacks
       if (e.code === 'auth/user-not-found') {
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
 
     // 3. Generate secure reset link via Admin SDK
     // This link contains the oobCode we need
-    const firebaseLink = await adminAuth.generatePasswordResetLink(email, {
+    const firebaseLink = await auth.generatePasswordResetLink(email, {
       url: `${SITE_URL}/login`,
     });
 
