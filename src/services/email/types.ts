@@ -24,14 +24,14 @@ export interface EmailSenderConfig {
  */
 export const SENDER_MAP: Record<EmailType, EmailSenderConfig> = {
   security: {
-    from: 'security@store.prontly.in',
+    from: 'reset-password@store.prontly.in',
     replyTo: 'support@store.prontly.in',
     displayName: 'Prontly Security',
   },
   order: {
-    from: 'orders@store.prontly.in',
+    from: 'billing@store.prontly.in',
     replyTo: 'support@store.prontly.in',
-    displayName: 'Prontly Orders',
+    displayName: 'Prontly Billing',
   },
   delivery: {
     from: 'delivery@store.prontly.in',
@@ -44,7 +44,7 @@ export const SENDER_MAP: Record<EmailType, EmailSenderConfig> = {
     displayName: 'Prontly Support',
   },
   marketing: {
-    from: 'hello@store.prontly.in',
+    from: 'welcome@store.prontly.in',
     replyTo: 'hello@store.prontly.in',
     displayName: 'Prontly Store',
   },

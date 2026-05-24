@@ -60,13 +60,13 @@ export default function AdminSettings() {
     },
     featuredProductIds: [],
     emailSettings: {
-      fromEmail: 'store.support@prontly.in',
+      fromEmail: 'welcome@store.prontly.in',
       senderName: 'Prontly Store'
     },
     smtpConfig: {
       host: 'smtp.zoho.in',
       port: '465',
-      user: 'store.support@prontly.in',
+      user: 'welcome@store.prontly.in',
       pass: '',
       secure: true
     },
@@ -100,13 +100,13 @@ export default function AdminSettings() {
         },
         featuredProductIds: settings.featuredProductIds || [],
         emailSettings: settings.emailSettings || {
-          fromEmail: 'store.support@prontly.in',
+          fromEmail: 'welcome@store.prontly.in',
           senderName: 'Prontly Store'
         },
         smtpConfig: settings.smtpConfig || {
           host: 'smtp.zoho.in',
           port: '465',
-          user: 'store.support@prontly.in',
+          user: 'welcome@store.prontly.in',
           pass: '',
           secure: true
         },
@@ -393,10 +393,11 @@ export default function AdminSettings() {
                 </div>
                 <div className="grid gap-2">
                   <Label>From Email Address</Label>
-                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="store.support@prontly.in" className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="fromEmail" value={formData.emailSettings?.fromEmail || ''} onChange={handleEmailChange} placeholder="welcome@store.prontly.in" className="h-12 bg-background/50 rounded-xl" />
                 </div>
               </div>
             </CardContent>
+          </Card>
 
           <Card className="rounded-[2rem] border-white/5 bg-card/30">
             <CardHeader>
@@ -418,7 +419,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="grid gap-2">
                   <Label>SMTP Username</Label>
-                  <Input id="user" value={formData.smtpConfig?.user || 'store.support@prontly.in'} onChange={handleSmtpChange} className="h-12 bg-background/50 rounded-xl" />
+                  <Input id="user" value={formData.smtpConfig?.user || 'welcome@store.prontly.in'} onChange={handleSmtpChange} className="h-12 bg-background/50 rounded-xl" />
                 </div>
                 <div className="grid gap-2">
                   <Label>SMTP Password</Label>
