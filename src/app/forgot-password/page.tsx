@@ -1,98 +1,41 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Zap, Loader2, ShieldCheck, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
-  const [step, setStep] = useState<'request' | 'verify' | 'reset'>('request');
+  const auth = useAuth();
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resetToken, setResetToken] = useState('');
-  const [timer, setTimer] = useState(0);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  const handleRequestOtp = async (e: React.FormEvent) => {
+  const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) return;
+    
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch('/api/auth/request-reset-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      setStep('verify');
-      setTimer(60);
-      toast({ title: "Check your inbox", description: "Verification code has been dispatched." });
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
     try {
-      const res = await fetch('/api/auth/verify-reset-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
+      // Use standard Firebase link-based recovery
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/login`,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      setResetToken(data.resetToken);
-      setStep('reset');
-      toast({ title: "OTP Verified", description: "You can now set a new password." });
+      setSent(true);
+      toast({ title: "Email Dispatched", description: "Check your inbox for reset instructions." });
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, resetToken, newPassword }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
-      toast({ title: "Password Reset Successfully", description: "Redirecting to login..." });
-      setTimeout(() => router.push('/login'), 2000);
-    } catch (err: any) {
-      setError(err.message);
+      console.error('Password reset error:', err);
+      setError(err.message || 'Failed to send recovery email.');
+      toast({ variant: "destructive", title: "Request Failed", description: "Please verify your email address." });
     } finally {
       setLoading(false);
     }
@@ -108,79 +51,45 @@ export default function ForgotPasswordPage() {
             </div>
             <span className="font-headline text-3xl font-bold tracking-tighter uppercase">Prontly</span>
           </Link>
-          <h1 className="text-4xl font-bold font-headline">
-            {step === 'request' && 'Account Recovery'}
-            {step === 'verify' && 'Verification Required'}
-            {step === 'reset' && 'Secure New Access'}
-          </h1>
+          <h1 className="text-4xl font-bold font-headline">Account Recovery</h1>
           <p className="text-muted-foreground mt-3 text-lg">
-            {step === 'request' && 'Enter your email for a reset code.'}
-            {step === 'verify' && `We've sent a 6-digit code to ${email}`}
-            {step === 'reset' && 'Define your new account credentials.'}
+            {sent ? "Instructions sent!" : "Enter your email to receive a secure reset link."}
           </p>
         </div>
 
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-xl">
-          <CardHeader className="p-10 pb-6">
-            <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-3">
-              <ShieldCheck className="h-4 w-4" /> Identity Protection Active
+          <CardHeader className="p-10 pb-6 text-center">
+            <div className="inline-flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-3 mx-auto">
+              <ShieldCheck className="h-4 w-4" /> Identity Protection
             </div>
           </CardHeader>
 
           <CardContent className="p-10 pt-0">
-            {step === 'request' && (
-              <form onSubmit={handleRequestOtp} className="space-y-6">
+            {sent ? (
+              <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
+                <div className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="h-10 w-10 text-green-500" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-foreground font-medium">We've sent a link to <span className="text-primary font-bold">{email}</span></p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">Please check your inbox (and spam folder) for instructions to finalize your new password.</p>
+                </div>
+                <Button variant="outline" className="w-full h-14 rounded-2xl" onClick={() => setSent(false)}>
+                  Didn't get it? Try again
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={handleRequestReset} className="space-y-6">
                 <div className="space-y-3">
                   <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Email Address</Label>
                   <Input 
                     type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
                     className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg"
                   />
                 </div>
-                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold" disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" /> : 'Send Reset Code'}
-                </Button>
-              </form>
-            )}
-
-            {step === 'verify' && (
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div className="space-y-3">
-                  <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">6-Digit Code</Label>
-                  <Input 
-                    maxLength={6} required value={otp} onChange={(e) => setOtp(e.target.value)}
-                    placeholder="000000"
-                    className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-center text-3xl font-black tracking-[0.5em]"
-                  />
-                </div>
-                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold" disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" /> : 'Verify Code'}
-                </Button>
-                <div className="text-center">
-                  <button 
-                    type="button" 
-                    onClick={handleRequestOtp}
-                    disabled={timer > 0 || loading}
-                    className="text-sm font-bold text-primary disabled:opacity-50"
-                  >
-                    {timer > 0 ? `Resend in ${timer}s` : 'Resend Code'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {step === 'reset' && (
-              <form onSubmit={handleResetPassword} className="space-y-6">
-                <div className="space-y-3">
-                  <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">New Password</Label>
-                  <Input 
-                    type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min 8 characters"
-                    className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg"
-                  />
-                </div>
-                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" disabled={loading || newPassword.length < 8}>
-                  {loading ? <Loader2 className="animate-spin" /> : 'Finalize Reset'}
+                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" disabled={loading}>
+                  {loading ? <Loader2 className="animate-spin" /> : 'Send Reset Link'}
                 </Button>
               </form>
             )}
@@ -193,8 +102,8 @@ export default function ForgotPasswordPage() {
           </CardContent>
 
           <CardFooter className="bg-muted/30 p-8 flex justify-center border-t border-white/5">
-            <Link href="/login" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-              Return to Login
+            <Link href="/login" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="h-3 w-3" /> Return to Login
             </Link>
           </CardFooter>
         </Card>

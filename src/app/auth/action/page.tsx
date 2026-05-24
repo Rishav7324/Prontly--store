@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 
 /**
  * @fileOverview Universal handler for Firebase Auth actions.
- * Prevents 404s when clicking reset/verify links and redirects to custom branded pages.
+ * Intercepts standard Firebase security links and redirects to branded custom pages.
  */
 function AuthActionHandler() {
   const router = useRouter();
@@ -20,7 +20,7 @@ function AuthActionHandler() {
       // Redirect to our branded reset page
       router.push(`/reset-password?oobCode=${oobCode}`);
     } else if (mode === 'verifyEmail' && oobCode) {
-      // For now, redirect home. Can be extended to a /verify-email page.
+      // Redirect home for verification
       router.push('/');
     } else {
       // Catch-all for unexpected auth modes
