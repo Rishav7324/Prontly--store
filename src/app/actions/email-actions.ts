@@ -9,11 +9,16 @@ import { getAdminAuth } from '@/lib/firebase-admin';
 /**
  * @fileOverview Centralized Email & Document Dispatcher.
  * Exports all Server Actions required by the Storefront and Admin Panel.
+ * Uses specific branded senders for different contexts.
  */
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Prontly Store <noreply@store.prontly.in>';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+
+// ─── BRANDED SENDERS ─────────────────────────────────────────────────────────
+const SENDER_WELCOME = 'Prontly Store <welcome@store.prontly.in>';
+const SENDER_BILLING = 'Prontly Store <billing@store.prontly.in>';
+const SENDER_SECURITY = 'Prontly Store <reset-password@store.prontly.in>';
 
 // ─── INTERNAL TEMPLATES ──────────────────────────────────────────────────────
 
@@ -70,7 +75,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
   try {
     if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY missing");
     await resend.emails.send({
-      from: EMAIL_FROM,
+      from: SENDER_WELCOME,
       to,
       subject: `🎉 Welcome to Prontly Store, ${name}!`,
       html: welcomeEmailTemplate(name),
@@ -109,7 +114,7 @@ export async function sendForgotPasswordEmail(email: string) {
 
     // 4. Send Branded Email
     await resend.emails.send({
-      from: EMAIL_FROM,
+      from: SENDER_SECURITY,
       to: email,
       subject: '🔐 Secure Password Reset — Prontly Store',
       html: resetPasswordEmailTemplate(user.displayName || 'Creator', brandedLink),
@@ -128,7 +133,7 @@ export async function sendForgotPasswordEmail(email: string) {
 export async function sendOrderConfirmationEmail(order: any) {
   try {
     await resend.emails.send({
-      from: EMAIL_FROM,
+      from: SENDER_BILLING,
       to: order.userEmail,
       subject: `✅ Order Confirmed #${order.id.slice(-8).toUpperCase()} — Prontly Store`,
       html: `

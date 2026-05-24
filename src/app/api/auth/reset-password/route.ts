@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { getAdminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
@@ -5,10 +6,11 @@ import { Resend } from 'resend';
 /**
  * @fileOverview Branded Password Reset API Endpoint.
  * Generates a Firebase OOB code and sends a premium HTML email via Resend.
+ * Uses the specific security sender address.
  */
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Prontly Store <noreply@store.prontly.in>';
+const EMAIL_FROM = 'Prontly Store <reset-password@store.prontly.in>';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 export async function POST(req: Request) {
