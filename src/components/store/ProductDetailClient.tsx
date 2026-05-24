@@ -160,7 +160,7 @@ const ProductHeader = ({ product, isWishlisted, onToggleWishlist }: any) => (
         </Button>
       </div>
     </div>
-    <h1 className="text-3xl md:text-4xl font-bold font-headline leading-tight">{product.name}</h1>
+    <h1 className="text-2xl md:text-3xl font-bold font-headline leading-tight">{product.name}</h1>
   </div>
 );
 
