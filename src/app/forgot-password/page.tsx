@@ -5,19 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, MailCheck, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Zap, Loader2, MailCheck, ArrowLeft, ShieldAlert, AlertCircle, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { initiateBrandedPasswordReset } from '@/app/actions/email-actions';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { useAuth } from '@/firebase';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [errorType, setErrorType] = useState<'none' | 'credential' | 'general'>('none');
+  const auth = useAuth();
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorType('none');
+
     try {
       const res = await initiateBrandedPasswordReset(email);
       
@@ -25,7 +31,12 @@ export default function ForgotPasswordPage() {
         setSent(true);
         toast({ title: "Branded Recovery Sent" });
       } else {
-        throw new Error(res.error || 'Failed to dispatch email');
+        if (res.error?.includes('credentials missing')) {
+          setErrorType('credential');
+        } else {
+          setErrorType('general');
+        }
+        throw new Error(res.error);
       }
     } catch (error: any) {
       toast({ 
@@ -33,6 +44,20 @@ export default function ForgotPasswordPage() {
         title: "Recovery Failed", 
         description: error.message || "Could not process request." 
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStandardFallback = async () => {
+    if (!auth || !email) return;
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setSent(true);
+      toast({ title: "Firebase Recovery Sent", description: "Standard email dispatched." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Fallback Failed", description: error.message });
     } finally {
       setLoading(false);
     }
@@ -49,7 +74,7 @@ export default function ForgotPasswordPage() {
           </div>
           <div className="space-y-2">
             <h1 className="text-4xl font-bold font-headline">Check Your Inbox</h1>
-            <p className="text-muted-foreground text-lg">A branded recovery link has been sent to <strong>{email}</strong>.</p>
+            <p className="text-muted-foreground text-lg">A recovery link has been sent to <strong>{email}</strong>. Check your spam folder if you don't see it.</p>
           </div>
           <div className="pt-8 border-t border-white/5 space-y-4">
             <Button asChild size="lg" className="w-full rounded-2xl h-14 font-bold shadow-xl">
@@ -82,7 +107,7 @@ export default function ForgotPasswordPage() {
             </div>
             <CardTitle className="text-xl">Identity Verification</CardTitle>
           </CardHeader>
-          <CardContent className="p-8 pt-0">
+          <CardContent className="p-8 pt-0 space-y-6">
             <form onSubmit={handleReset} className="space-y-6">
               <div className="space-y-3">
                 <Label htmlFor="email" className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Account Email</Label>
@@ -100,6 +125,29 @@ export default function ForgotPasswordPage() {
                 {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : 'Dispatch Recovery Email'}
               </Button>
             </form>
+
+            {errorType === 'credential' && (
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 space-y-4 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-destructive uppercase tracking-tight">Admin System Offline</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Branded email service is unavailable in this environment. Use the standard recovery method instead.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={handleStandardFallback} 
+                  className="w-full h-12 rounded-xl border-destructive/30 hover:bg-destructive/10 text-destructive font-bold"
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                  Use Standard Recovery
+                </Button>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="bg-muted/30 p-8 flex justify-center">
             <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-primary transition-all">

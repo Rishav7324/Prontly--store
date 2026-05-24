@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { format } from 'date-fns';
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getApps, initializeApp, credential } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -10,13 +10,30 @@ const EMAIL_FROM = process.env.EMAIL_FROM || 'Prontly Store <noreply@prontly.in>
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 /**
- * Initialize Firebase Admin securely for Server Actions
+ * Initialize Firebase Admin securely for Server Actions.
+ * Supports Service Account JSON from environment or Application Default Credentials.
  */
 function getAdminAuth() {
   if (getApps().length === 0) {
-    initializeApp({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    });
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+    try {
+      initializeApp({
+        projectId,
+        credential: serviceAccount 
+          ? credential.cert(JSON.parse(serviceAccount)) 
+          : credential.applicationDefault(),
+      });
+    } catch (e) {
+      // Fallback for local development without ADC or Service Account
+      if (!serviceAccount) {
+        console.warn("Firebase Admin initialized without credentials. Some administrative actions may fail.");
+        initializeApp({ projectId });
+      } else {
+        throw e;
+      }
+    }
   }
   return getAuth();
 }
@@ -515,7 +532,18 @@ export async function sendWelcomeEmail(to: string, name: string) {
 export async function initiateBrandedPasswordReset(email: string) {
   try {
     const adminAuth = getAdminAuth();
-    const user = await adminAuth.getUserByEmail(email);
+    
+    // Attempt to generate the link. This requires Service Account credentials.
+    let user;
+    try {
+      user = await adminAuth.getUserByEmail(email);
+    } catch (authError: any) {
+      if (authError.code === 'auth/user-not-found') {
+        throw new Error('No account found with this email address.');
+      }
+      throw authError;
+    }
+
     const name = user.displayName || 'Creator';
     
     const link = await adminAuth.generatePasswordResetLink(email, {
@@ -535,7 +563,16 @@ export async function initiateBrandedPasswordReset(email: string) {
     return { success: true };
   } catch (e: any) {
     console.error('Reset dispatch error:', e);
-    return { success: false, error: e.message };
+    
+    // Determine if it's a credential issue
+    const isCredentialError = e.message?.includes('credential') || e.message?.includes('OAuth2');
+    
+    return { 
+      success: false, 
+      error: isCredentialError 
+        ? 'Admin SDK credentials missing. Please use the fallback recovery method.' 
+        : (e.message || 'Failed to dispatch branded recovery email.')
+    };
   }
 }
 
