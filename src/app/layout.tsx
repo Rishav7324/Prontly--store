@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     siteName: 'Prontly Store',
     images: [
       {
-        url: '/og-default.png',
+        url: '/og-default.webp',
         width: 1200,
         height: 630,
         alt: 'Prontly Store'
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Prontly Store',
     description: 'Premium Digital Asset Marketplace',
-    images: ['/og-default.png'],
+    images: ['/og-default.webp'],
     creator: '@prontly'
   }
 };
