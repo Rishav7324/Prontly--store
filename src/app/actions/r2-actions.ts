@@ -14,11 +14,19 @@ export async function uploadFileAction(formData: FormData) {
     const key = formData.get('key') as string;
     
     if (!file || !key) {
-      throw new Error('File and key are required');
+      return { success: false, error: 'File and key are required for upload.' };
     }
 
-    if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID) {
-      throw new Error('Storage credentials (R2) are not configured in environment variables.');
+    // Comprehensive Credential Check
+    const requiredEnv = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME'];
+    const missing = requiredEnv.filter(env => !process.env[env]);
+    
+    if (missing.length > 0) {
+      console.error(`Storage Error: Missing ${missing.join(', ')} in .env`);
+      return { 
+        success: false, 
+        error: `Cloudflare R2 is not configured. Missing: ${missing.join(', ')}` 
+      };
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -41,34 +49,13 @@ export async function uploadFileAction(formData: FormData) {
     console.error('Failed to upload to R2:', error);
     return { 
       success: false, 
-      error: error.message || 'Failed to sync with storage provider' 
+      error: error.message || 'Failed to communicate with storage provider.' 
     };
   }
 }
 
 /**
- * Generates a pre-signed URL for client-side uploads to Cloudflare R2.
- * @deprecated Use uploadFileAction for better reliability unless handling very large files (>10MB).
- */
-export async function getUploadUrl(key: string, contentType: string) {
-  try {
-    const command = new PutObjectCommand({
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-      ContentType: contentType,
-    });
-
-    const url = await getSignedUrl(r2, command, { expiresIn: 3600 });
-    return { url };
-  } catch (error) {
-    console.error('Failed to generate upload URL:', error);
-    throw new Error('Could not generate upload URL');
-  }
-}
-
-/**
  * Generates a pre-signed URL for downloading a private file from R2.
- * Valid for 10 minutes.
  */
 export async function getDownloadUrl(key: string) {
   try {

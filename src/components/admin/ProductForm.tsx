@@ -166,7 +166,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     try {
       const { imageUrl } = await generateProductImage({ prompt: aiImagePrompt });
       
-      // Convert data URI to File object for R2 upload
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const suffix = Math.random().toString(36).substring(2, 6);
@@ -199,7 +198,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     if (!file) return;
 
     if (!formData.slug) {
-      toast({ variant: "destructive", title: "Slug Required" });
+      toast({ variant: "destructive", title: "Slug Required", description: "Please enter a product name to generate a slug before uploading." });
       return;
     }
 
@@ -236,10 +235,13 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             fileFormat: file.name.split('.').pop()?.toUpperCase() || ''
           }));
         }
-        toast({ title: "File Synced" });
+        toast({ title: "File Uploaded Successfully" });
+      } else {
+        toast({ variant: "destructive", title: "Upload Failed", description: result.error });
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Upload Failed" });
+      console.error("Upload error:", error);
+      toast({ variant: "destructive", title: "Upload Error", description: "A technical error occurred during upload." });
     } finally {
       setUploadProgress(prev => {
         const newProgress = { ...prev };
