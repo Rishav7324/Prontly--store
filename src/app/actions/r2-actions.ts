@@ -6,7 +6,7 @@ import { r2, R2_BUCKET_NAME } from '@/lib/r2';
 
 /**
  * Robust server-side file upload to Cloudflare R2.
- * Bypasses CORS issues common with client-side signed URL uploads.
+ * Handles large payloads (up to 10MB via next.config) and provides clear errors.
  */
 export async function uploadFileAction(formData: FormData) {
   try {
@@ -22,10 +22,9 @@ export async function uploadFileAction(formData: FormData) {
     const missing = requiredEnv.filter(env => !process.env[env]);
     
     if (missing.length > 0) {
-      console.error(`Storage Error: Missing ${missing.join(', ')} in .env`);
       return { 
         success: false, 
-        error: `Cloudflare R2 is not configured. Missing: ${missing.join(', ')}` 
+        error: `Storage Error: Missing ${missing.join(', ')} configuration.` 
       };
     }
 
@@ -46,10 +45,10 @@ export async function uploadFileAction(formData: FormData) {
       url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${key}` 
     };
   } catch (error: any) {
-    console.error('Failed to upload to R2:', error);
+    console.error('R2 Server Action Error:', error);
     return { 
       success: false, 
-      error: error.message || 'Failed to communicate with storage provider.' 
+      error: error.message || 'The server encountered an error processing your upload. Check file size and credentials.' 
     };
   }
 }
