@@ -1,4 +1,3 @@
-
 'use server';
 
 import { Resend } from 'resend';
@@ -8,7 +7,6 @@ import { getAdminAuth } from '@/lib/firebase-admin';
 
 /**
  * @fileOverview Centralized Email & Document Dispatcher.
- * Exports all Server Actions required by the Storefront and Admin Panel.
  * Uses specific branded senders for different contexts.
  */
 
@@ -82,18 +80,14 @@ export async function sendWelcomeEmail(to: string, name: string) {
     });
     return { success: true };
   } catch (e: any) {
+    console.error('Welcome Email Error:', e.message);
     return { success: false, error: e.message };
   }
 }
 
-/**
- * Generates a secure recovery link and sends a branded reset email.
- */
 export async function sendForgotPasswordEmail(email: string) {
   try {
     const auth = getAdminAuth();
-    
-    // 1. Check if user exists (generic response if not to prevent enumeration)
     let user;
     try {
       user = await auth.getUserByEmail(email);
@@ -102,17 +96,14 @@ export async function sendForgotPasswordEmail(email: string) {
       throw e;
     }
 
-    // 2. Generate OOB Link
     const firebaseLink = await auth.generatePasswordResetLink(email, {
       url: `${SITE_URL}/login`,
     });
 
-    // 3. Extract code for branded URL
     const urlObj = new URL(firebaseLink);
     const oobCode = urlObj.searchParams.get('oobCode');
     const brandedLink = `${SITE_URL}/reset-password?oobCode=${oobCode}`;
 
-    // 4. Send Branded Email
     await resend.emails.send({
       from: SENDER_SECURITY,
       to: email,
@@ -127,9 +118,6 @@ export async function sendForgotPasswordEmail(email: string) {
   }
 }
 
-/**
- * Handles purchase confirmations.
- */
 export async function sendOrderConfirmationEmail(order: any) {
   try {
     await resend.emails.send({
@@ -146,19 +134,16 @@ export async function sendOrderConfirmationEmail(order: any) {
     });
     return { success: true };
   } catch (e: any) {
+    console.error('Billing Email Error:', e.message);
     return { success: false, error: e.message };
   }
 }
 
-/**
- * Generates a professional PDF invoice as a Base64 string.
- */
 export async function generateInvoicePdf(order: any, settings: any) {
   try {
     const doc = new jsPDF();
     const invSettings = settings?.invoiceSettings || {};
 
-    // Header
     doc.setFontSize(20);
     doc.setTextColor(invSettings.color || '#1F4E79');
     doc.text(invSettings.businessName || 'PRONTLY STORE', 20, 20);
@@ -168,7 +153,6 @@ export async function generateInvoicePdf(order: any, settings: any) {
     doc.text('TAX INVOICE / RECEIPT', 150, 20);
     doc.text(`ID: ${order.id.toUpperCase()}`, 150, 25);
 
-    // Bill To
     doc.setFontSize(12);
     doc.setTextColor(0);
     doc.text('BILL TO:', 20, 45);
@@ -176,7 +160,6 @@ export async function generateInvoicePdf(order: any, settings: any) {
     doc.text(order.userName, 20, 52);
     doc.text(order.userEmail, 20, 57);
 
-    // Table
     (doc as any).autoTable({
       startY: 70,
       head: [['Product', 'Quantity', 'Price']],
@@ -189,14 +172,12 @@ export async function generateInvoicePdf(order: any, settings: any) {
       headStyles: { fillColor: invSettings.color || '#1F4E79' }
     });
 
-    // Summary
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     doc.text(`Subtotal: INR ${(order.subtotal / 100).toLocaleString()}`, 140, finalY);
     if (order.discount > 0) doc.text(`Discount: -INR ${(order.discount / 100).toLocaleString()}`, 140, finalY + 7);
     doc.setFontSize(14);
     doc.text(`Total Paid: INR ${(order.total / 100).toLocaleString()}`, 140, finalY + 17);
 
-    // Footer
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(invSettings.footerText || 'Thank you for your business.', 20, 280);

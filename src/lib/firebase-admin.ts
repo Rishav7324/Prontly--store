@@ -3,7 +3,7 @@ import { getAuth, Auth } from 'firebase-admin/auth';
 
 /**
  * @fileOverview Hardened Firebase Admin SDK Initialization.
- * Ensures Service Account credentials are correctly parsed and sanitized.
+ * Robustly parses Service Account credentials from environment variables.
  */
 
 function getAdminApp(): App {
@@ -15,8 +15,16 @@ function getAdminApp(): App {
 
   if (getApps().length === 0) {
     try {
-      // Clean potential quotes and parse JSON
-      const cleanedStr = serviceAccountStr.trim().replace(/^['"]|['"]$/g, '');
+      // Clean potential quotes and handle multiline artifacts from .env
+      let cleanedStr = serviceAccountStr.trim();
+      
+      // Remove surrounding quotes if they exist (common in some env loaders)
+      if ((cleanedStr.startsWith("'") && cleanedStr.endsWith("'")) || 
+          (cleanedStr.startsWith('"') && cleanedStr.endsWith('"'))) {
+        cleanedStr = cleanedStr.substring(1, cleanedStr.length - 1);
+      }
+
+      // Handle literal newlines that might have been escaped as characters
       const serviceAccount = JSON.parse(cleanedStr);
 
       // Critical: Sanitize the Private Key newlines
@@ -30,7 +38,8 @@ function getAdminApp(): App {
       });
     } catch (e: any) {
       console.error('Firebase Admin Initialization Failure:', e.message);
-      throw e;
+      // Fallback or rethrow with better context
+      throw new Error(`Failed to parse Service Account JSON: ${e.message}`);
     }
   }
   
