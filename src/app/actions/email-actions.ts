@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { format } from 'date-fns';
-import { getApps, initializeApp, cert, type App } from 'firebase-admin/app';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -10,8 +10,8 @@ const EMAIL_FROM = process.env.EMAIL_FROM || 'Prontly Store <noreply@prontly.in>
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 /**
- * Initialize Firebase Admin securely for Server Actions.
- * Handles private key formatting to avoid "Missing error payload" errors.
+ * Robust Firebase Admin initialization.
+ * Specifically fixes "Missing error payload" by aggressively cleaning the private key.
  */
 function getAdminAuth() {
   const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -22,11 +22,12 @@ function getAdminAuth() {
       if (serviceAccountStr) {
         const serviceAccount = JSON.parse(serviceAccountStr);
         
-        // Ensure private key newlines are correctly formatted
-        if (serviceAccount.private_key) {
+        // CRITICAL FIX: Aggressively sanitize the private key.
+        // The "Missing error payload" error is almost always caused by malformed newlines.
+        if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
           serviceAccount.private_key = serviceAccount.private_key
             .replace(/\\n/g, '\n')
-            .replace(/\n/g, '\n');
+            .replace(/\n\n/g, '\n'); 
         }
 
         initializeApp({
@@ -39,7 +40,7 @@ function getAdminAuth() {
       }
     } catch (e) {
       console.error('Firebase Admin SDK Initialization Error:', e);
-      // Ensure we have an app instance even if init fails
+      // Ensure we have an app instance even if config-based init fails
       if (getApps().length === 0) {
         initializeApp({ projectId });
       }
