@@ -1,14 +1,15 @@
+
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { confirmPasswordReset } from 'firebase/auth';
+import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Zap, Loader2, CheckCircle2, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
@@ -21,12 +22,37 @@ function ResetPasswordContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function verifyCode() {
+      if (!auth || !oobCode) {
+        setVerifying(false);
+        return;
+      }
+      try {
+        const userEmail = await verifyPasswordResetCode(auth, oobCode);
+        setEmail(userEmail);
+      } catch (err: any) {
+        console.error(err);
+        setError("The security link is invalid or has expired.");
+      } finally {
+        setVerifying(false);
+      }
+    }
+    verifyCode();
+  }, [auth, oobCode]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !oobCode) {
-      toast({ variant: "destructive", title: "Invalid Link", description: "Security code is missing." });
+    if (!auth || !oobCode) return;
+
+    if (password.length < 8) {
+      toast({ variant: "destructive", title: "Weak Password", description: "Password must be at least 8 characters." });
       return;
     }
 
@@ -37,30 +63,40 @@ function ResetPasswordContent() {
 
     setLoading(true);
     try {
-      // Use Firebase's confirmPasswordReset with the oobCode from our branded link
       await confirmPasswordReset(auth, oobCode, password);
       setIsSuccess(true);
-      toast({ title: "Account Secured", description: "New password has been applied." });
+      toast({ title: "Account Secured", description: "Your new password has been applied." });
       setTimeout(() => router.push('/login'), 3000);
-    } catch (error: any) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+    } catch (err: any) {
+      console.error(err);
+      toast({ variant: "destructive", title: "Update Failed", description: err.message });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!oobCode) {
+  if (verifying) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground uppercase font-bold tracking-widest text-[10px]">Verifying Security Code...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !oobCode) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md text-center space-y-6">
           <div className="h-20 w-20 bg-destructive/10 rounded-3xl flex items-center justify-center mx-auto">
             <AlertCircle className="h-10 w-10 text-destructive" />
           </div>
-          <h1 className="text-3xl font-bold font-headline">Invalid Security Link</h1>
-          <p className="text-muted-foreground">This recovery link is invalid or has expired.</p>
-          <Button asChild variant="outline" className="w-full rounded-2xl h-14">
-            <Link href="/forgot-password">Request New Branded Link</Link>
+          <h1 className="text-3xl font-bold font-headline">Session Invalid</h1>
+          <p className="text-muted-foreground">{error || "This recovery session has expired or is missing security tokens."}</p>
+          <Button asChild variant="outline" className="w-full rounded-2xl h-14 border-white/10 font-bold">
+            <Link href="/forgot-password">Request New Recovery Link</Link>
           </Button>
         </div>
       </div>
@@ -73,8 +109,8 @@ function ResetPasswordContent() {
         <div className="w-full max-w-md text-center space-y-8 animate-in fade-in zoom-in duration-500">
           <CheckCircle2 className="h-24 w-24 text-primary mx-auto animate-bounce" />
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold font-headline">Password Updated</h1>
-            <p className="text-muted-foreground">Your account credentials have been synchronized. Redirecting to login...</p>
+            <h1 className="text-4xl font-bold font-headline">Password Applied</h1>
+            <p className="text-muted-foreground">Your credentials have been updated successfully. Redirecting to login...</p>
           </div>
           <Button asChild size="lg" className="w-full rounded-2xl h-14 font-bold shadow-xl">
             <Link href="/login">Return to Security Login</Link>
@@ -89,36 +125,46 @@ function ResetPasswordContent() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="flex items-center gap-3 mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-xl">
               <Zap className="h-7 w-7 text-white" fill="currentColor" />
             </div>
-            <span className="font-headline text-3xl font-bold">PRONTLY</span>
+            <span className="font-headline text-3xl font-bold tracking-tighter">Prontly</span>
           </Link>
           <h1 className="text-4xl font-bold font-headline">Secure New Access</h1>
-          <p className="text-muted-foreground mt-3 text-lg">Update your credentials using our branded portal.</p>
+          <p className="text-muted-foreground mt-3 text-lg">Define a new password for <span className="text-foreground font-bold">{email}</span></p>
         </div>
 
-        <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 pb-4">
-            <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest mb-2">
-              <ShieldCheck className="h-4 w-4" /> Identity Verification Verified
+        <Card className="border-white/5 bg-card/30 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-3xl">
+          <CardHeader className="p-10 pb-4">
+            <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-widest mb-2">
+              <ShieldCheck className="h-4 w-4" /> Identity Verified
             </div>
-            <CardTitle className="text-xl">Define Password</CardTitle>
+            <CardTitle className="text-xl font-headline">Define Credentials</CardTitle>
           </CardHeader>
-          <CardContent className="p-8 pt-0">
+          <CardContent className="p-10 pt-0">
             <form onSubmit={handleReset} className="space-y-6">
               <div className="space-y-3">
-                <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">New Security Password</Label>
-                <Input 
-                  type="password" 
-                  required 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 bg-background/50 border-white/10 rounded-2xl px-6 text-lg focus:ring-2 focus:ring-primary"
-                />
+                <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">New Secure Password</Label>
+                <div className="relative">
+                  <Input 
+                    type={showPass ? "text" : "password"} 
+                    required 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-14 bg-background/50 border-white/10 rounded-2xl px-6 text-lg focus:ring-2 focus:ring-primary pr-12"
+                    placeholder="Min 8 characters"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
-                <Label className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Confirm Security Password</Label>
+                <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Confirm New Password</Label>
                 <Input 
                   type="password" 
                   required 
@@ -127,8 +173,8 @@ function ResetPasswordContent() {
                   className="h-14 bg-background/50 border-white/10 rounded-2xl px-6 text-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
-              <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : 'Update & Sync Account'}
+              <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:scale-[1.01] transition-all" disabled={loading}>
+                {loading ? <Loader2 className="mr-2 h-6 w-6 animate-spin" /> : 'Synchronize Account'}
               </Button>
             </form>
           </CardContent>
@@ -140,7 +186,11 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 animate-spin" /></div>}>
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    }>
       <ResetPasswordContent />
     </Suspense>
   );
