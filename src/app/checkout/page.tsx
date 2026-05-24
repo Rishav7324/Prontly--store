@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -158,7 +159,7 @@ export default function CheckoutPage() {
         paymentId: orderData.paymentId
       };
 
-      // Dispatch branded invoice email (Async)
+      // Dispatch branded confirmation email (Async)
       sendOrderConfirmationEmail(plainOrder).catch(console.error);
 
       // Update user stats
@@ -252,12 +253,6 @@ export default function CheckoutPage() {
               {isProcessing ? <Loader2 className="h-8 w-8 animate-spin" /> : <CreditCard className="h-8 w-8" />}
               {isProcessing ? 'Validating...' : !mounted ? 'Calculating...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
             </Button>
-            
-            <div className="flex items-center justify-center gap-6 opacity-30">
-              <img src="https://cdn.razorpay.com/static/assets/badgetest.png" alt="Secure" className="h-8" />
-              <div className="h-4 w-[1px] bg-white/20" />
-              <p className="text-[10px] font-bold uppercase tracking-widest">Encrypted Gateway</p>
-            </div>
           </form>
 
           <div className="lg:col-span-5">

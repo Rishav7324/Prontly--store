@@ -3,8 +3,8 @@ import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
 import { getAuth, Auth } from 'firebase-admin/auth';
 
 /**
- * @fileOverview Production-grade Firebase Admin SDK Initialization.
- * Ensures a single instance is maintained and handles private key formatting.
+ * @fileOverview Hardened Firebase Admin SDK Initialization.
+ * Solves "Missing error payload" by sanitizing private keys and preventing multiple instances.
  */
 
 function getAdminApp(): App {
@@ -15,20 +15,34 @@ function getAdminApp(): App {
   }
 
   if (getApps().length === 0) {
-    const serviceAccount = JSON.parse(serviceAccountStr);
+    try {
+      // 1. Parse JSON
+      const serviceAccount = JSON.parse(serviceAccountStr);
 
-    // Fix for malformed private keys in environment variables
-    if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      // 2. Critical: Sanitize the Private Key
+      // Handles both literal \n characters and real newlines from different env providers
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key
+          .replace(/\\n/g, '\n')
+          .replace(/"/g, ''); // Remove potential accidental quotes
+      }
+
+      return initializeApp({
+        credential: cert(serviceAccount),
+        projectId: serviceAccount.project_id,
+      });
+    } catch (e: any) {
+      console.error('Firebase Admin Init Failure:', e.message);
+      throw new Error(`Failed to initialize Firebase Admin: ${e.message}`);
     }
-
-    return initializeApp({
-      credential: cert(serviceAccount),
-      projectId: serviceAccount.project_id,
-    });
   }
   
   return getApps()[0];
 }
 
-export const adminAuth: Auth = getAuth(getAdminApp());
+/**
+ * Singleton getter for Admin Auth.
+ */
+export const getAdminAuth = (): Auth => {
+  return getAuth(getAdminApp());
+};
