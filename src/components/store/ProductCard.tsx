@@ -71,7 +71,7 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
 
   return (
     <Link href={`/products/${id}`} className="group block h-full">
-      <Card className="h-full overflow-hidden bg-card transition-all duration-500 hover:border-primary/50 hover:shadow-[0_20px_50px_rgba(85,78,210,0.15)] border-white/5 rounded-[2rem]">
+      <Card className="h-full overflow-hidden bg-card transition-all duration-500 hover:border-primary/50 hover:shadow-[0_20px_50px_rgba(85,78,210,0.15)] border-white/5 rounded-[1.5rem] sm:rounded-[2rem]">
         <div className="relative aspect-[4/5] overflow-hidden">
           <Image
             src={imageUrl}
@@ -81,26 +81,26 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
             data-ai-hint="product image"
           />
           
-          <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center gap-3">
-            <Button size="icon" variant="secondary" className="rounded-full translate-y-6 transition-transform group-hover:translate-y-0 duration-500 ease-out bg-white/10 backdrop-blur-md border-none text-white hover:bg-white/20">
-              <Eye className="h-5 w-5" />
+          <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center gap-2 sm:gap-3">
+            <Button size="icon" variant="secondary" className="rounded-full h-8 w-8 sm:h-10 sm:w-10 translate-y-6 transition-transform group-hover:translate-y-0 duration-500 ease-out bg-white/10 backdrop-blur-md border-none text-white hover:bg-white/20">
+              <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             <Button 
               size="icon" 
-              className="rounded-full translate-y-6 transition-transform group-hover:translate-y-0 duration-500 delay-100 ease-out bg-primary hover:bg-primary/80 text-white border-none shadow-lg"
+              className="rounded-full h-8 w-8 sm:h-10 sm:w-10 translate-y-6 transition-transform group-hover:translate-y-0 duration-500 delay-100 ease-out bg-primary hover:bg-primary/80 text-white border-none shadow-lg"
               onClick={handleAddToCart}
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
 
-          <Badge className="absolute right-4 top-4 bg-background/60 backdrop-blur-md text-foreground border-none font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">
+          <Badge className="absolute right-2 top-2 sm:right-4 sm:top-4 bg-background/60 backdrop-blur-md text-foreground border-none font-bold text-[8px] sm:text-[9px] uppercase tracking-widest px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg">
             {category}
           </Badge>
 
           {isSale && (
-            <Badge className="absolute right-4 bottom-4 bg-green-500 text-white border-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg shadow-lg">
-              <Zap className="h-3 w-3 mr-1 fill-current" />
+            <Badge className="absolute right-2 bottom-2 sm:right-4 sm:bottom-4 bg-green-500 text-white border-none font-bold text-[8px] sm:text-[10px] uppercase tracking-widest px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg shadow-lg">
+              <Zap className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 fill-current" />
               {discountPercent}% OFF
             </Badge>
           )}
@@ -108,40 +108,40 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
           <button 
             onClick={handleWishlist}
             className={cn(
-              "absolute left-4 top-4 h-9 w-9 rounded-xl bg-background/60 backdrop-blur-md flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100",
+              "absolute left-2 top-2 sm:left-4 sm:top-4 h-7 w-7 sm:h-9 sm:w-9 rounded-lg sm:rounded-xl bg-background/60 backdrop-blur-md flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100",
               isWishlisted ? "text-red-500 opacity-100 scale-100" : "text-muted-foreground hover:text-red-500"
             )}
           >
-            <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
+            <Heart className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isWishlisted && "fill-current")} />
           </button>
         </div>
 
-        <CardContent className="p-6 space-y-4">
+        <CardContent className="p-3 sm:p-6 space-y-2 sm:space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[10px] text-yellow-500 font-bold">
-              <Star className="h-3 w-3 fill-current" />
+            <div className="flex items-center gap-1 text-[8px] sm:text-[10px] text-yellow-500 font-bold">
+              <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-current" />
               <span>{rating}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">{sales} SALES</span>
+            <span className="text-[8px] sm:text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">{sales} SALES</span>
           </div>
 
-          <h3 className="font-headline font-bold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors min-h-[3.5rem]">
+          <h3 className="font-headline font-bold text-sm sm:text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem] sm:min-h-[3.5rem]">
             {title}
           </h3>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-1 sm:pt-2">
             <div className="flex flex-col">
               {isSale && (
-                <span className="text-xs text-muted-foreground line-through font-medium mb-0.5">
+                <span className="text-[10px] sm:text-xs text-muted-foreground line-through font-medium mb-0.5">
                   ₹{(compareAtPrice / 100).toLocaleString('en-IN')}
                 </span>
               )}
-              <p className="font-headline text-2xl font-bold text-accent">
+              <p className="font-headline text-lg sm:text-2xl font-bold text-accent">
                 {price}
               </p>
             </div>
-            <div className="h-8 w-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-white" />
+            <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground group-hover:text-white" />
             </div>
           </div>
         </CardContent>
