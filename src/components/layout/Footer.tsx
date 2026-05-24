@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Zap, Github, Twitter, Instagram, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ export function Footer() {
   const { data: settings } = useDoc(settingsRef);
 
   const handleSubscribe = async (e: React.FormEvent) => {
-    (e).preventDefault();
+    e.preventDefault();
     if (!db || !email) return;
 
     setIsSubmitting(true);
@@ -57,8 +58,15 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           <div className="space-y-6">
-            <Link href="/" className="flex items-center gap-2">
-              <Zap className="h-6 w-6 text-primary" fill="currentColor" />
+            <Link href="/" className="flex items-center gap-3">
+              <div className="relative h-10 w-10 overflow-hidden rounded-xl">
+                <Image 
+                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                  alt="Prontly Logo" 
+                  fill 
+                  className="object-cover"
+                />
+              </div>
               <span className="font-headline text-2xl font-bold tracking-tight">PRONTLY</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">

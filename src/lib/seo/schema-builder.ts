@@ -1,11 +1,10 @@
-
 /**
  * @fileOverview SEO Schema Builder for JSON-LD Structured Data
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 const BRAND_NAME = 'Prontly Store';
-const LOGO_URL = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico';
+const LOGO_URL = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png';
 
 /**
  * Site-wide WebSite and Organization Schema

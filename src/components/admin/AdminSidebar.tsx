@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
@@ -81,8 +82,13 @@ export function AdminSidebar({ onMobileSelect }: AdminSidebarProps) {
       {/* Brand Logo Section */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-white/5">
         <Link href="/admin" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-            <Zap className="h-5 w-5 text-white" fill="currentColor" />
+          <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-white/5 shadow-lg">
+            <Image 
+              src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+              alt="Prontly Logo" 
+              fill 
+              className="object-cover"
+            />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -46,8 +47,13 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="flex items-center gap-3 mb-10 group">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-primary shadow-2xl shadow-primary/30 transition-all group-hover:scale-105">
-              <Zap className="h-8 w-8 text-white" fill="currentColor" />
+            <div className="relative h-14 w-14 overflow-hidden rounded-[1.25rem] bg-white/5 shadow-2xl transition-all group-hover:scale-105">
+              <Image 
+                src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                alt="Prontly Logo" 
+                fill 
+                className="object-cover"
+              />
             </div>
             <span className="font-headline text-3xl font-bold tracking-tighter uppercase">Prontly</span>
           </Link>

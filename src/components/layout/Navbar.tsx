@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingCart, Search, User, Menu, Zap, LogOut, LayoutDashboard, Settings, ShieldCheck, ArrowRight, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,8 +86,13 @@ export function Navbar() {
           <div className="flex h-16 items-center justify-between px-4 md:px-8">
             <div className="flex items-center gap-8">
               <Link href="/" className="flex items-center gap-2 group">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
-                  <Zap className="h-5 w-5 text-white" fill="currentColor" />
+                <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-white/5 transition-transform group-hover:scale-105">
+                  <Image 
+                    src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                    alt="Prontly Logo" 
+                    fill 
+                    className="object-cover"
+                  />
                 </div>
                 <span className="font-headline text-xl font-bold tracking-tight text-foreground hidden sm:block">
                   PRONTLY <span className="text-primary">STORE</span>

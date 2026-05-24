@@ -44,6 +44,7 @@ export default function AdminSettings() {
   const [formData, setFormData] = useState<any>({
     siteName: 'Prontly Store',
     siteDescription: 'Premium Digital Asset Marketplace',
+    logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
     razorpayKeyId: '',
     announcementBar: {
       isActive: false,
@@ -74,7 +75,7 @@ export default function AdminSettings() {
       address: '',
       color: '#5b52d6',
       footerText: 'Thank you for choosing Prontly.',
-      logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
+      logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png'
     }
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -84,6 +85,7 @@ export default function AdminSettings() {
     if (settings) {
       setFormData({
         ...settings,
+        logoUrl: settings.logoUrl || 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
         announcementBar: settings.announcementBar || {
           isActive: false,
           text: '',
@@ -113,7 +115,7 @@ export default function AdminSettings() {
           address: '',
           color: '#5b52d6',
           footerText: 'Thank you for choosing Prontly.',
-          logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511%20(1).ico'
+          logoUrl: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png'
         }
       });
       setFeaturedIdsInput(settings.featuredProductIds?.join(', ') || '');
@@ -395,7 +397,6 @@ export default function AdminSettings() {
                 </div>
               </div>
             </CardContent>
-          </Card>
 
           <Card className="rounded-[2rem] border-white/5 bg-card/30">
             <CardHeader>

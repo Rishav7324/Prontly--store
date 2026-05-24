@@ -2,6 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -105,8 +106,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </Sheet>
             
             <Link href="/" className="flex items-center gap-2 lg:hidden">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/20">
-                <Zap className="h-5 w-5 text-white" fill="currentColor" />
+              <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-white/5 shadow-lg">
+                <Image 
+                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                  alt="Prontly Logo" 
+                  fill 
+                  className="object-cover"
+                />
               </div>
             </Link>
 

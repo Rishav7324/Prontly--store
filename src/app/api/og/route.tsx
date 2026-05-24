@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     const price = searchParams.get('price');
     const category = searchParams.get('category') || 'Marketplace';
     const image = searchParams.get('image');
+    const logoUrl = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png';
 
     return new ImageResponse(
       (
@@ -30,11 +31,11 @@ export async function GET(req: NextRequest) {
         >
           {/* Logo Section */}
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
-            <div style={{ display: 'flex', height: '60px', width: '60px', borderRadius: '16px', backgroundColor: '#5b52d6', alignItems: 'center', justifyContent: 'center', marginRight: '20px' }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-            </div>
+            <img 
+              src={logoUrl} 
+              style={{ height: '60px', width: '60px', borderRadius: '16px', marginRight: '20px', objectFit: 'cover' }} 
+              alt="Logo" 
+            />
             <span style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', letterSpacing: '-0.05em' }}>
               PRONTLY <span style={{ color: '#5b52d6', marginLeft: '8px' }}>STORE</span>
             </span>

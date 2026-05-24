@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { useAuth, useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -75,9 +75,14 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <Link href="/" className="flex items-center gap-2 mb-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Zap className="h-6 w-6 text-white" fill="currentColor" />
+          <Link href="/" className="flex items-center gap-3 mb-6">
+            <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-white/5 shadow-xl">
+              <Image 
+                src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                alt="Prontly Logo" 
+                fill 
+                className="object-cover"
+              />
             </div>
             <span className="font-headline text-2xl font-bold tracking-tight">PRONTLY</span>
           </Link>

@@ -4,11 +4,11 @@
  */
 
 const BRAND_COLOR = '#5b52d6';
-const SECONDARY_COLOR = '#0ea5e9';
 const BG_COLOR = '#F8FAFC';
 const CARD_BG = '#FFFFFF';
 const TEXT_COLOR = '#1A1A2E';
 const MUTED_TEXT = '#64748B';
+const LOGO_URL = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png';
 
 /**
  * Base layout wrapper for all emails to ensure consistent branding across all senders.
@@ -38,8 +38,8 @@ function baseLayout(content: string, previewText: string) {
           <!-- Logo Section -->
           <tr>
             <td align="center" style="padding-bottom:32px;">
-              <div style="background-color:${BRAND_COLOR};width:48px;height:48px;border-radius:12px;display:inline-block;text-align:center;line-height:48px;color:#ffffff;font-size:24px;font-weight:bold;box-shadow:0 10px 20px rgba(91,82,214,0.2);">P</div>
-              <div style="margin-top:12px;font-size:18px;font-weight:bold;letter-spacing:1px;color:${TEXT_COLOR};">PRONTLY <span style="color:${BRAND_COLOR};">STORE</span></div>
+              <img src="${LOGO_URL}" alt="Prontly Logo" width="64" height="64" style="display:block; border-radius:16px; margin-bottom:12px;">
+              <div style="font-size:18px;font-weight:bold;letter-spacing:1px;color:${TEXT_COLOR};">PRONTLY <span style="color:${BRAND_COLOR};">STORE</span></div>
             </td>
           </tr>
           <!-- Main Content Card -->
