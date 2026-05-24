@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { collection, query, where, getDocs, updateDoc, doc, orderBy, limit, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, orderBy, limit, addDoc, serverTimestamp } from 'firebase/firestore';
 import { hashOTP, generateResetToken } from '@/lib/otp-utils';
 
 export async function POST(req: Request) {
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     await updateDoc(otpDoc.ref, { used: true });
 
     const resetToken = generateResetToken();
-    const sessionRef = await addDoc(collection(db, 'passwordResetSessions'), {
+    await addDoc(collection(db, 'passwordResetSessions'), {
       email,
       token: resetToken,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins

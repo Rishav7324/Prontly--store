@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, MailCheck, ShieldCheck, AlertCircle, ArrowRight, KeyRound } from 'lucide-react';
+import { Zap, Loader2, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 

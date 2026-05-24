@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminAuth } from '@/lib/firebase-admin';
 import { initializeFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Resend } from 'resend';
 import { generateOTP, hashOTP } from '@/lib/otp-utils';
 
