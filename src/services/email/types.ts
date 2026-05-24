@@ -1,5 +1,6 @@
 /**
  * @fileOverview Type definitions for the multi-sender email architecture.
+ * Implements the professional inbox strategy for Prontly Store.
  */
 
 export type EmailType = 
@@ -17,6 +18,10 @@ export interface EmailSenderConfig {
   displayName: string;
 }
 
+/**
+ * Mapping of email types to specific sender addresses and reply-to rules.
+ * Ensures that different business functions use dedicated inboxes.
+ */
 export const SENDER_MAP: Record<EmailType, EmailSenderConfig> = {
   security: {
     from: 'security@store.prontly.in',

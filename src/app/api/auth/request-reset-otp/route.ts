@@ -6,8 +6,8 @@ import { sendEmail } from '@/services/email/service';
 import { otpTemplate } from '@/services/email/templates';
 
 /**
- * @fileOverview Secure OTP Request Handler.
- * Dispatches a branded code using the new Multi-Sender Security channel.
+ * Secure OTP Request Handler.
+ * Generates a single-use hashed code and dispatches a branded email via the Security channel.
  */
 export async function POST(req: Request) {
   try {
@@ -20,19 +20,20 @@ export async function POST(req: Request) {
     const auth = getAdminAuth();
     const db = getAdminDb();
     
-    // Check if user exists (Generic success to prevent enumeration)
+    // Check if user exists (Generic success response to prevent enumeration)
     let userRecord;
     try {
       userRecord = await auth.getUserByEmail(email);
     } catch (e: any) {
+      console.log('Recovery attempt for non-existent user:', email);
       return NextResponse.json({ success: true, message: 'If an account exists, a code has been sent.' });
     }
 
     const otp = generateOTP();
     const otpHash = hashOTP(otp);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minute window
 
-    // Store OTP securely
+    // Persist hashed OTP for verification
     await db.collection('passwordResetOTP').add({
       email: email.toLowerCase(),
       otpHash,
@@ -43,7 +44,8 @@ export async function POST(req: Request) {
       ipAddress: req.headers.get('x-forwarded-for') || 'unknown'
     });
 
-    // Dispatch via Security Channel
+    // Dispatch branded email using the 'security' sender channel
+    // Sender: security@store.prontly.in
     await sendEmail({
       type: 'security',
       to: email,
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('OTP_REQUEST_FAILED:', error.message);
-    return NextResponse.json({ error: 'System is currently busy. Please try again later.' }, { status: 500 });
+    console.error('OTP_REQUEST_FAILURE:', error.message);
+    return NextResponse.json({ error: 'System busy. Please try again later.' }, { status: 500 });
   }
 }
