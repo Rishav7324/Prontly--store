@@ -1,106 +1,102 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, MailCheck, ArrowLeft, ShieldAlert, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Zap, Loader2, MailCheck, ShieldCheck, AlertCircle, ArrowRight, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
-import { sendPasswordResetEmail } from 'firebase/auth';
 
 export default function ForgotPasswordPage() {
-  const auth = useAuth();
+  const router = useRouter();
+  const [step, setStep] = useState<'request' | 'verify' | 'reset'>('request');
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFallback, setIsFallback] = useState(false);
+  const [resetToken, setResetToken] = useState('');
+  const [timer, setTimer] = useState(0);
 
-  const handleReset = async (e: React.FormEvent) => {
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setIsFallback(false);
-
     try {
-      // Step 1: Try the Branded Recovery API
-      const response = await fetch('/api/auth/reset-password', {
+      const res = await fetch('/api/auth/request-reset-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Branded recovery failed');
-      }
-
-      setSent(true);
-      toast({
-        title: "Branded Recovery Sent",
-        description: "Check your inbox for a secure recovery link.",
-      });
-
-    } catch (err: any) {
-      console.warn('Branded Recovery failed, triggering Firebase Fallback:', err.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       
-      // Step 2: Fallback to standard Firebase reset if Branded API fails
-      if (auth) {
-        try {
-          await sendPasswordResetEmail(auth, email);
-          setIsFallback(true);
-          setSent(true);
-          toast({
-            title: "Recovery Link Sent",
-            description: "We've sent a standard recovery link to your inbox.",
-          });
-        } catch (fbErr: any) {
-          console.error('Firebase Fallback failed:', fbErr);
-          setError('Could not process recovery. Please verify your email address.');
-        }
-      } else {
-        setError('Authentication service is currently unavailable.');
-      }
+      setStep('verify');
+      setTimer(60);
+      toast({ title: "Check your inbox", description: "Verification code has been dispatched." });
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (sent) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md text-center space-y-8 animate-in fade-in zoom-in duration-500">
-          <div className="flex justify-center">
-            <div className="h-24 w-24 bg-primary/10 rounded-[2rem] flex items-center justify-center border border-primary/20 shadow-2xl">
-              <MailCheck className="h-12 w-12 text-primary" />
-            </div>
-          </div>
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold font-headline">Check Your Inbox</h1>
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              {isFallback 
-                ? `A standard recovery link was sent to ${email}.` 
-                : `A secure branded link was sent to ${email}.`}
-            </p>
-            {isFallback && (
-              <Badge variant="outline" className="mt-4 border-yellow-500/20 text-yellow-500 bg-yellow-500/5">
-                Standard Fallback Active
-              </Badge>
-            )}
-          </div>
-          <div className="pt-8 border-t border-white/5">
-            <Button asChild size="lg" className="w-full rounded-2xl h-14 font-bold shadow-xl shadow-primary/20">
-              <Link href="/login">Back to Sign In</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/verify-reset-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setResetToken(data.resetToken);
+      setStep('reset');
+      toast({ title: "OTP Verified", description: "You can now set a new password." });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, resetToken, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      toast({ title: "Password Reset Successfully", description: "Redirecting to login..." });
+      setTimeout(() => router.push('/login'), 2000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -112,61 +108,94 @@ export default function ForgotPasswordPage() {
             </div>
             <span className="font-headline text-3xl font-bold tracking-tighter uppercase">Prontly</span>
           </Link>
-          <h1 className="text-4xl font-bold font-headline">Account Recovery</h1>
-          <p className="text-muted-foreground mt-3 text-lg">Enter your email to receive a recovery link.</p>
+          <h1 className="text-4xl font-bold font-headline">
+            {step === 'request' && 'Account Recovery'}
+            {step === 'verify' && 'Verification Required'}
+            {step === 'reset' && 'Secure New Access'}
+          </h1>
+          <p className="text-muted-foreground mt-3 text-lg">
+            {step === 'request' && 'Enter your email for a reset code.'}
+            {step === 'verify' && `We've sent a 6-digit code to ${email}`}
+            {step === 'reset' && 'Define your new account credentials.'}
+          </p>
         </div>
 
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-xl">
           <CardHeader className="p-10 pb-6">
             <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-3">
-              <ShieldAlert className="h-4 w-4" /> Identity Protection Active
+              <ShieldCheck className="h-4 w-4" /> Identity Protection Active
             </div>
-            <CardTitle className="text-2xl font-headline">Security Verification</CardTitle>
           </CardHeader>
 
           <CardContent className="p-10 pt-0">
-            <form onSubmit={handleReset} className="space-y-8">
-              <div className="space-y-3">
-                <Label htmlFor="email" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">
-                  Registered Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg"
-                  disabled={loading}
-                />
-              </div>
-
-              {error && (
-                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-destructive text-sm font-medium">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  {error}
+            {step === 'request' && (
+              <form onSubmit={handleRequestOtp} className="space-y-6">
+                <div className="space-y-3">
+                  <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Email Address</Label>
+                  <Input 
+                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                    className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg"
+                  />
                 </div>
-              )}
+                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold" disabled={loading}>
+                  {loading ? <Loader2 className="animate-spin" /> : 'Send Reset Code'}
+                </Button>
+              </form>
+            )}
 
-              <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold" disabled={loading}>
-                {loading ? (
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span>Validating...</span>
-                  </div>
-                ) : 'Send Recovery Link'}
-              </Button>
-            </form>
+            {step === 'verify' && (
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
+                <div className="space-y-3">
+                  <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">6-Digit Code</Label>
+                  <Input 
+                    maxLength={6} required value={otp} onChange={(e) => setOtp(e.target.value)}
+                    placeholder="000000"
+                    className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-center text-3xl font-black tracking-[0.5em]"
+                  />
+                </div>
+                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold" disabled={loading}>
+                  {loading ? <Loader2 className="animate-spin" /> : 'Verify Code'}
+                </Button>
+                <div className="text-center">
+                  <button 
+                    type="button" 
+                    onClick={handleRequestOtp}
+                    disabled={timer > 0 || loading}
+                    className="text-sm font-bold text-primary disabled:opacity-50"
+                  >
+                    {timer > 0 ? `Resend in ${timer}s` : 'Resend Code'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === 'reset' && (
+              <form onSubmit={handleResetPassword} className="space-y-6">
+                <div className="space-y-3">
+                  <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">New Password</Label>
+                  <Input 
+                    type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min 8 characters"
+                    className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg"
+                  />
+                </div>
+                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" disabled={loading || newPassword.length < 8}>
+                  {loading ? <Loader2 className="animate-spin" /> : 'Finalize Reset'}
+                </Button>
+              </form>
+            )}
+
+            {error && (
+              <div className="mt-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-destructive text-sm font-medium">
+                <AlertCircle className="h-4 w-4" /> {error}
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="bg-muted/30 p-8 flex justify-center border-t border-white/5">
-            <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-primary font-bold text-xs uppercase tracking-widest">
-              <Link href="/login">
-                <ArrowLeft className="h-4 w-4" />
-                Return to Login
-              </Link>
-            </Button>
+            <Link href="/login" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+              Return to Login
+            </Link>
           </CardFooter>
         </Card>
       </div>
