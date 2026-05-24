@@ -21,9 +21,9 @@ function getAdminAuth() {
   return getAuth();
 }
 
-// ─── EMAIL TEMPLATES ────────────────────────────────────────────────────────
+// ─── EMAIL TEMPLATES (Internal Helpers) ──────────────────────────────────────
 
-export function welcomeEmailTemplate(name: string): string {
+function welcomeEmailTemplate(name: string): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -129,7 +129,7 @@ export function welcomeEmailTemplate(name: string): string {
 </html>`;
 }
 
-export function forgotPasswordTemplate(name: string, resetLink: string): string {
+function forgotPasswordTemplate(name: string, resetLink: string): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -212,7 +212,7 @@ export function forgotPasswordTemplate(name: string, resetLink: string): string 
 </html>`;
 }
 
-export function invoiceEmailTemplate(data: any): string {
+function invoiceEmailTemplate(data: any): string {
   const itemRows = data.items.map((item: any) => `
     <tr>
       <td style="padding:12px 16px;border-bottom:1px solid #E2E8F0;
@@ -397,7 +397,7 @@ export function invoiceEmailTemplate(data: any): string {
 </html>`;
 }
 
-export function promotionalEmailTemplate(data: any): string {
+function promotionalEmailTemplate(data: any): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -457,7 +457,7 @@ export function promotionalEmailTemplate(data: any): string {
                   <td align="center" style="padding:8px 0 32px;">
                     <a href="${data.ctaUrl}"
                       style="display:inline-block;background:#1F4E79;color:#ffffff;
-                             text-decoration:none;padding:16px 40px;border-radius:8px;
+                             text-decoration:none;padding:14px 36px;border-radius:8px;
                              font-size:16px;font-weight:700;">
                       ${data.ctaText} →
                     </a>
