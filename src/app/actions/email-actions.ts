@@ -16,15 +16,16 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
  */
 function getAdminAuth() {
   const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2478374494-a2ee0';
 
   if (getApps().length === 0) {
     try {
       if (serviceAccountStr) {
         // Ensure we parse the JSON correctly
-        const serviceAccount = JSON.parse(serviceAccountStr);
+        let serviceAccount = JSON.parse(serviceAccountStr);
         
-        // CRITICAL FIX: Replace literal \n in private key if they exist as strings
+        // CRITICAL FIX: Ensure private key is correctly formatted for Google Auth
+        // Handles both literal \n and real newlines
         if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
           serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
@@ -34,7 +35,7 @@ function getAdminAuth() {
           projectId: serviceAccount.project_id || projectId,
         });
       } else {
-        // Fallback for local development or ADC
+        // Fallback for local development
         initializeApp({ projectId });
       }
     } catch (e) {

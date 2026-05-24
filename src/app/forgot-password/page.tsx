@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, MailCheck, ArrowLeft, ShieldAlert, AlertCircle, RefreshCw } from 'lucide-react';
+import { Zap, Loader2, MailCheck, ArrowLeft, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { initiateBrandedPasswordReset } from '@/app/actions/email-actions';
@@ -32,24 +33,21 @@ export default function ForgotPasswordPage() {
         setSent(true);
         toast({ title: "Branded Recovery Sent", description: "Check your inbox for your custom reset link." });
       } else {
-        // Step 2: If it's a configuration issue (missing service account/API keys), 
-        // silently trigger the standard Firebase fallback for better UX.
-        if (res.error?.includes('credentials missing') || res.error?.includes('Admin SDK')) {
-          if (!auth) throw new Error("Authentication system is offline.");
-          
-          await sendPasswordResetEmail(auth, email);
-          setSent(true);
-          setIsFallback(true);
-          toast({ 
-            title: "Recovery Dispatched", 
-            description: "Advanced recovery was unavailable. Standard Firebase email sent." 
-          });
-        } else {
-          throw new Error(res.error);
-        }
+        // Step 2: Fallback on ANY branded recovery error to ensure the user gets their link
+        console.warn('Premium recovery encountered an issue, falling back to standard Firebase reset:', res.error);
+        
+        if (!auth) throw new Error("Authentication system is offline.");
+        
+        await sendPasswordResetEmail(auth, email);
+        setSent(true);
+        setIsFallback(true);
+        toast({ 
+          title: "Recovery Dispatched", 
+          description: "Branded delivery was unavailable. Standard email has been sent." 
+        });
       }
     } catch (error: any) {
-      console.error('Recovery error:', error);
+      console.error('Critical recovery error:', error);
       toast({ 
         variant: "destructive", 
         title: "Recovery Failed", 
@@ -130,7 +128,7 @@ export default function ForgotPasswordPage() {
                   className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
-              <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-2xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all" disabled={loading}>
+              <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-3">
                     <Loader2 className="h-6 w-6 animate-spin" />
