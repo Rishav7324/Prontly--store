@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { format } from 'date-fns';
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getApps, initializeApp, cert, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -11,7 +11,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 /**
  * Initialize Firebase Admin securely for Server Actions.
- * Improved newline handling for private keys in environment variables.
+ * Handles private key formatting to avoid "Missing error payload" errors.
  */
 function getAdminAuth() {
   const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -22,11 +22,11 @@ function getAdminAuth() {
       if (serviceAccountStr) {
         const serviceAccount = JSON.parse(serviceAccountStr);
         
-        // AGGRESSIVE KEY FIX: Ensures private key newlines are correct
+        // Ensure private key newlines are correctly formatted
         if (serviceAccount.private_key) {
           serviceAccount.private_key = serviceAccount.private_key
             .replace(/\\n/g, '\n')
-            .replace(/"/g, ''); // Remove stray quotes if any
+            .replace(/\n/g, '\n');
         }
 
         initializeApp({
@@ -34,12 +34,12 @@ function getAdminAuth() {
           projectId: serviceAccount.project_id || projectId,
         });
       } else {
-        // Fallback for local development if no service account is provided
+        // Fallback for local development
         initializeApp({ projectId });
       }
     } catch (e) {
       console.error('Firebase Admin SDK Initialization Error:', e);
-      // Create a dummy app to prevent multiple re-init attempts
+      // Ensure we have an app instance even if init fails
       if (getApps().length === 0) {
         initializeApp({ projectId });
       }
@@ -526,16 +526,17 @@ function promotionalEmailTemplate(data: any): string {
 
 export async function sendWelcomeEmail(to: string, name: string) {
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: EMAIL_FROM,
       to,
       subject: `🎉 Welcome to Prontly Store, ${name}!`,
       html: welcomeEmailTemplate(name),
     });
+    if (result.error) throw new Error(result.error.message);
     return { success: true };
-  } catch (e) {
-    console.error('Welcome email error:', e);
-    return { success: false };
+  } catch (e: any) {
+    console.error('Welcome email dispatch failed:', e.message);
+    return { success: false, error: e.message };
   }
 }
 
@@ -560,22 +561,24 @@ export async function initiateBrandedPasswordReset(email: string) {
       url: `${SITE_URL}/login`,
     });
 
-    // Extract the code from the long firebase link and wrap in our branded UI
+    // Branded Link wrapping
     const oobCode = new URL(link).searchParams.get('oobCode');
     const brandedLink = `${SITE_URL}/reset-password?oobCode=${oobCode}`;
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: email,
       subject: '🔐 Prontly Store — Password Reset Request',
       html: forgotPasswordTemplate(name, brandedLink),
     });
+
+    if (result.error) throw new Error(result.error.message);
     return { success: true };
   } catch (e: any) {
-    console.error('Reset dispatch error:', e);
+    console.error('Branded reset dispatch error:', e.message);
     return { 
       success: false, 
-      error: e.message || 'Failed to dispatch branded recovery email.'
+      error: e.message || 'Failed to dispatch recovery email.'
     };
   }
 }
@@ -596,22 +599,24 @@ export async function sendOrderConfirmationEmail(order: any) {
       paidAt: format(new Date(), 'dd MMM yyyy'),
     };
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: EMAIL_FROM,
       to: order.userEmail,
       subject: `✅ Order Confirmed #${order.id.slice(-8).toUpperCase()} — Prontly Store`,
       html: invoiceEmailTemplate(data),
     });
+
+    if (result.error) throw new Error(result.error.message);
     return { success: true };
-  } catch (e) {
-    console.error('Order confirmation email error:', e);
-    return { success: false, error: 'Failed to dispatch email' };
+  } catch (e: any) {
+    console.error('Order confirmation email error:', e.message);
+    return { success: false, error: 'Failed to dispatch invoice' };
   }
 }
 
 export async function sendPromotionalEmail(to: string, data: any) {
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: EMAIL_FROM,
       to,
       subject: data.promoTitle + ' — Prontly Store',
@@ -620,9 +625,10 @@ export async function sendPromotionalEmail(to: string, data: any) {
         unsubscribeUrl: `${SITE_URL}/unsubscribe`,
       }),
     });
+    if (result.error) throw new Error(result.error.message);
     return { success: true };
-  } catch (e) {
-    console.error('Promotional email error:', e);
-    return { success: false };
+  } catch (e: any) {
+    console.error('Promotional dispatch error:', e.message);
+    return { success: false, error: e.message };
   }
 }

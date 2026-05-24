@@ -62,10 +62,15 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       });
 
-      // Dispatch Welcome Email using Resend action
-      sendWelcomeEmail(formData.email, formData.name).catch(e => console.error("Email fail:", e));
-
-      toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
+      // Dispatch Welcome Email using Resend action (AWAITED for reliability)
+      const emailRes = await sendWelcomeEmail(formData.email, formData.name);
+      
+      if (emailRes.success) {
+        toast({ title: "Welcome to Prontly!", description: "Account created. Check your inbox for a welcome gift." });
+      } else {
+        toast({ title: "Account Active", description: "Welcome email skipped, but you can sign in now." });
+      }
+      
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Signup failed', error);
@@ -98,7 +103,7 @@ export default function SignupPage() {
 
       // Send Welcome Email
       if (user.email && user.displayName) {
-        sendWelcomeEmail(user.email, user.displayName).catch(e => console.error("Email fail:", e));
+        await sendWelcomeEmail(user.email, user.displayName);
       }
 
       router.push('/dashboard');
