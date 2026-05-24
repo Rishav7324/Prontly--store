@@ -1,4 +1,3 @@
-
 import { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
@@ -8,30 +7,38 @@ interface GenerateMetaProps {
   description: string;
   path: string;
   image?: string;
+  price?: number;
+  category?: string;
   noIndex?: boolean;
   type?: 'website' | 'article' | 'product';
 }
 
 /**
- * Generates production-grade SEO Metadata for Prontly Store.
- * Integrates OpenGraph, Twitter Cards, and dynamic Edge-generated images.
+ * Generates automated production SEO Metadata for any page.
+ * Includes dynamic canonicals and automated OG Image redirection.
  */
 export function generateMeta({
   title,
   description,
   path,
   image,
+  price,
+  category,
   noIndex = false,
   type = 'website',
 }: GenerateMetaProps): Metadata {
   const fullTitle = `${title} | Prontly Store`.slice(0, 60);
   const canonical = `${SITE_URL}${path}`;
   
-  const dynamicOgUrl = new URL(`${SITE_URL}/api/og`);
-  dynamicOgUrl.searchParams.set('title', title);
-  dynamicOgUrl.searchParams.set('type', type === 'product' ? 'Digital Asset' : 'Article');
-  
-  const ogImageUrl = image?.startsWith('http') ? image : dynamicOgUrl.toString();
+  // Generate automated OG image URL if no specific image is provided
+  const ogUrl = new URL(`${SITE_URL}/api/og`);
+  ogUrl.searchParams.set('title', title);
+  ogUrl.searchParams.set('type', type === 'product' ? 'Digital Asset' : type === 'article' ? 'Blog' : 'Platform');
+  if (category) ogUrl.searchParams.set('category', category);
+  if (price) ogUrl.searchParams.set('price', (price / 100).toString());
+  if (image) ogUrl.searchParams.set('image', image);
+
+  const finalOgImage = ogUrl.toString();
   const ogType = type === 'article' ? 'article' : 'website';
 
   return {
@@ -51,7 +58,7 @@ export function generateMeta({
       siteName: 'Prontly Store',
       images: [
         {
-          url: ogImageUrl,
+          url: finalOgImage,
           width: 1200,
           height: 630,
           alt: title,
@@ -66,7 +73,7 @@ export function generateMeta({
       description: description.slice(0, 160),
       site: '@prontly',
       creator: '@prontly',
-      images: [ogImageUrl],
+      images: [finalOgImage],
     },
   };
 }
