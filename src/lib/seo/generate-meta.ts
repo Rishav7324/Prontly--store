@@ -27,16 +27,11 @@ export function generateMeta({
   const fullTitle = `${title} | Prontly Store`.slice(0, 60);
   const canonical = `${SITE_URL}${path}`;
   
-  // Use our dynamic OG generator if no direct image is provided or for consistent branding
   const dynamicOgUrl = new URL(`${SITE_URL}/api/og`);
   dynamicOgUrl.searchParams.set('title', title);
   dynamicOgUrl.searchParams.set('type', type === 'product' ? 'Digital Asset' : 'Article');
   
-  // Platforms prefer absolute URLs for images
   const ogImageUrl = image?.startsWith('http') ? image : dynamicOgUrl.toString();
-
-  // Next.js Metadata validation only allows specific OGP types. 
-  // 'product' is mapped to 'website' to prevent runtime errors.
   const ogType = type === 'article' ? 'article' : 'website';
 
   return {
