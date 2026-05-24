@@ -1,10 +1,10 @@
+
 'use server';
 
 import { Resend } from 'resend';
 import { format } from 'date-fns';
-import { getApps, initializeApp } from 'firebase-admin/app';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { credential } from 'firebase-admin';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const EMAIL_FROM = process.env.EMAIL_FROM || 'Prontly Store <noreply@prontly.in>';
@@ -12,33 +12,36 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 /**
  * Initialize Firebase Admin securely for Server Actions.
- * Supports Service Account JSON from environment or Application Default Credentials.
+ * Supports Service Account JSON from environment.
  */
 function getAdminAuth() {
-  if (getApps().length === 0) {
-    const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
+  if (getApps().length === 0) {
     try {
       if (serviceAccountStr) {
+        // Ensure we parse the JSON correctly
         const serviceAccount = JSON.parse(serviceAccountStr);
+        
+        // CRITICAL FIX: Replace literal \n in private key if they exist as strings
+        if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
+          serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
+
         initializeApp({
+          credential: cert(serviceAccount),
           projectId: serviceAccount.project_id || projectId,
-          credential: credential.cert(serviceAccount),
         });
       } else {
-        initializeApp({
-          projectId,
-          credential: credential.applicationDefault(),
-        });
+        // Fallback for local development or ADC
+        initializeApp({ projectId });
       }
     } catch (e) {
-      // Fallback for local development without ADC or Service Account
-      if (!serviceAccountStr) {
-        console.warn("Firebase Admin initialized without credentials. Some administrative actions may fail.");
+      console.error('Firebase Admin Initialization Error:', e);
+      // Fallback with just projectId to prevent total crash
+      if (getApps().length === 0) {
         initializeApp({ projectId });
-      } else {
-        throw e;
       }
     }
   }
