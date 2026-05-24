@@ -51,7 +51,12 @@ export default function NewBlogPostPage() {
   });
 
   const generateSlug = (title: string) => {
-    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +64,7 @@ export default function NewBlogPostPage() {
     setFormData(prev => ({
       ...prev,
       title,
-      slug: prev.slug || generateSlug(title)
+      slug: generateSlug(title)
     }));
   };
 
@@ -214,6 +219,10 @@ export default function NewBlogPostPage() {
               <div className="grid gap-2">
                 <Label htmlFor="title">Post Title</Label>
                 <Input id="title" value={formData.title} onChange={handleTitleChange} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="slug">Post Slug</Label>
+                <Input id="slug" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} required />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="excerpt">Short Summary (Excerpt)</Label>

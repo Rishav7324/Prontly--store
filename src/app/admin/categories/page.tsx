@@ -58,6 +58,24 @@ export default function AdminCategories() {
     description: ''
   });
 
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      name,
+      slug: generateSlug(name)
+    }));
+  };
+
   const filteredCategories = categories?.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -167,7 +185,7 @@ export default function AdminCategories() {
                 <Input 
                   id="name" 
                   value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  onChange={handleNameChange} 
                   placeholder="e.g. AI Prompts"
                   required
                 />
@@ -177,7 +195,7 @@ export default function AdminCategories() {
                 <Input 
                   id="slug" 
                   value={formData.slug} 
-                  onChange={(e) => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/ /g, '-')})} 
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})} 
                   placeholder="ai-prompts"
                   required
                 />

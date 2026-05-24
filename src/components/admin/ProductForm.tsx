@@ -112,7 +112,12 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   }, [initialData]);
 
   const generateSlug = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +125,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     setFormData(prev => ({
       ...prev,
       name,
-      slug: prev.slug || generateSlug(name)
+      slug: generateSlug(name)
     }));
   };
 
@@ -325,6 +330,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                 <div className="grid gap-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" value={formData.name} onChange={handleNameChange} required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="slug">Product Slug</Label>
+                  <Input id="slug" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} required />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="shortDescription">Short Summary</Label>
