@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 import { format } from 'date-fns';
-import { getApps, initializeApp } from 'firebase-admin/app';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -71,6 +71,9 @@ export function welcomeEmailTemplate(name: string): string {
                   <td style="padding:20px 24px;">
                     <p style="margin:0 0 8px;font-weight:700;color:#1F4E79;font-size:14px;">
                       ✅ Aapka account ready hai:
+                    </p>
+                    <p style="margin:4px 0;color:#555;font-size:14px;">
+                      📧 User: ${name}
                     </p>
                     <p style="margin:4px 0;color:#555;font-size:14px;">
                       🔒 Secure login with Google or Email
@@ -153,7 +156,7 @@ export function forgotPasswordTemplate(name: string, resetLink: string): string 
               </h2>
               <p style="margin:0 0 20px;color:#444;font-size:15px;line-height:1.7;">
                 Hi ${name}, aapne password reset request ki hai. Niche diye
-                button pe click karo — ye link <strong>1 hour</strong> me
+                button pe click karo — ye link <strong>15 minutes</strong> me
                 expire ho jayega.
               </p>
 
@@ -519,6 +522,7 @@ export async function initiateBrandedPasswordReset(email: string) {
       url: `${SITE_URL}/login`,
     });
 
+    // Extract the code from the long firebase link and wrap in our branded UI
     const oobCode = new URL(link).searchParams.get('oobCode');
     const brandedLink = `${SITE_URL}/reset-password?oobCode=${oobCode}`;
 
@@ -544,7 +548,7 @@ export async function sendOrderConfirmationEmail(order: any) {
       items: order.items.map((i: any) => ({ name: i.productName, price: i.price })),
       subtotal: order.subtotal,
       discount: order.discount || 0,
-      gst: Math.round((order.total * 0.18)), // Assuming 18% GST for Indian context
+      gst: Math.round((order.total * 0.18)), // 18% GST estimate
       total: order.total,
       couponCode: order.couponCode,
       gstNumber: order.gstNumber,
