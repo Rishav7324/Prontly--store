@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,17 +14,12 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const db = useFirestore();
-
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Pass SMTP config for branded dispatch
-      const res = await initiateBrandedPasswordReset(email, JSON.parse(JSON.stringify(settings)));
+      const res = await initiateBrandedPasswordReset(email);
       
       if (res.success) {
         setSent(true);

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,9 +27,6 @@ export default function SignupPage() {
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
-
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,13 +62,8 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       });
 
-      // Dispatch Welcome Email using plain object to prevent serialization errors
-      if (settings) {
-        const plainSettings = JSON.parse(JSON.stringify(settings));
-        sendWelcomeEmail(formData.email, formData.name, plainSettings).catch(e => console.error("Email fail:", e));
-      } else {
-        sendWelcomeEmail(formData.email, formData.name).catch(e => console.error("Email fail:", e));
-      }
+      // Dispatch Welcome Email using Resend action
+      sendWelcomeEmail(formData.email, formData.name).catch(e => console.error("Email fail:", e));
 
       toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
       router.push('/dashboard');
@@ -104,10 +96,9 @@ export default function SignupPage() {
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      // Send Welcome Email (Non-blocking)
+      // Send Welcome Email
       if (user.email && user.displayName) {
-        const plainSettings = settings ? JSON.parse(JSON.stringify(settings)) : null;
-        sendWelcomeEmail(user.email, user.displayName, plainSettings).catch(e => console.error("Email fail:", e));
+        sendWelcomeEmail(user.email, user.displayName).catch(e => console.error("Email fail:", e));
       }
 
       router.push('/dashboard');
