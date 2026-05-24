@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -159,10 +158,8 @@ export default function CheckoutPage() {
         paymentId: orderData.paymentId
       };
 
-      const sanitizedSettings = settings ? JSON.parse(JSON.stringify(settings)) : {};
-      
-      // Dispatch email (Async)
-      sendOrderConfirmationEmail(plainOrder, sanitizedSettings).catch(console.error);
+      // Dispatch branded invoice email (Async)
+      sendOrderConfirmationEmail(plainOrder).catch(console.error);
 
       // Update user stats
       if (user) {

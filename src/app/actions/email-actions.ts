@@ -22,8 +22,7 @@ function getAdminAuth() {
       if (serviceAccountStr) {
         const serviceAccount = JSON.parse(serviceAccountStr);
         
-        // CRITICAL FIX: Aggressively sanitize the private key.
-        // The "Missing error payload" error is almost always caused by malformed newlines.
+        // CRITICAL FIX: malformed newlines cause "Missing error payload"
         if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
           serviceAccount.private_key = serviceAccount.private_key
             .replace(/\\n/g, '\n')
