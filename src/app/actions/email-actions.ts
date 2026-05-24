@@ -1,4 +1,3 @@
-
 'use server';
 
 import { Resend } from 'resend';
@@ -12,7 +11,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 /**
  * Initialize Firebase Admin securely for Server Actions.
- * Supports Service Account JSON from environment.
+ * Improved newline handling for private keys in environment variables.
  */
 function getAdminAuth() {
   const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -21,13 +20,13 @@ function getAdminAuth() {
   if (getApps().length === 0) {
     try {
       if (serviceAccountStr) {
-        // Ensure we parse the JSON correctly
-        let serviceAccount = JSON.parse(serviceAccountStr);
+        const serviceAccount = JSON.parse(serviceAccountStr);
         
-        // CRITICAL FIX: Ensure private key is correctly formatted for Google Auth
-        // Handles both literal \n and real newlines
-        if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
-          serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        // AGGRESSIVE KEY FIX: Ensures private key newlines are correct
+        if (serviceAccount.private_key) {
+          serviceAccount.private_key = serviceAccount.private_key
+            .replace(/\\n/g, '\n')
+            .replace(/"/g, ''); // Remove stray quotes if any
         }
 
         initializeApp({
@@ -35,12 +34,12 @@ function getAdminAuth() {
           projectId: serviceAccount.project_id || projectId,
         });
       } else {
-        // Fallback for local development
+        // Fallback for local development if no service account is provided
         initializeApp({ projectId });
       }
     } catch (e) {
-      console.error('Firebase Admin Initialization Error:', e);
-      // Fallback with just projectId to prevent total crash
+      console.error('Firebase Admin SDK Initialization Error:', e);
+      // Create a dummy app to prevent multiple re-init attempts
       if (getApps().length === 0) {
         initializeApp({ projectId });
       }
@@ -49,7 +48,7 @@ function getAdminAuth() {
   return getAuth();
 }
 
-// ─── EMAIL TEMPLATES (Internal Helpers) ──────────────────────────────────────
+// ─── EMAIL TEMPLATES (Internal Synchronous Helpers) ────────────────────────
 
 function welcomeEmailTemplate(name: string): string {
   return `
