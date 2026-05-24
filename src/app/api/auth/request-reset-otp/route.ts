@@ -1,50 +1,58 @@
-
 import { NextResponse } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
-import { initializeFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { generateOTP, hashOTP } from '@/lib/otp-utils';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SENDER = 'Prontly Store <reset-password@store.prontly.in>';
 
+/**
+ * @fileOverview Production-grade OTP Request Handler.
+ * Generates and stores a hashed OTP in Firestore for password recovery.
+ */
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
-    const { db } = initializeFirebase();
-
+    
+    // Robust validation
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
+      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
-    // 1. Check if user exists (Bypass Firebase standard to avoid templates)
+    if (!process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is missing in environment variables.');
+      return NextResponse.json({ error: 'Mail server configuration missing.' }, { status: 500 });
+    }
+
     const auth = getAdminAuth();
+    const db = getAdminDb();
+    
+    // 1. Check if user exists (Generic success to prevent enumeration)
     let userRecord;
     try {
       userRecord = await auth.getUserByEmail(email);
     } catch (e: any) {
-      // Return generic success to prevent enumeration
-      return NextResponse.json({ success: true, message: 'If an account exists, an OTP has been sent.' });
+      return NextResponse.json({ success: true, message: 'If an account exists, a code has been sent.' });
     }
 
     const otp = generateOTP();
     const otpHash = hashOTP(otp);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-    // 2. Log in Firestore
-    await addDoc(collection(db, 'passwordResetOTP'), {
-      email,
+    // 2. Store OTP in Firestore using Admin SDK
+    await db.collection('passwordResetOTP').add({
+      email: email.toLowerCase(),
       otpHash,
-      expiresAt,
+      expiresAt: expiresAt,
       used: false,
       attempts: 0,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       ipAddress: req.headers.get('x-forwarded-for') || 'unknown',
       userAgent: req.headers.get('user-agent') || 'unknown'
     });
 
-    // 3. Send Branded Email
+    // 3. Dispatch Branded Email
     await resend.emails.send({
       from: SENDER,
       to: email,
@@ -81,7 +89,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('OTP Request Error:', error);
-    return NextResponse.json({ error: 'System busy, try again later' }, { status: 500 });
+    console.error('OTP_REQUEST_CRASH:', error.message);
+    return NextResponse.json({ error: 'Server authentication failure. Please contact support.' }, { status: 500 });
   }
 }

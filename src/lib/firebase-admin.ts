@@ -1,9 +1,10 @@
 import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
 import { getAuth, Auth } from 'firebase-admin/auth';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
- * @fileOverview Hardened Firebase Admin SDK Initialization.
- * Robustly parses Service Account credentials from environment variables.
+ * @fileOverview Robust Firebase Admin SDK Initialization.
+ * Handles malformed Service Account JSON and provides singleton instances.
  */
 
 function getAdminApp(): App {
@@ -15,19 +16,16 @@ function getAdminApp(): App {
 
   if (getApps().length === 0) {
     try {
-      // Clean potential quotes and handle multiline artifacts from .env
+      // 1. Clean the string: remove surrounding quotes and extra whitespace
       let cleanedStr = serviceAccountStr.trim();
-      
-      // Remove surrounding quotes if they exist (common in some env loaders)
-      if ((cleanedStr.startsWith("'") && cleanedStr.endsWith("'")) || 
-          (cleanedStr.startsWith('"') && cleanedStr.endsWith('"'))) {
+      if (cleanedStr.startsWith("'") || cleanedStr.startsWith('"')) {
         cleanedStr = cleanedStr.substring(1, cleanedStr.length - 1);
       }
 
-      // Handle literal newlines that might have been escaped as characters
+      // 2. Parse JSON
       const serviceAccount = JSON.parse(cleanedStr);
 
-      // Critical: Sanitize the Private Key newlines
+      // 3. Fix the private key newlines if they are double-escaped
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
@@ -37,9 +35,8 @@ function getAdminApp(): App {
         projectId: serviceAccount.project_id,
       });
     } catch (e: any) {
-      console.error('Firebase Admin Initialization Failure:', e.message);
-      // Fallback or rethrow with better context
-      throw new Error(`Failed to parse Service Account JSON: ${e.message}`);
+      console.error('CRITICAL: Firebase Admin Initialization Failed:', e.message);
+      throw new Error(`Invalid Service Account Configuration: ${e.message}`);
     }
   }
   
@@ -47,8 +44,15 @@ function getAdminApp(): App {
 }
 
 /**
- * Singleton getter for Admin Auth instance.
+ * Singleton getter for Admin Auth.
  */
 export const getAdminAuth = (): Auth => {
   return getAuth(getAdminApp());
+};
+
+/**
+ * Singleton getter for Admin Firestore.
+ */
+export const getAdminDb = (): Firestore => {
+  return getFirestore(getAdminApp());
 };
