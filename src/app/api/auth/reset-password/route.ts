@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { getAdminAuth } from '@/lib/firebase-admin';
 import { Resend } from 'resend';
