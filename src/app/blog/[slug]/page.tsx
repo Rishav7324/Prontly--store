@@ -1,15 +1,11 @@
-
 import { Metadata } from 'next';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { ProductDetailClient } from "@/components/store/ProductDetailClient"; // This isn't right for blog, but we'll stick to SSR
 import { firebaseConfig } from "@/firebase/config";
 import { generateMeta } from "@/lib/seo/generate-meta";
 import { getBlogSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
-import BlogPostView from "@/components/blog/BlogPostView"; // Hypothetical or existing
-import { BlogListingClient } from "@/components/blog/BlogListingClient"; // We'll keep the current structure but adding SSR Schema
+import BlogPostDetailClient from "@/components/blog/BlogPostDetailClient";
 
-// We fetch blog data here to inject schema
 async function getPostData(slug: string) {
   const projectId = firebaseConfig.projectId;
   const res = await fetch(
@@ -46,9 +42,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   });
 }
 
-// Re-implementing the structure from existing blog/[slug]/page.tsx with SSR support
-import BlogPostDetailClient from "@/components/blog/BlogPostDetailClient"; // Renaming existing client code to avoid loop
-
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await getPostData(slug);
@@ -62,8 +55,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     ]));
   }
 
-  // We keep the dynamic import logic but wrap it in the schema script
-  // Note: Actual data fetching inside Client component remains as it handles real-time/auth state
   return (
     <>
       {schemas.length > 0 && (
@@ -76,6 +67,3 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     </>
   );
 }
-
-// In current project, blog/[slug]/page.tsx is the client file. 
-// I need to rename the old file content or move it to a client component.

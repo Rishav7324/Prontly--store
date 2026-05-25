@@ -1,4 +1,3 @@
-
 import { Metadata } from "next";
 import { ProductDetailClient } from "@/components/store/ProductDetailClient";
 import { generateMeta } from "@/lib/seo/generate-meta";
