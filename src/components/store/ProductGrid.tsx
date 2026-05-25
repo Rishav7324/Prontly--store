@@ -10,9 +10,9 @@ interface ProductGridProps {
 export function ProductGrid({ products, loading }: ProductGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-[280px] sm:h-[320px] rounded-2xl bg-muted animate-pulse" />
+          <div key={i} className="h-[420px] rounded-md bg-porcelain-white animate-pulse border border-stone-gray/10" />
         ))}
       </div>
     );
@@ -20,14 +20,14 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
 
   if (!products || products.length === 0) {
     return (
-      <div className="text-center py-20 border border-dashed rounded-[2rem] sm:rounded-3xl bg-muted/20">
-        <p className="text-muted-foreground text-sm">No assets found in this collection.</p>
+      <div className="text-center py-32 border-2 border-dashed rounded-xl bg-porcelain-white/50 border-stone-gray/20">
+        <p className="text-slate-blue font-medium">No assets found in this collection.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
       {products.map((product: any) => (
         <ProductCard 
           key={product.id} 
