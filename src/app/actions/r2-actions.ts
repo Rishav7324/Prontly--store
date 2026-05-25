@@ -50,9 +50,9 @@ export async function getDownloadUrl(productId: string, userId: string) {
     const db = getAdminDb();
     
     // 1. Verify User Ownership via Orders
-    // We check for 'paid' or 'delivered' status
     let ordersSnap;
     try {
+      // Query for orders belonging to this user
       ordersSnap = await db.collection('orders')
         .where('userId', '==', userId)
         .get();
@@ -64,13 +64,18 @@ export async function getDownloadUrl(productId: string, userId: string) {
         throw new Error('Database indexing in progress. Please check server logs for the creation link.');
       }
       
-      throw new Error('Could not retrieve order history for verification.');
+      // Check for authentication/permission issues
+      if (dbErr.message.includes('UNAUTHENTICATED') || dbErr.message.includes('PERMISSION_DENIED')) {
+        throw new Error('Backend authentication failed. The service account may have insufficient permissions or an invalid key.');
+      }
+      
+      throw new Error(`Order verification error: ${dbErr.message}`);
     }
 
     const hasPurchased = ordersSnap.docs.some(doc => {
       const data = doc.data();
       const items = data.items || [];
-      // Only count if status is paid or delivered
+      // Verify the order was paid or delivered and contains the target product
       if (!['paid', 'delivered'].includes(data.status)) return false;
       return items.some((item: any) => item.productId === productId);
     });
@@ -80,7 +85,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
       throw new Error('Access Denied: You must purchase this product to access the source files.');
     }
 
-    // 2. Fetch File Key
+    // 2. Fetch File Key from the Product metadata
     const productSnap = await db.collection('products').doc(productId).get();
     if (!productSnap.exists) throw new Error('Product metadata not found in database.');
     
@@ -105,7 +110,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
       Key: cleanKey,
     });
 
-    // Valid for 10 minutes
+    // Link is valid for 10 minutes (600 seconds)
     const url = await getSignedUrl(r2, command, { expiresIn: 600 });
     
     return { url };

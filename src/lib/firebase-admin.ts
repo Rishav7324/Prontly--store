@@ -4,7 +4,7 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Production-grade Firebase Admin SDK Initialization.
- * Strictly uses the FIREBASE_SERVICE_ACCOUNT JSON string for atomic credential management.
+ * Strictly uses the FIREBASE_SERVICE_ACCOUNT JSON string.
  */
 
 function getAdminApp(): App {
@@ -22,8 +22,7 @@ function getAdminApp(): App {
   try {
     /**
      * CLEANING LOGIC:
-     * 1. Remove potential wrapping quotes from the env var (common in some CI/CD environments).
-     * 2. Restore escaped characters if the string was double-escaped.
+     * 1. Remove potential wrapping quotes from the env var.
      */
     let sanitized = serviceAccountRaw;
     
@@ -32,15 +31,13 @@ function getAdminApp(): App {
       sanitized = sanitized.substring(1, sanitized.length - 1);
     }
 
-    // Attempt to fix double-escaped newlines in the string before parsing
-    sanitized = sanitized.replace(/\\n/g, '\n');
-
+    // Parse the JSON first. JSON.parse will handle \n if they were properly escaped as strings.
     const serviceAccount = JSON.parse(sanitized);
     
     /**
-     * Handle the private key formatting inside the parsed object. 
+     * 2. Properly restore newline characters in the private key if they are still escaped.
      */
-    if (serviceAccount.private_key) {
+    if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
