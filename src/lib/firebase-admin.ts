@@ -22,33 +22,40 @@ function getAdminApp(): App {
     // 1. Clean the string: handle potential double-quoting or escaping from env loaders
     let cleanedStr = serviceAccountStr.trim();
     
-    // Remove potential surrounding quotes (single or double)
+    // Remove potential surrounding quotes (single or double) that some env loaders add
     if ((cleanedStr.startsWith('"') && cleanedStr.endsWith('"')) || 
         (cleanedStr.startsWith("'") && cleanedStr.endsWith("'"))) {
       cleanedStr = cleanedStr.slice(1, -1).trim();
     }
 
-    // 2. Resolve escaped characters (common in multi-line JSON flattened to one line)
-    // We handle both literal backslashes and already-escaped newlines
-    cleanedStr = cleanedStr.replace(/\\n/g, '\n');
-
-    // 3. Parse the service account JSON
+    // 2. Parse the service account JSON
+    // CRITICAL: We DO NOT replace \\n with \n BEFORE parsing, as literal newlines break JSON.parse.
     let serviceAccount;
     try {
       serviceAccount = JSON.parse(cleanedStr);
     } catch (parseErr) {
-      // If parsing failed, it might be double-escaped (e.g. stringified twice)
-      // Try one more deep clean
-      cleanedStr = JSON.parse(`"${cleanedStr}"`);
-      serviceAccount = JSON.parse(cleanedStr);
+      // If parsing failed, it might be double-escaped or contain literal newlines that need escaping
+      try {
+        // Try to escape literal newlines if they exist
+        const escapedStr = cleanedStr.replace(/\n/g, '\\n');
+        serviceAccount = JSON.parse(escapedStr);
+      } catch (innerErr) {
+        // Last resort: try to handle double-stringified input
+        try {
+          cleanedStr = JSON.parse(`"${cleanedStr}"`);
+          serviceAccount = JSON.parse(cleanedStr);
+        } catch (finalErr: any) {
+          throw new Error(`JSON Parse Error: ${finalErr.message}`);
+        }
+      }
     }
 
     if (!serviceAccount.private_key || !serviceAccount.project_id) {
       throw new Error('Service account JSON is missing required fields (private_key or project_id).');
     }
 
-    // 4. Ensure the private_key is correctly formatted (must have real newlines)
-    if (serviceAccount.private_key.includes('\\n')) {
+    // 3. Format the private_key correctly (MUST have real newlines for the RSA parser)
+    if (typeof serviceAccount.private_key === 'string') {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
