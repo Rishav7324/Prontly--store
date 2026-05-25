@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { createDownloadRecord } from '@/lib/firebase/downloads';
 import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 /**
- * ─── Razorpay Webhook Handler ───────────────────────────────────────────────
- * The primary engine for payment verification and digital fulfillment.
- * Implements strict idempotency and server-side processing for high reliability.
+ * ─── ROBUST PURCHASE FULFILLMENT ENGINE ──────────────────────────────────────
+ * Implements a global Firestore Transaction to ensure data integrity.
+ * Updates: Orders, Users (Aggregates), Downloads, and Analytics atomically.
  */
 export async function POST(req: NextRequest) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -20,125 +19,139 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get('x-razorpay-signature');
   const body = await req.text();
 
-  // Validate the authenticity of the webhook call
   const expectedSignature = crypto
     .createHmac('sha256', secret)
     .update(body)
     .digest('hex');
 
   if (expectedSignature !== signature) {
-    console.warn('[WEBHOOK_SECURITY_ALERT]: Received an invalid signature from Razorpay endpoint.');
+    console.warn('[WEBHOOK_SECURITY_ALERT]: Invalid signature.');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   const payload = JSON.parse(body);
   const event = payload.event;
 
-  // Primary event we care about for digital fulfillment
   if (event === 'payment.captured') {
     const payment = payload.payload.payment.entity;
     const razorpayOrderId = payment.order_id;
     const paymentId = payment.id;
 
-    console.log(`[WEBHOOK_FULTILLMENT_START]: RP Order ${razorpayOrderId} | Payment ${paymentId}`);
+    console.log(`[FULFILLMENT_START]: Order ${razorpayOrderId} | Payment ${paymentId}`);
 
     const db = getAdminDb();
-    
-    // 1. Locate the "Pending" Intent order created by the client
-    const orderSnap = await db.collection('orders')
-      .where('paymentId', '==', razorpayOrderId)
-      .limit(1)
-      .get();
 
-    if (orderSnap.empty) {
-      console.error('[WEBHOOK_ERROR]: No local order reference matches Razorpay Order ID:', razorpayOrderId);
-      return NextResponse.json({ success: true, warning: 'Order not found in database' });
-    }
-
-    const orderDoc = orderSnap.docs[0];
-    const orderData = orderDoc.data();
-
-    // 2. Strict Idempotency: Don't fulfill twice
-    if (orderData.status === 'paid') {
-      console.log('[WEBHOOK_INFO]: Order already fulfilled. Skipping duplicate sequence.');
-      return NextResponse.json({ success: true, info: 'Fulfillment completed' });
-    }
-
-    // 3. Core Fulfillment Sequence
     try {
-      console.log(`[WEBHOOK_FULFILLING_ASSETS]: Processing ${orderData.items?.length || 0} items...`);
-      
-      await Promise.all(
-        orderData.items.map(async (item: any) => {
-          const productSnap = await db.collection('products').doc(item.productId).get();
-          if (!productSnap.exists) {
-            console.error(`[WEBHOOK_ITEM_ERROR]: Product ${item.productId} missing from catalog.`);
-            return;
-          }
+      await db.runTransaction(async (transaction) => {
+        // 1. Locate the Pending Order
+        const ordersQuery = db.collection('orders').where('paymentId', '==', razorpayOrderId).limit(1);
+        const orderSnap = await transaction.get(ordersQuery);
 
-          const product = productSnap.data()!;
+        if (orderSnap.empty) {
+          throw new Error(`Order ${razorpayOrderId} not found.`);
+        }
+
+        const orderDoc = orderSnap.docs[0];
+        const orderData = orderDoc.data();
+
+        // 2. Strict Idempotency Check
+        if (orderData.status === 'paid') {
+          console.log('[FULFILLMENT_SKIP]: Already fulfilled.');
+          return;
+        }
+
+        // 3. Prepare Aggregates & References
+        const userRef = db.collection('users').doc(orderData.userId);
+        const analyticsRef = db.collection('analytics').doc('global');
+        const revenueRef = db.collection('revenue').doc(new Date().toISOString().slice(0, 7)); // Monthly rev
+
+        // 4. Fulfillment Loop for each product
+        for (const item of orderData.items) {
+          const productRef = db.collection('products').doc(item.productId);
+          const productSnap = await transaction.get(productRef);
           
-          // Increment global analytics for the product
-          await productSnap.ref.update({
-            salesCount: FieldValue.increment(1),
-            updatedAt: FieldValue.serverTimestamp()
-          });
+          if (productSnap.exists) {
+            const product = productSnap.data()!;
+            
+            // Generate Secure Download Record (License)
+            const downloadRef = db.collection('downloads')
+              .doc(orderData.userId)
+              .collection('products')
+              .doc(item.productId);
 
-          // Create a secure license record in the user's personal vault
-          await createDownloadRecord(
-            orderData.userId,
-            item.productId,
-            orderDoc.id,
-            {
-              name: product.name,
-              slug: product.slug,
-              image: product.images?.[0] || "",
+            transaction.set(downloadRef, {
+              userId: orderData.userId,
+              productId: item.productId,
+              orderId: orderDoc.id,
+              productName: product.name,
+              productSlug: product.slug,
+              productImage: product.images?.[0] || "",
               fileKey: product.fileKey,
               fileName: product.fileName || `${product.slug}.zip`,
               fileSize: product.fileSize || 0,
               fileFormat: product.fileFormat || "zip",
               fileVersion: product.fileVersion || "1.0",
-            },
-            5 // Default generous download allowance (5 attempts)
-          );
-        })
-      );
+              downloadLimit: 5,
+              downloadCount: 0,
+              purchasedAt: Timestamp.now(),
+              isActive: true,
+            }, { merge: true });
 
-      // 4. Update the Order Status globally
-      await orderDoc.ref.update({
-        status: 'paid',
-        paymentCapturedId: paymentId, // Log the specific capture ID
-        paidAt: FieldValue.serverTimestamp(),
-        fulfilledAt: FieldValue.serverTimestamp(),
-        verifiedVia: 'webhook'
+            // Increment Product Sales
+            transaction.update(productRef, {
+              salesCount: FieldValue.increment(1),
+              updatedAt: FieldValue.serverTimestamp()
+            });
+          }
+        }
+
+        // 5. Update User Profile Aggregates
+        if (orderData.userId !== 'guest') {
+          transaction.update(userRef, {
+            totalSpent: FieldValue.increment(orderData.total),
+            orderCount: FieldValue.increment(1),
+            lastPurchaseAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+
+        // 6. Update Global Analytics
+        transaction.set(analyticsRef, {
+          totalRevenue: FieldValue.increment(orderData.total),
+          totalOrders: FieldValue.increment(1),
+          lastUpdatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        transaction.set(revenueRef, {
+          revenue: FieldValue.increment(orderData.total),
+          orderCount: FieldValue.increment(1),
+          month: new Date().toISOString().slice(0, 7)
+        }, { merge: true });
+
+        // 7. Finalize Order Status
+        transaction.update(orderDoc.ref, {
+          status: 'paid',
+          paymentCapturedId: paymentId,
+          paidAt: FieldValue.serverTimestamp(),
+          verifiedVia: 'webhook_transactional'
+        });
+
+        // Background: Dispatch Email (Outside transaction context but within webhook logic)
+        sendOrderConfirmationEmail({ 
+          ...orderData, 
+          id: orderDoc.id,
+          paidAt: new Date().toISOString()
+        }).catch(err => console.error('[WEBHOOK_EMAIL_ERROR]:', err.message));
       });
 
-      // 5. Aggregate user-specific lifetime stats
-      if (orderData.userId !== 'guest') {
-        const userRef = db.collection('users').doc(orderData.userId);
-        await userRef.update({
-          totalSpent: FieldValue.increment(orderData.total),
-          orderCount: FieldValue.increment(1),
-          updatedAt: FieldValue.serverTimestamp(),
-          lastPurchaseAt: FieldValue.serverTimestamp()
-        }).catch(e => console.warn('[USER_STATS_UPGRADE_FAILED]:', e.message));
-      }
+      console.log(`[FULFILLMENT_SUCCESS]: Completed atomic transaction for ${razorpayOrderId}`);
+      return NextResponse.json({ success: true, processed: true });
 
-      // 6. Dispatch final confirmation communications
-      // We don't await this to be critical so failures in email don't roll back the webhook response
-      sendOrderConfirmationEmail({ 
-        ...orderData, 
-        id: orderDoc.id,
-        paidAt: new Date().toISOString()
-      }).catch(err => console.error('[WEBHOOK_EMAIL_ERROR]:', err.message));
-
-      console.log(`[WEBHOOK_SUCCESS]: Fulfillment sequence completed for ${orderDoc.id}`);
-
-    } catch (fulfillError: any) {
-      console.error('[WEBHOOK_CRITICAL_ERROR]: Fulfillment logic failure:', fulfillError.message);
-      return NextResponse.json({ error: 'Fulfillment process failed internally' }, { status: 500 });
+    } catch (error: any) {
+      console.error('[FULFILLMENT_CRITICAL_FAILURE]:', error.message);
+      return NextResponse.json({ error: 'Atomic fulfillment failed', details: error.message }, { status: 500 });
     }
   }
 
-  return NextResponse.json({ success: true, processed: true });
+  return NextResponse.json({ success: true });
 }

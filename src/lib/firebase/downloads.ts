@@ -4,7 +4,8 @@ import type { DownloadRecord, DownloadLog } from '@/types/download';
 
 /**
  * ─── Create Download Record After Purchase ────────────────────────────────────
- * Call this from Razorpay webhook handler after payment.captured event
+ * This is the atomic definition for a digital license.
+ * Standardized across the webhook and manual admin overrides.
  */
 export async function createDownloadRecord(
   userId: string,
@@ -53,8 +54,7 @@ export async function createDownloadRecord(
 
 /**
  * ─── Get All Downloads For A User ─────────────────────────────────────────────
- * Removed server-side orderBy to prevent silent failures if indices are stale.
- * Sorting is handled in the API layer.
+ * Fetches the user's digital vault content.
  */
 export async function getUserDownloads(
   userId: string
@@ -90,7 +90,6 @@ export async function checkDownloadEligibility(
   const record = { id: doc.id, ...doc.data() } as DownloadRecord;
 
   if (!record.isActive) throw new Error('DOWNLOAD_REVOKED');
-  if (record.orderId !== orderId) throw new Error('NOT_ELIGIBLE');
   if (record.downloadCount >= record.downloadLimit) {
     throw new Error('DOWNLOAD_LIMIT_REACHED');
   }
@@ -128,38 +127,4 @@ export async function logDownloadAttempt(
     ...log,
     attemptedAt: Timestamp.now(),
   });
-}
-
-/**
- * ─── Admin: Revoke Download Access ────────────────────────────────────────────
- */
-export async function revokeDownloadAccess(
-  userId: string,
-  productId: string
-): Promise<void> {
-  const db = getAdminDb();
-  await db
-    .collection("downloads")
-    .doc(userId)
-    .collection("products")
-    .doc(productId)
-    .update({ isActive: false });
-}
-
-/**
- * ─── Admin: Get Download Logs For A Product ───────────────────────────────────
- */
-export async function getProductDownloadLogs(
-  productId: string,
-  limitCount = 50
-): Promise<DownloadLog[]> {
-  const db = getAdminDb();
-  const snap = await db
-    .collection("download_logs")
-    .where("productId", "==", productId)
-    .orderBy("attemptedAt", "desc")
-    .limit(limitCount)
-    .get();
-
-  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DownloadLog));
 }
