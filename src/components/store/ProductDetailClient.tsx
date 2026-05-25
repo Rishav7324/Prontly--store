@@ -7,7 +7,6 @@ import { ReviewSystem } from "@/components/store/ReviewSystem";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ShoppingCart, 
@@ -203,10 +202,20 @@ export function ProductDetailClient({ id }: { id: string }) {
       <main className="container mx-auto px-4 py-12 flex-1 max-w-7xl">
         <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
 
+        {/* Product Title before Image */}
+        <div className="mb-8">
+          <Badge className="bg-deep-violet/5 text-deep-violet border-none px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-widest mb-2">
+            {product.categorySlug}
+          </Badge>
+          <h1 className="text-xl font-bold text-midnight-ink leading-tight tracking-tight">
+            {product.name}
+          </h1>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-20">
           {/* Left: Media */}
           <div className="lg:col-span-7 space-y-8">
-            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-md border border-stone-gray/10 bg-powder-blue shadow-sm">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md border border-stone-gray/10 bg-powder-blue shadow-sm">
               <Image 
                 src={selectedImage || 'https://picsum.photos/seed/placeholder/1200/800'} 
                 alt={product.name} 
@@ -232,42 +241,12 @@ export function ProductDetailClient({ id }: { id: string }) {
                 ))}
               </div>
             )}
-
-            <div className="space-y-12 pt-8">
-              <div className="space-y-4">
-                <h2 className="text-xl font-bold text-midnight-ink flex items-center gap-2">
-                  <Info className="h-5 w-5 text-deep-violet" />
-                  Technical Description
-                </h2>
-                <div 
-                  className="prose-content"
-                  dangerouslySetInnerHTML={{ __html: product.description || '' }}
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {product.tags?.map((tag: string) => (
-                  <Badge key={tag} variant="outline" className="bg-porcelain-white border-stone-gray/10 text-slate-blue rounded py-1 px-3 text-[10px] font-bold">
-                    #{tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right: Purchase Sidebar */}
           <div className="lg:col-span-5">
             <div className="sticky top-28 space-y-8">
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <Badge className="bg-deep-violet/5 text-deep-violet border-none px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-widest">
-                    {product.categorySlug}
-                  </Badge>
-                  <h1 className="text-4xl font-bold font-headline text-midnight-ink leading-tight tracking-tight">
-                    {product.name}
-                  </h1>
-                </div>
-
                 <div className="flex items-center gap-6 py-4 border-y border-stone-gray/10">
                   <div className="flex items-center gap-1.5 text-yellow-500">
                     <Star className="h-4 w-4 fill-current" />
@@ -330,7 +309,26 @@ export function ProductDetailClient({ id }: { id: string }) {
                   </div>
                 </div>
 
-                <div className="pt-8 space-y-4">
+                {/* Full Description moved after buttons */}
+                <div className="pt-8 space-y-4 border-t border-stone-gray/10">
+                  <h2 className="text-sm font-bold text-midnight-ink flex items-center gap-2">
+                    <Info className="h-4 w-4 text-deep-violet" />
+                    Detailed Specifications
+                  </h2>
+                  <div 
+                    className="prose-content text-sm"
+                    dangerouslySetInnerHTML={{ __html: product.description || '' }}
+                  />
+                  <div className="flex flex-wrap gap-2 pt-4">
+                    {product.tags?.map((tag: string) => (
+                      <Badge key={tag} variant="outline" className="bg-porcelain-white border-stone-gray/10 text-slate-blue rounded py-1 px-3 text-[10px] font-bold">
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-8 space-y-4 border-t border-stone-gray/10">
                    <div className="flex items-center justify-between">
                      <h3 className="text-xs font-black uppercase text-ghost-gray tracking-[0.15em]">Technical Audit</h3>
                      <ProductShare product={product} />
