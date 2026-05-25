@@ -53,7 +53,7 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
   return (
     <Card className="h-full border-none bg-white rounded-[6px] overflow-hidden shadow-sm hover:shadow-xl-2 transition-all duration-300 hover:-translate-y-1 relative group/card">
       <Link href={`/products/${id}`} className="block h-full">
-        <div className="relative aspect-[4/3] bg-porcelain-white overflow-hidden rounded-[4px] m-1">
+        <div className="relative aspect-[4/5] bg-porcelain-white overflow-hidden rounded-[4px] m-1">
           {displayImages.length > 1 ? (
             <Carousel
               opts={{
@@ -70,7 +70,7 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
             >
               <CarouselContent className="-ml-0 h-full">
                 {displayImages.map((img, index) => (
-                  <CarouselItem key={index} className="pl-0 relative aspect-[4/3] h-full">
+                  <CarouselItem key={index} className="pl-0 relative aspect-[4/5] h-full">
                     <Image
                       src={img}
                       alt={`${title} - image ${index + 1}`}
