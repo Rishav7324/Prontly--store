@@ -69,7 +69,7 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
-      // 1. Generate Secure Razorpay Order
+      // 1. Generate Secure Razorpay Order (Smallest Currency Unit)
       const orderRes = await createRazorpayOrder(total);
       if (!orderRes.success || !orderRes.order) {
         throw new Error(orderRes.error || 'Failed to connect to payment gateway.');
@@ -91,7 +91,7 @@ export default function CheckoutPage() {
         discount: 0,
         total: total,
         status: 'pending',
-        paymentId: orderRes.order.id,
+        paymentId: orderRes.order.id, // This links to the razorpayOrderId in webhook
         createdAt: serverTimestamp(),
       });
 
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
       setTimeout(() => {
         router.push('/dashboard/downloads');
         toast({ title: "Vault Synchronized", description: "Your assets are now ready in the library." });
-      }, 3000);
+      }, 2500);
 
     } catch (error: any) {
       toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150 animate-pulse" />
           <CheckCircle2 className="h-24 w-24 text-primary relative z-10 animate-in zoom-in duration-500" />
         </div>
-        <h1 className="text-4xl font-bold font-headline mb-4 tracking-tight">Payment Verified.</h1>
+        <h1 className="text-4xl font-bold font-headline mb-4 tracking-tight text-midnight-ink">Payment Verified.</h1>
         <p className="text-muted-foreground mb-8 text-lg max-w-sm">Generating your digital licenses. You will be redirected to your secure library vault in seconds.</p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button asChild size="lg" className="rounded-xl h-14 font-bold shadow-xl shadow-primary/20">

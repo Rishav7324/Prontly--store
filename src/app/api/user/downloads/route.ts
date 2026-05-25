@@ -24,16 +24,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Fetch user entitlements
+    // Fetch user entitlements from the 'downloads' collection
     const downloads = await getUserDownloads(uid);
 
     // Normalize and sanitize data for the client
     const safeDownloads = downloads
       .map((record: any) => {
-        // Strip the private R2 file key from the client-facing response
+        // Strip the private R2 file key from the client-facing response for security
         const { fileKey, ...rest } = record;
         
-        // Ensure all Firestore Timestamps are serialized to ISO strings
+        // Ensure all Firestore Timestamps are serialized to ISO strings for hydration safety
         const formatTime = (ts: any) => {
           if (!ts) return null;
           if (ts.toDate) return ts.toDate().toISOString();
@@ -48,11 +48,13 @@ export async function GET(req: NextRequest) {
         };
       })
       .sort((a, b) => {
-        // In-memory sort to ensure results are returned regardless of missing Firestore indexes
+        // In-memory sort to ensure results are returned chronologically regardless of missing Firestore indexes
         const dateA = a.purchasedAt ? new Date(a.purchasedAt).getTime() : 0;
         const dateB = b.purchasedAt ? new Date(b.purchasedAt).getTime() : 0;
         return dateB - dateA;
       });
+
+    console.log(`[USER_LIBRARY_SYNC]: Synced ${safeDownloads.length} assets for UID: ${uid}`);
 
     return NextResponse.json({ success: true, data: safeDownloads });
   } catch (e: any) {
