@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, ArrowRight, Heart, ShoppingCart, ArrowUpRight } from 'lucide-react';
+import { Star, ArrowRight, Heart, ShoppingCart, ArrowUpRight, Layers } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
