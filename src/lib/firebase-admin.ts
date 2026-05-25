@@ -8,11 +8,16 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
  */
 
 function getAdminApp(): App {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.trim();
 
   if (!projectId || !clientEmail || !privateKey) {
+    console.error('[FIREBASE_ADMIN_ERROR]: Missing environment variables', { 
+      hasProjectId: !!projectId, 
+      hasEmail: !!clientEmail, 
+      hasKey: !!privateKey 
+    });
     throw new Error('Missing critical Firebase Admin environment variables.');
   }
 
@@ -22,18 +27,26 @@ function getAdminApp(): App {
 
   try {
     /**
-     * AGGRESSIVE KEY CLEANING
-     * 1. Remove surrounding quotes that might be added by env loaders
-     * 2. Remove leading/trailing whitespace
-     * 3. Handle both \n and \\n escaping
+     * ADVANCED KEY CLEANING
+     * Handles wrapping quotes, literal newlines, and escaped newlines.
      */
-    let cleanedKey = privateKey.trim();
-    if (cleanedKey.startsWith('"') && cleanedKey.endsWith('"')) {
+    let cleanedKey = privateKey;
+    
+    // Remove surrounding quotes if present
+    if ((cleanedKey.startsWith('"') && cleanedKey.endsWith('"')) || 
+        (cleanedKey.startsWith("'") && cleanedKey.endsWith("'"))) {
       cleanedKey = cleanedKey.substring(1, cleanedKey.length - 1);
     }
+    
+    // Convert escaped \n or \\n into actual newline characters
     const formattedPrivateKey = cleanedKey.replace(/\\n/g, '\n');
 
-    console.log(`[FIREBASE_ADMIN_INIT]: Initializing for project ${projectId} with service account ${clientEmail}`);
+    // Basic validity check for RSA key
+    if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+      throw new Error('Private key format appears invalid (missing header).');
+    }
+
+    console.log(`[FIREBASE_ADMIN_INIT]: Initializing for project: ${projectId}`);
 
     return initializeApp({
       credential: cert({
