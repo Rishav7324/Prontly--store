@@ -289,9 +289,9 @@ Regards,`;
             </Card>
 
             <div className="flex justify-end gap-4 pt-4">
-              <Button variant="ghost" type="button" asChild className="h-16 px-10 rounded-2xl font-bold"><Link href="/dashboard">Discard</Link></Button>
-              <Button type="submit" disabled={isSaving} className="h-16 px-14 rounded-2xl text-xl font-bold shadow-2xl shadow-primary/30 min-w-[240px]">
-                {isSaving ? <Loader2 className="h-6 w-6 animate-spin mr-3" /> : <Save className="h-6 w-6 mr-3" />}
+              <Button variant="ghost" type="button" asChild className="h-12 px-8 rounded-xl font-bold"><Link href="/dashboard">Discard</Link></Button>
+              <Button type="submit" disabled={isSaving} className="h-12 px-10 rounded-xl text-lg font-bold shadow-xl shadow-primary/20 min-w-[200px]">
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Sync Profile
               </Button>
             </div>
