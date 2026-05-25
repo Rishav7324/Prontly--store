@@ -81,15 +81,6 @@ export default function Home() {
                     </Link>
                   </Button>
                 </div>
-
-                <div className="pt-12 flex items-center gap-8 grayscale opacity-50 contrast-125">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">Trusted By</span>
-                  <div className="flex gap-6">
-                    {['Google', 'Airbnb', 'Spotify', 'Stripe'].map(brand => (
-                      <span key={brand} className="text-sm font-bold font-mono tracking-tighter" key={brand}>{brand}</span>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               <div className="lg:col-span-5 relative hidden lg:block">
