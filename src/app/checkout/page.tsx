@@ -46,10 +46,10 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  // Redirect guest users - Digital products require a verified identity
+  // PROTECTIVE GUARD: Digital assets require a verified identity for licensing
   useEffect(() => {
     if (mounted && !authLoading && !user) {
-      toast({ title: "Identity Required", description: "Please sign in to finalize your purchase." });
+      toast({ title: "Authentication Required", description: "Please sign in to finalize your license purchase." });
       router.push('/login?redirect=/checkout');
     }
   }, [user, authLoading, mounted, router]);
@@ -61,21 +61,20 @@ export default function CheckoutPage() {
     if (!db || items.length === 0 || !user) return;
     
     if (!scriptLoaded || !(window as any).Razorpay) {
-      toast({ variant: "destructive", title: "Gateway Initialization", description: "Payment system is warming up. Please wait 2 seconds." });
+      toast({ variant: "destructive", title: "Gateway Unready", description: "Initializing secure terminal. Please wait." });
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // 1. Generate Secure Razorpay Order on Server
+      // 1. Generate Secure Razorpay Order
       const orderRes = await createRazorpayOrder(total);
       if (!orderRes.success || !orderRes.order) {
-        throw new Error(orderRes.error || 'Failed to initiate secure payment gateway.');
+        throw new Error(orderRes.error || 'Failed to connect to payment gateway.');
       }
 
-      // 2. Create PENDING Order Intent in Firestore
-      // This ensures we have a record even if the user closes the browser mid-payment.
+      // 2. Create PENDING Order Intent
       const orderRef = doc(collection(db, 'orders'));
       await setDoc(orderRef, {
         userId: user.uid,
@@ -91,21 +90,19 @@ export default function CheckoutPage() {
         discount: 0,
         total: total,
         status: 'pending',
-        paymentId: orderRes.order.id, // Razorpay Order ID used for mapping
+        paymentId: orderRes.order.id,
         createdAt: serverTimestamp(),
       });
 
-      // 3. Launch Razorpay Standard Checkout
+      // 3. Launch Standard Checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderRes.order.amount,
         currency: orderRes.order.currency,
         name: settings?.siteName || "Prontly Store",
-        description: `Deployment of ${items.length} Digital Asset(s)`,
+        description: `${items.length} Digital Asset License(s)`,
         order_id: orderRes.order.id,
         handler: async (response: any) => {
-          // Local verification for instant UI feedback
-          // The webhook handles the actual master fulfillment.
           await handlePaymentCompletion(response, orderRes.order!.id);
         },
         prefill: { 
@@ -130,24 +127,24 @@ export default function CheckoutPage() {
 
   const handlePaymentCompletion = async (rzpResponse: any, razorpayOrderId: string) => {
     try {
-      // Step 4: Verify Payment Signature via Server Action
+      // Verify signature for instant local feedback
       const verifyRes = await verifyRazorpayPayment(
         razorpayOrderId, 
         rzpResponse.razorpay_payment_id, 
         rzpResponse.razorpay_signature
       );
 
-      if (!verifyRes.success) throw new Error('Transaction security verification failed.');
+      if (!verifyRes.success) throw new Error('Security verification mismatch.');
 
-      // Success UI Transition
+      // Optimistic Success Transition
       setIsSuccess(true);
       clearCart();
       
-      // Redirect to dashboard after a short delay to allow webhook to fire
+      // Allow the webhook to finalize fulfillment in the background
       setTimeout(() => {
         router.push('/dashboard/downloads');
-        toast({ title: "Vault Synchronized", description: "Your assets are now available in the library." });
-      }, 2500);
+        toast({ title: "Vault Synchronized", description: "Your assets are now ready in the library." });
+      }, 3000);
 
     } catch (error: any) {
       toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -170,13 +167,12 @@ export default function CheckoutPage() {
           <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150 animate-pulse" />
           <CheckCircle2 className="h-24 w-24 text-primary relative z-10 animate-in zoom-in duration-500" />
         </div>
-        <h1 className="text-4xl font-bold font-headline mb-4 tracking-tight text-midnight-ink">Payment Successful.</h1>
-        <p className="text-muted-foreground mb-8 text-lg max-w-sm">We are cryptographically verifying your license and delivering assets to your library vault.</p>
+        <h1 className="text-4xl font-bold font-headline mb-4 tracking-tight">Payment Verified.</h1>
+        <p className="text-muted-foreground mb-8 text-lg max-w-sm">Generating your digital licenses. You will be redirected to your secure library vault in seconds.</p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button asChild size="lg" className="rounded-xl h-14 font-bold shadow-xl shadow-primary/20">
-            <Link href="/dashboard/downloads">Go to My Library</Link>
+            <Link href="/dashboard/downloads">Go to Library</Link>
           </Button>
-          <p className="text-[10px] uppercase font-black tracking-widest text-ghost-gray">Redirecting in 3 seconds...</p>
         </div>
       </div>
     );
@@ -193,7 +189,7 @@ export default function CheckoutPage() {
           </Button>
           <div>
             <div className="flex items-center gap-2 text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">
-              <ShieldCheck className="h-3.5 w-3.5" /> Security Protocol Active
+              <ShieldCheck className="h-3.5 w-3.5" /> Security Protocol
             </div>
             <h1 className="text-4xl font-bold font-headline tracking-tight text-midnight-ink">Payment Terminal.</h1>
           </div>
@@ -204,8 +200,8 @@ export default function CheckoutPage() {
             <Card className="rounded-3xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between border-b border-stone-gray/10 pb-4">
-                  <h3 className="text-xl font-bold font-headline text-midnight-ink">Customer Attributes</h3>
-                  <Badge variant="outline" className="text-[10px] uppercase border-primary/20 text-primary">Logged In</Badge>
+                  <h3 className="text-xl font-bold font-headline text-midnight-ink">Customer Identity</h3>
+                  <Badge variant="outline" className="text-[10px] uppercase border-primary/20 text-primary">Verified Account</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -213,7 +209,7 @@ export default function CheckoutPage() {
                     <Input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-12 bg-background/50 rounded-xl border-stone-gray/10 px-4 text-base" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-black tracking-widest text-ghost-gray ml-1">Digital Address</Label>
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-ghost-gray ml-1">Email Address</Label>
                     <Input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 bg-background/50 rounded-xl border-stone-gray/10 px-4 text-base" />
                   </div>
                 </div>
@@ -221,19 +217,15 @@ export default function CheckoutPage() {
             </Card>
 
             <div className="space-y-4">
-              <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.01]" disabled={isProcessing || items.length === 0}>
+              <Button type="submit" size="lg" className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl shadow-primary/20 transition-all" disabled={isProcessing || items.length === 0}>
                 {isProcessing ? <Loader2 className="h-6 w-6 animate-spin mr-3" /> : <CreditCard className="h-6 w-6 mr-3" />}
-                {isProcessing ? 'Verifying Identity...' : `Authorize ₹${(total / 100).toLocaleString('en-IN')}`}
+                {isProcessing ? 'Synchronizing...' : `Authorize ₹${(total / 100).toLocaleString('en-IN')}`}
               </Button>
               
               <div className="flex flex-col items-center gap-2">
                 <p className="text-[10px] text-ghost-gray uppercase font-black tracking-[0.2em]">
-                  Atomic Fulfillment Protocol • Cloudflare Secure Edge
+                  Atomic Fulfillment • Cloudflare Edge Network
                 </p>
-                <div className="flex items-center gap-4 opacity-40">
-                  <ShieldCheck className="h-4 w-4" />
-                  <Lock className="h-4 w-4" />
-                </div>
               </div>
             </div>
           </form>
@@ -257,7 +249,7 @@ export default function CheckoutPage() {
                 
                 <div className="pt-2">
                   <div className="flex justify-between items-baseline">
-                    <span className="font-bold text-ghost-gray text-[10px] uppercase tracking-widest">Payable Total</span>
+                    <span className="font-bold text-ghost-gray text-[10px] uppercase tracking-widest">Total Payable</span>
                     <div className="text-right">
                       <span className="text-5xl font-bold text-primary tracking-tighter">
                         ₹{(total / 100).toLocaleString('en-IN')}

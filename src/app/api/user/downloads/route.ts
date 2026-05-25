@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Fetch user entitlements
     const downloads = await getUserDownloads(uid);
 
     // Normalize and sanitize data for the client
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
         // Strip the private R2 file key from the client-facing response
         const { fileKey, ...rest } = record;
         
+        // Ensure all Firestore Timestamps are serialized to ISO strings
         const formatTime = (ts: any) => {
           if (!ts) return null;
           if (ts.toDate) return ts.toDate().toISOString();
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest) {
         };
       })
       .sort((a, b) => {
-        // In-memory sort to ensure results are always returned regardless of missing Firestore indexes
+        // In-memory sort to ensure results are returned regardless of missing Firestore indexes
         const dateA = a.purchasedAt ? new Date(a.purchasedAt).getTime() : 0;
         const dateB = b.purchasedAt ? new Date(b.purchasedAt).getTime() : 0;
         return dateB - dateA;
@@ -55,6 +57,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, data: safeDownloads });
   } catch (e: any) {
     console.error('[FETCH_LIBRARY_ERROR]:', e.message);
-    return NextResponse.json({ success: false, error: 'Database Synchronization Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Vault Synchronization Error' }, { status: 500 });
   }
 }

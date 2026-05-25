@@ -13,11 +13,11 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
  * Orders, Users, Downloads, Analytics, and Revenue.
  */
 export async function POST(req: NextRequest) {
-  console.log('[RAZORPAY_WEBHOOK_RECEIVED]: Initializing verification...');
+  console.log('[RAZORPAY_WEBHOOK]: Initializing secure verification...');
   
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!secret) {
-    console.error('[WEBHOOK_CONFIG_ERROR]: RAZORPAY_WEBHOOK_SECRET is not defined in environment.');
+    console.error('[WEBHOOK_CONFIG_ERROR]: RAZORPAY_WEBHOOK_SECRET is not defined.');
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
   }
 
@@ -31,14 +31,14 @@ export async function POST(req: NextRequest) {
     .digest('hex');
 
   if (expectedSignature !== signature) {
-    console.warn('[WEBHOOK_SECURITY_ALERT]: Invalid HMAC signature. Potential spoofing attempt.');
+    console.warn('[WEBHOOK_SECURITY_ALERT]: Invalid signature. Request rejected.');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   const payload = JSON.parse(body);
   const event = payload.event;
 
-  console.log(`[WEBHOOK_EVENT]: ${event}`);
+  console.log(`[WEBHOOK_EVENT]: Received ${event}`);
 
   if (event === 'payment.captured') {
     const payment = payload.payload.payment.entity;
@@ -56,15 +56,15 @@ export async function POST(req: NextRequest) {
         const orderSnap = await transaction.get(ordersQuery);
 
         if (orderSnap.empty) {
-          throw new Error(`Order intent for ${razorpayOrderId} not found in database.`);
+          throw new Error(`Order intent for ${razorpayOrderId} not found.`);
         }
 
         const orderDoc = orderSnap.docs[0];
         const orderData = orderDoc.data();
 
         // B. Strict Idempotency Check
-        if (orderData.status === 'paid' || orderData.paymentCapturedId === paymentId) {
-          console.log('[FULFILLMENT_SKIP]: Transaction already processed. Skipping to prevent duplicates.');
+        if (orderData.status === 'paid') {
+          console.log('[FULFILLMENT_SKIP]: Order already processed.');
           return;
         }
 
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
               isActive: true,
             }, { merge: true });
 
-            // Increment Product Statistics
+            // Update Product Stats
             transaction.update(productRef, {
               salesCount: FieldValue.increment(1),
               updatedAt: FieldValue.serverTimestamp()
@@ -114,7 +114,6 @@ export async function POST(req: NextRequest) {
         }
 
         // E. Update User Profile Aggregates (MERGE-SAFE)
-        // We use .set(..., { merge: true }) instead of .update() to handle cases where the profile doc is missing.
         transaction.set(userRef, {
           totalSpent: FieldValue.increment(orderData.total),
           orderCount: FieldValue.increment(1),
@@ -145,15 +144,15 @@ export async function POST(req: NextRequest) {
         });
       });
 
-      console.log(`[FULFILLMENT_SUCCESS]: Atomic synchronization completed for ${paymentId}`);
+      console.log(`[FULFILLMENT_SUCCESS]: Atomic sync completed for ${paymentId}`);
 
-      // I. Dispatch Confirmation (Non-blocking background task)
-      const finalOrderSnap = await db.collection('orders').doc(razorpayOrderId).get(); // Fetch full doc for email
-      sendOrderConfirmationEmail({ 
-        ...finalOrderSnap.data(), 
-        id: finalOrderSnap.id,
-        paidAt: new Date().toISOString()
-      }).catch(err => console.error('[WEBHOOK_EMAIL_ERROR]:', err.message));
+      // Dispatch Confirmation Email in background
+      const finalOrderSnap = await db.collection('orders').where('paymentId', '==', razorpayOrderId).limit(1).get();
+      if (!finalOrderSnap.empty) {
+        const doc = finalOrderSnap.docs[0];
+        sendOrderConfirmationEmail({ ...doc.data(), id: doc.id })
+          .catch(err => console.error('[WEBHOOK_EMAIL_ERROR]:', err.message));
+      }
 
       return NextResponse.json({ success: true, message: 'Fulfillment completed' });
 
@@ -163,7 +162,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Handle other events gracefully
   return NextResponse.json({ success: true, message: 'Event ignored' });
 }
 
