@@ -30,15 +30,19 @@ function getAdminApp(): App {
       sanitized = sanitized.substring(1, sanitized.length - 1);
     }
 
-    // Parse the JSON object
+    // Parse the JSON object first
     const serviceAccount = JSON.parse(sanitized);
     
     /**
      * PRIVATE KEY RESTORATION:
-     * Ensures the RSA private key has literal newlines (\n) instead of the string "\\n".
+     * Ensures the RSA private key has literal newlines (\n).
+     * Handles both \n and double-escaped \\n strings.
      */
     if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
-      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      serviceAccount.private_key = serviceAccount.private_key
+        .replace(/\\n/g, '\n')
+        .replace(/\n/g, '\n')
+        .trim();
     }
 
     console.log(`[FIREBASE_ADMIN_INIT]: Authenticating project: ${serviceAccount.project_id}`);

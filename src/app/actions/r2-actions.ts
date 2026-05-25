@@ -19,6 +19,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
     let ordersSnap;
     try {
       // Query for orders belonging to this user
+      // Note: This is a simple query, but if we add ordering/filtering it may require a composite index.
       ordersSnap = await db.collection('orders')
         .where('userId', '==', userId)
         .get();
@@ -35,7 +36,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
         throw new Error('Backend authentication failed. The service account may have insufficient permissions or an invalid key.');
       }
       
-      throw new Error(`Order verification error: ${dbErr.message}`);
+      throw new Error('Could not retrieve order history for verification.');
     }
 
     const hasPurchased = ordersSnap.docs.some(doc => {
