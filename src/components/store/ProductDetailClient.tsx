@@ -27,7 +27,8 @@ import {
   Linkedin,
   Zap,
   Layers,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft
 } from "lucide-react";
 import Image from "next/image";
 import { useDoc, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -370,12 +371,22 @@ export function ProductDetailClient({ id }: { id: string }) {
                 <h2 className="text-3xl font-bold font-headline text-midnight-ink tracking-tight">Similar infrastructure.</h2>
               </div>
               <Button variant="ghost" asChild className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
-                Full catalog overview <ArrowRight className="h-4 w-4" />
+                <Link href="/products" className="flex items-center gap-2">
+                  Full catalog overview <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
             <ProductGrid products={suggestedProducts} />
           </section>
         )}
+
+        <div className="flex justify-center py-20 border-t border-stone-gray/10 mt-20">
+          <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary rounded-full px-6">
+            <Link href="/blog" className="flex items-center">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog
+            </Link>
+          </Button>
+        </div>
       </main>
 
       <Footer />
