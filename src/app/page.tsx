@@ -7,7 +7,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Shield, Rocket, Crown, Zap, ArrowRight, Layout, BookOpen, Layers, Sparkles, Globe, ShieldCheck } from 'lucide-react';
+import { Shield, Rocket, Crown, Zap, ArrowRight, Layout, BookOpen, Layers, Sparkles, Globe, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
 import Link from 'next/link';
@@ -86,7 +86,7 @@ export default function Home() {
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">Trusted By</span>
                   <div className="flex gap-6">
                     {['Google', 'Airbnb', 'Spotify', 'Stripe'].map(brand => (
-                      <span key={brand} className="text-sm font-bold font-mono tracking-tighter">{brand}</span>
+                      <span key={brand} className="text-sm font-bold font-mono tracking-tighter" key={brand}>{brand}</span>
                     ))}
                   </div>
                 </div>
