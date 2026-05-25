@@ -4,57 +4,61 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Production-grade Firebase Admin SDK Initialization.
- * Strictly uses the FIREBASE_SERVICE_ACCOUNT JSON string for atomic credential management.
+ * Supports individual variables (preferred for stability) or a single JSON string.
  */
 
 function getAdminApp(): App {
-  const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
-
-  if (!serviceAccountRaw) {
-    console.error('[FIREBASE_ADMIN_ERROR]: FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
-    throw new Error('Server configuration error: Missing service account credentials.');
-  }
-
-  // Check if we already have an initialized app with this name to prevent duplicate app errors
+  // Check for existing named instance to prevent duplicate app errors in Next.js HMR
   const existingApp = getApps().find(app => app.name === 'admin-app');
   if (existingApp) return existingApp;
 
-  try {
-    /**
-     * CLEANING LOGIC:
-     * Handles surrounding quotes added by some environment loaders.
-     */
-    let sanitized = serviceAccountRaw;
-    if ((sanitized.startsWith("'") && sanitized.endsWith("'")) || 
-        (sanitized.startsWith('"') && sanitized.endsWith('"'))) {
-      sanitized = sanitized.substring(1, sanitized.length - 1);
-    }
+  // 1. Try Individual Environment Variables (Most Stable)
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.FIREBASE_ADMIN_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY || process.env.FIREBASE_ADMIN_PRIVATE_KEY;
 
-    // Parse the JSON object first
-    const serviceAccount = JSON.parse(sanitized);
-    
-    /**
-     * PRIVATE KEY RESTORATION:
-     * Ensures the RSA private key has literal newlines (\n).
-     * Handles both \n and double-escaped \\n strings.
-     */
-    if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
-      serviceAccount.private_key = serviceAccount.private_key
-        .replace(/\\n/g, '\n')
-        .replace(/\n/g, '\n')
-        .trim();
-    }
-
-    console.log(`[FIREBASE_ADMIN_INIT]: Authenticating project: ${serviceAccount.project_id}`);
-
+  if (projectId && clientEmail && privateKeyRaw) {
+    const privateKey = privateKeyRaw.replace(/\\n/g, '\n').trim();
     return initializeApp({
-      credential: cert(serviceAccount),
-      projectId: serviceAccount.project_id,
+      credential: cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      }),
+      projectId,
     }, 'admin-app');
-  } catch (e: any) {
-    console.error('[FIREBASE_ADMIN_CRITICAL_FAILURE]:', e.message);
-    throw new Error(`Authentication bridge failed: ${e.message}`);
   }
+
+  // 2. Fallback to Full JSON String (FIREBASE_SERVICE_ACCOUNT)
+  const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
+  if (serviceAccountRaw) {
+    try {
+      // Clean string: handle surrounding quotes and hidden newlines
+      let sanitized = serviceAccountRaw;
+      if ((sanitized.startsWith("'") && sanitized.endsWith("'")) || 
+          (sanitized.startsWith('"') && sanitized.endsWith('"'))) {
+        sanitized = sanitized.substring(1, sanitized.length - 1);
+      }
+      
+      const serviceAccount = JSON.parse(sanitized);
+      
+      // Fix private key formatting within the parsed object
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n').trim();
+      }
+
+      return initializeApp({
+        credential: cert(serviceAccount),
+        projectId: serviceAccount.project_id,
+      }, 'admin-app');
+    } catch (e: any) {
+      console.error('[FIREBASE_ADMIN_JSON_ERROR]: Failed to parse service account JSON string.');
+      console.error('[DEBUG]: String starts with:', serviceAccountRaw.substring(0, 10));
+      throw new Error(`Invalid Service Account JSON: ${e.message}`);
+    }
+  }
+
+  throw new Error('Firebase Admin credentials missing. Set individual FIREBASE_* variables or FIREBASE_SERVICE_ACCOUNT.');
 }
 
 /**

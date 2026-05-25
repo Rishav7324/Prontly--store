@@ -11,14 +11,20 @@ export async function GET(req: NextRequest) {
     const auth = getAdminAuth();
     const decoded = await auth.verifyIdToken(token);
     uid = decoded.uid;
-  } catch {
+  } catch (e: any) {
+    console.error('[FETCH_DOWNLOADS_UNAUTHORIZED]:', e.message);
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const downloads = await getUserDownloads(uid);
+  try {
+    const downloads = await getUserDownloads(uid);
 
-  // Strip fileKey from response for security
-  const safeDownloads = downloads.map(({ fileKey, ...rest }: any) => rest);
+    // IMPORTANT: Strip fileKey from response for security
+    const safeDownloads = downloads.map(({ fileKey, ...rest }: any) => rest);
 
-  return NextResponse.json({ success: true, data: safeDownloads });
+    return NextResponse.json({ success: true, data: safeDownloads });
+  } catch (e: any) {
+    console.error('[DB_FETCH_ERROR]:', e.message);
+    return NextResponse.json({ success: false, error: 'Database error' }, { status: 500 });
+  }
 }

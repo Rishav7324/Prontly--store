@@ -14,7 +14,7 @@ const bodySchema = z.object({
 export async function POST(
   req: NextRequest
 ): Promise<NextResponse<GenerateDownloadUrlResponse>> {
-  // 1. Verify Auth Token
+  // 1. Verify Auth Token using Admin SDK
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "") ?? "";
 
@@ -23,7 +23,8 @@ export async function POST(
     const auth = getAdminAuth();
     const decoded = await auth.verifyIdToken(token);
     uid = decoded.uid;
-  } catch {
+  } catch (e: any) {
+    console.error('[AUTH_VERIFY_FAILURE]:', e.message);
     return NextResponse.json(
       { success: false, error: 'Authentication required', code: 'UNAUTHORIZED' },
       { status: 401 }
@@ -43,7 +44,7 @@ export async function POST(
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
 
-  // 3. Rate Limits
+  // 3. Rate Limits (Redis)
   const rateLimit = await checkDownloadRateLimits({
     userId: uid, ip, productId: body.productId
   });
@@ -67,7 +68,7 @@ export async function POST(
     );
   }
 
-  // 4. Eligibility
+  // 4. Eligibility Check
   let record;
   try {
     record = await checkDownloadEligibility(uid, body.productId, body.orderId);
@@ -84,13 +85,13 @@ export async function POST(
     );
   }
 
-  // 5. Generate URL
+  // 5. Generate Signed R2 URL
   let signedUrl: string;
   let expiresAt: Date;
   try {
     ({ url: signedUrl, expiresAt } = await generateSignedDownloadUrl(record.fileKey, record.fileName));
-  } catch (e) {
-    console.error('[R2_SIGN_ERROR]:', e);
+  } catch (e: any) {
+    console.error('[R2_SIGN_ERROR]:', e.message);
     await logDownloadAttempt({
       userId: uid, productId: body.productId, orderId: body.orderId,
       ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
@@ -102,7 +103,7 @@ export async function POST(
     );
   }
 
-  // 6. Finalize
+  // 6. Finalize: Increment Count & Log
   await Promise.all([
     incrementDownloadCount(uid, body.productId),
     logDownloadAttempt({
