@@ -96,36 +96,36 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
           </div>
         </div>
 
-        <CardContent className="p-5 space-y-4">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-blue uppercase tracking-wider">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-porcelain-white rounded-[4px] border border-stone-gray/10">
-              <Star className="h-3 w-3 fill-deep-violet text-deep-violet" />
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between text-[10px] font-bold text-slate-blue uppercase tracking-wider">
+            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-porcelain-white rounded-[3px] border border-stone-gray/10">
+              <Star className="h-2.5 w-2.5 fill-deep-violet text-deep-violet" />
               <span className="text-midnight-ink">{rating}</span>
             </div>
             <div className="flex items-center gap-1 opacity-70">
-               <Layers className="h-3 w-3" />
+               <Layers className="h-2.5 w-2.5" />
                <span>{sales} Users</span>
             </div>
           </div>
 
-          <h3 className="text-base font-bold text-midnight-ink leading-tight line-clamp-2 min-h-[2.5rem] group-hover/card:text-deep-violet transition-colors">
+          <h3 className="text-sm font-bold text-midnight-ink leading-tight line-clamp-2 min-h-[2.25rem] group-hover/card:text-deep-violet transition-colors">
             {title}
           </h3>
 
-          <div className="flex items-center justify-between pt-4 border-t border-stone-gray/10">
+          <div className="flex items-center justify-between pt-3 border-t border-stone-gray/10">
             <div className="flex flex-col">
-              <p className="text-lg font-bold text-midnight-ink tracking-tight">{price}</p>
+              <p className="text-base font-bold text-midnight-ink tracking-tight">{price}</p>
               {compareAtPrice && compareAtPrice > priceRaw && (
-                <span className="text-[10px] text-ghost-gray line-through decoration-deep-violet/30">₹{(compareAtPrice / 100).toLocaleString()}</span>
+                <span className="text-[9px] text-ghost-gray line-through decoration-deep-violet/30">₹{(compareAtPrice / 100).toLocaleString()}</span>
               )}
             </div>
             <Button 
               size="icon" 
               variant="default"
-              className="h-10 w-10 rounded-[4px] bg-deep-violet text-white hover:opacity-90 transition-all shadow-sm relative z-20"
+              className="h-8 w-8 rounded-[4px] bg-deep-violet text-white hover:opacity-90 transition-all shadow-sm relative z-20"
               onClick={handleAddToCart}
             >
-              <ShoppingCart className="h-4 w-4" />
+              <ShoppingCart className="h-3.5 w-3.5" />
             </Button>
           </div>
         </CardContent>

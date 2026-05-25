@@ -203,12 +203,12 @@ export function ProductDetailClient({ id }: { id: string }) {
       <main className="container mx-auto px-4 py-12 flex-1 max-w-7xl">
         <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
 
-        {/* Product Title before Image */}
+        {/* Product Title reduced to 1.125rem (text-lg) */}
         <div className="mb-8">
           <Badge className="bg-deep-violet/5 text-deep-violet border-none px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-widest mb-2">
             {product.categorySlug}
           </Badge>
-          <h1 className="text-xl font-bold text-midnight-ink leading-tight tracking-tight">
+          <h1 className="text-lg font-bold text-midnight-ink leading-tight tracking-tight">
             {product.name}
           </h1>
         </div>
@@ -310,7 +310,6 @@ export function ProductDetailClient({ id }: { id: string }) {
                   </div>
                 </div>
 
-                {/* Full Description moved after buttons */}
                 <div className="pt-8 space-y-4 border-t border-stone-gray/10">
                   <h2 className="text-sm font-bold text-midnight-ink flex items-center gap-2">
                     <Info className="h-4 w-4 text-deep-violet" />

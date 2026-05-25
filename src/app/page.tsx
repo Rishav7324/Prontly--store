@@ -45,7 +45,7 @@ export default function Home() {
       
       <main className="flex-1">
         {/* Architectural Hero Section */}
-        <section className="relative overflow-hidden pt-20 pb-32 lg:pt-32 lg:pb-56">
+        <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-48">
           {/* Stripe-style Background Pattern */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-[10%] -left-[10%] w-[120%] h-[120%] bg-[#ffffff]" />
@@ -56,26 +56,26 @@ export default function Home() {
 
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-              <div className="lg:col-span-7 space-y-10">
+              <div className="lg:col-span-7 space-y-8">
                 <div className="space-y-4">
                   <Badge variant="outline" className="bg-white/80 backdrop-blur-sm border-primary/20 text-primary px-4 py-1.5 font-bold uppercase tracking-widest text-[10px] rounded-full shadow-sm">
                     <Sparkles className="h-3 w-3 mr-2 inline" />
                     Market Intelligence Platform
                   </Badge>
-                  <h1 className="text-5xl md:text-7xl lg:text-[80px] font-headline font-light text-midnight-ink leading-[1.05] tracking-tight">
+                  <h1 className="text-4xl md:text-5xl lg:text-7xl font-headline font-light text-midnight-ink leading-[1.1] tracking-tight">
                     {heroHeadline}
                   </h1>
                 </div>
                 
-                <p className="text-lg md:text-xl text-slate-blue max-w-xl leading-relaxed">
+                <p className="text-base md:text-lg text-slate-blue max-w-xl leading-relaxed">
                   {heroSubheadline}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 pt-4">
-                  <Button asChild size="lg" className="h-12 px-10 rounded-md bg-deep-violet hover:bg-deep-violet/90 text-white font-bold shadow-lg shadow-deep-violet/20 transition-all">
+                  <Button asChild size="lg" className="h-11 px-8 rounded-md bg-deep-violet hover:bg-deep-violet/90 text-white font-bold shadow-lg shadow-deep-violet/20 transition-all">
                     <Link href="/products">Explore Inventory</Link>
                   </Button>
-                  <Button asChild variant="ghost" size="lg" className="h-12 px-8 text-midnight-ink font-bold hover:bg-powder-blue/50">
+                  <Button asChild variant="ghost" size="lg" className="h-11 px-6 text-midnight-ink font-bold hover:bg-powder-blue/50">
                     <Link href="/signup" className="flex items-center gap-2">
                       Get started <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -136,14 +136,14 @@ export default function Home() {
         </section>
 
         {/* Categories Section */}
-        <section className="bg-porcelain-white/50 py-32 border-y border-stone-gray/20">
+        <section className="bg-porcelain-white/50 py-24 border-y border-stone-gray/20">
           <div className="container mx-auto px-4 max-w-7xl">
-            <header className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div className="space-y-4">
                 <Badge variant="outline" className="text-deep-violet border-deep-violet/20 bg-deep-violet/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
                   Asset Classification
                 </Badge>
-                <h2 className="text-4xl md:text-5xl font-headline font-light text-midnight-ink tracking-tight">Specialized infrastructure.</h2>
+                <h2 className="text-3xl md:text-4xl font-headline font-light text-midnight-ink tracking-tight">Specialized infrastructure.</h2>
               </div>
               <Button variant="ghost" className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
                 Full catalog overview <ArrowRight className="h-4 w-4" />
@@ -174,31 +174,31 @@ export default function Home() {
         </section>
 
         {/* Featured Section */}
-        <section className="container mx-auto px-4 py-32 max-w-7xl">
-          <div className="mb-16 space-y-4 border-b border-stone-gray/10 pb-12">
+        <section className="container mx-auto px-4 py-24 max-w-7xl">
+          <div className="mb-12 space-y-4 border-b border-stone-gray/10 pb-12">
             <Badge variant="outline" className="text-accent-green border-accent-green/20 bg-accent-green/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
               Top Tier Assets
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-headline font-light text-midnight-ink tracking-tight">Professional standards.</h2>
+            <h2 className="text-3xl md:text-4xl font-headline font-light text-midnight-ink tracking-tight">Professional standards.</h2>
           </div>
 
           <ProductGrid products={featuredProducts} loading={loading} />
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto px-4 py-32">
-          <div className="max-w-7xl mx-auto rounded-xl bg-midnight-ink text-white p-12 md:p-32 text-center space-y-10 relative overflow-hidden shadow-xl-3">
+        <section className="container mx-auto px-4 py-24">
+          <div className="max-w-7xl mx-auto rounded-xl bg-midnight-ink text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden shadow-xl-3">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.2),transparent)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(247,45,243,0.1),transparent)]" />
             
             <div className="relative z-10 space-y-8">
-              <h2 className="text-4xl md:text-6xl font-headline font-light max-w-4xl mx-auto tracking-tight">Accelerate your workflow with precision.</h2>
-              <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto font-light">Join thousands of verified creators scaling their business with Prontly assets.</p>
+              <h2 className="text-3xl md:text-5xl font-headline font-light max-w-4xl mx-auto tracking-tight">Accelerate your workflow with precision.</h2>
+              <p className="text-base md:text-lg text-white/60 max-w-2xl mx-auto font-light">Join thousands of verified creators scaling their business with Prontly assets.</p>
               <div className="flex flex-wrap justify-center gap-6 pt-10">
-                <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-porcelain-white h-14 px-12 text-base font-bold shadow-xl">
+                <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-porcelain-white h-12 px-10 text-sm font-bold shadow-xl">
                   <Link href="/signup">Get started now</Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-14 px-12 text-base font-bold">
+                <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-12 px-10 text-sm font-bold">
                   <Link href="/products">Browse full catalog</Link>
                 </Button>
               </div>
