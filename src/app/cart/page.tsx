@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { toast } from '@/hooks/use-toast';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotal, getItemCount } = useCart();
@@ -26,6 +28,13 @@ export default function CartPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleRemove = (e: React.MouseEvent, id: string, name: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeItem(id);
+    toast({ title: "Item Removed", description: `${name} has been removed from your cart.` });
+  };
 
   if (!mounted) return null;
 
@@ -84,8 +93,9 @@ export default function CartPage() {
                           <h3 className="font-bold text-lg text-midnight-ink truncate">{item.name}</h3>
                         </div>
                         <button 
-                          onClick={() => removeItem(item.id)}
+                          onClick={(e) => handleRemove(e, item.id, item.name)}
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          type="button"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

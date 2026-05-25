@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -7,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingBag, X, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { toast } from '@/hooks/use-toast';
 
 interface CartDrawerProps {
   open: boolean;
@@ -15,6 +18,18 @@ interface CartDrawerProps {
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { items, removeItem, updateQuantity, getTotal, getItemCount } = useCart();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleRemove = (e: React.MouseEvent, id: string, name: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeItem(id);
+    toast({ title: "Item Removed", description: `${name} has been removed from your cart.` });
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -22,12 +37,16 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         <SheetHeader className="p-6 border-b border-stone-gray/10">
           <SheetTitle className="flex items-center gap-3 font-headline text-2xl font-bold text-midnight-ink">
             <ShoppingBag className="h-6 w-6 text-primary" />
-            Shopping Cart ({getItemCount()})
+            Shopping Cart ({mounted ? getItemCount() : 0})
           </SheetTitle>
         </SheetHeader>
 
         <ScrollArea className="flex-1 px-6">
-          {items.length === 0 ? (
+          {!mounted ? (
+            <div className="flex items-center justify-center h-full">
+              <ShoppingBag className="h-8 w-8 animate-pulse text-muted-foreground opacity-20" />
+            </div>
+          ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[400px] text-center space-y-4">
               <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center opacity-30">
                 <ShoppingBag className="h-8 w-8" />
@@ -49,7 +68,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-bold text-midnight-ink truncate leading-tight group-hover:text-primary transition-colors">{item.name}</h4>
                         <button 
-                          onClick={() => removeItem(item.id)}
+                          onClick={(e) => handleRemove(e, item.id, item.name)}
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
                         >
                           <X className="h-4 w-4" />
@@ -85,7 +104,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           )}
         </ScrollArea>
 
-        {items.length > 0 && (
+        {mounted && items.length > 0 && (
           <SheetFooter className="p-6 border-t border-stone-gray/10 flex-col gap-4 bg-porcelain-white/50">
             <div className="w-full space-y-3 mb-2">
               <div className="flex justify-between items-center text-xs">
