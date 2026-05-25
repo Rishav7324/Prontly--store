@@ -47,13 +47,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
   console.log(`[SECURE_DOWNLOAD_REQUEST]: Product: ${productId} | User: ${userId}`);
   
   try {
-    let db;
-    try {
-      db = getAdminDb();
-    } catch (adminErr: any) {
-      console.error('[SECURE_DOWNLOAD_INIT_ERROR]:', adminErr.message);
-      throw new Error('Verification service is currently unavailable. Please contact support.');
-    }
+    const db = getAdminDb();
     
     // 1. Verify User Ownership via Orders
     // We check for 'paid' or 'delivered' status
@@ -61,24 +55,23 @@ export async function getDownloadUrl(productId: string, userId: string) {
     try {
       ordersSnap = await db.collection('orders')
         .where('userId', '==', userId)
-        .where('status', 'in', ['paid', 'delivered'])
         .get();
     } catch (dbErr: any) {
       console.error('[SECURE_DOWNLOAD_DB_FETCH_ERROR]:', dbErr.message);
       
-      // Handle the specific 'Missing Index' error which often happens with complex where clauses
+      // Handle the specific 'Missing Index' error
       if (dbErr.message.includes('FAILED_PRECONDITION')) {
-        throw new Error('The database is optimizing. Please try again in 2 minutes.');
+        throw new Error('Database indexing in progress. Please check server logs for the creation link.');
       }
       
-      if (dbErr.message.includes('UNAUTHENTICATED') || dbErr.message.includes('PERMISSION_DENIED')) {
-        throw new Error('Backend authentication failed. The service account may have insufficient permissions or an invalid key.');
-      }
       throw new Error('Could not retrieve order history for verification.');
     }
 
     const hasPurchased = ordersSnap.docs.some(doc => {
-      const items = doc.data().items || [];
+      const data = doc.data();
+      const items = data.items || [];
+      // Only count if status is paid or delivered
+      if (!['paid', 'delivered'].includes(data.status)) return false;
       return items.some((item: any) => item.productId === productId);
     });
 

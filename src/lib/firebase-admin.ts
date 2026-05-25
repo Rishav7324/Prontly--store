@@ -23,29 +23,28 @@ function getAdminApp(): App {
     /**
      * CLEANING LOGIC:
      * 1. Remove potential wrapping quotes from the env var (common in some CI/CD environments).
-     * 2. Parse the JSON.
+     * 2. Restore escaped characters if the string was double-escaped.
      */
     let sanitized = serviceAccountRaw;
     
-    // Handle cases where the string is wrapped in single or double quotes
     if ((sanitized.startsWith("'") && sanitized.endsWith("'")) || 
         (sanitized.startsWith('"') && sanitized.endsWith('"'))) {
       sanitized = sanitized.substring(1, sanitized.length - 1);
     }
 
+    // Attempt to fix double-escaped newlines in the string before parsing
+    sanitized = sanitized.replace(/\\n/g, '\n');
+
     const serviceAccount = JSON.parse(sanitized);
     
     /**
-     * Handle the private key formatting. 
-     * In the JSON source, newlines are usually escaped as '\n'.
-     * We ensure they are restored to actual newline characters for the RSA parser.
+     * Handle the private key formatting inside the parsed object. 
      */
     if (serviceAccount.private_key) {
-      // replace(/\\n/g, '\n') handles cases where the string is double-escaped
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
-    console.log(`[FIREBASE_ADMIN_INIT]: Attempting authentication for project: ${serviceAccount.project_id}`);
+    console.log(`[FIREBASE_ADMIN_INIT]: Authenticating project: ${serviceAccount.project_id}`);
 
     return initializeApp({
       credential: cert(serviceAccount),
