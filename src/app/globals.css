@@ -7,7 +7,7 @@
     /* Stripe Color Tokens */
     --background: 0 0% 100%; /* Platinum White #ffffff */
     --foreground: 211 78% 11%; /* Midnight Ink #061b31 */
-    --card: 210 44% 93%; /* Powder Blue #e5edf5 */
+    --card: 210 44% 97%; /* Porcelain White #f8fafd */
     --card-foreground: 211 78% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 211 78% 11%;
@@ -35,8 +35,6 @@
     --color-powder-blue: #e5edf5;
     --color-stone-gray: #d8d6df;
     --color-deep-violet: #533afd;
-    --color-washed-violet: #b9b9f9;
-    --color-soft-violet: #8087ff;
   }
 }
 
@@ -71,4 +69,50 @@
 
 .sunburst-gradient {
   background: linear-gradient(90deg, rgb(114, 50, 241) 3.13%, rgb(251, 118, 250) 50%, rgb(255, 207, 94));
+}
+
+/* High-Performance HTML Rendering (Technical Editorial) */
+.prose-content {
+  @apply text-slate-blue leading-[1.6] text-[15px];
+}
+
+.prose-content h2 {
+  @apply text-midnight-ink text-2xl font-bold mt-10 mb-4 tracking-tight;
+}
+
+.prose-content h3 {
+  @apply text-midnight-ink text-lg font-bold mt-8 mb-3 tracking-tight;
+}
+
+.prose-content p {
+  @apply mb-4;
+}
+
+.prose-content strong {
+  @apply text-midnight-ink font-semibold;
+}
+
+.prose-content ul {
+  @apply space-y-2 mb-6 mt-4 list-none pl-0;
+}
+
+.prose-content li {
+  @apply flex items-start gap-3 before:content-['•'] before:text-deep-violet before:font-bold;
+}
+
+.prose-content blockquote {
+  @apply border-l-4 border-powder-blue pl-6 italic text-slate-blue my-8 bg-porcelain-white/50 py-4 pr-4 rounded-r-md;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-stone-gray/50 rounded-full;
 }
