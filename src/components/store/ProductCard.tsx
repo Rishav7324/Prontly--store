@@ -115,11 +115,11 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
           <button 
             onClick={handleWishlist}
             className={cn(
-              "absolute left-3 top-3 sm:left-5 sm:top-5 h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-black/40 backdrop-blur-md flex items-center justify-center transition-all duration-300 z-20 border border-white/10",
+              "absolute left-3 top-3 sm:left-5 sm:top-5 h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-black/40 backdrop-blur-md flex items-center justify-center transition-all duration-300 z-20 border border-white/10",
               isWishlisted ? "text-red-500 border-red-500/30 bg-red-500/10" : "text-white/70 hover:text-red-500 hover:bg-white/10"
             )}
           >
-            <Heart className={cn("h-4 w-4 sm:h-5 sm:w-5", isWishlisted && "fill-current")} />
+            <Heart className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isWishlisted && "fill-current")} />
           </button>
         </div>
 
