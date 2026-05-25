@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, Heart, ShoppingCart, Layers } from 'lucide-react';
+import { Star, ShoppingCart, Layers } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
-import { useWishlist } from '@/hooks/use-wishlist';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
@@ -32,7 +31,6 @@ interface ProductCardProps {
 
 export function ProductCard({ id, title, price, priceRaw, compareAtPrice, category, images, rating, sales }: ProductCardProps) {
   const { addItem } = useCart();
-  const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -45,8 +43,6 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
     addItem({ id, name: title, price: priceRaw, imageUrl: images[0] || '', category });
     toast({ title: "Added to cart", description: `${title} is ready for checkout.` });
   };
-
-  const isWishlisted = mounted ? isInWishlist(id) : false;
 
   const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/400'];
 
@@ -98,20 +94,6 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
               {category}
             </Badge>
           </div>
-
-          <button 
-            onClick={(e) => { 
-              e.preventDefault(); 
-              e.stopPropagation(); 
-              toggleItem(id); 
-            }}
-            className={cn(
-              "absolute top-3 right-3 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center transition-all shadow-sm border border-stone-gray/10 hover:scale-110 active:scale-90 z-10",
-              isWishlisted ? "text-deep-violet" : "text-ghost-gray hover:text-midnight-ink"
-            )}
-          >
-            <Heart className={cn("h-3.5 w-3.5", isWishlisted && "fill-current")} />
-          </button>
         </div>
 
         <CardContent className="p-5 space-y-4">
