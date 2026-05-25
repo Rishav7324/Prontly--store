@@ -248,26 +248,30 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
 
       {/* Community Feed */}
       <div className="space-y-10">
-        <div className="flex items-center justify-between border-b border-stone-gray/10 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-gray/10 pb-4">
            <h3 className="text-xs font-black uppercase text-ghost-gray tracking-[0.2em] flex items-center gap-2">
              <MessageSquare className="h-4 w-4 text-deep-violet" />
              Community Log
            </h3>
-           <div className="flex items-center gap-2">
-              <Filter className="h-3 w-3 text-ghost-gray" />
-              <span className="text-[10px] font-bold text-slate-blue uppercase">Filter:</span>
-              {[5, 4, 3, 2, 1].map(s => (
-                <button 
-                  key={s} 
-                  onClick={() => setStarFilter(starFilter === s ? null : s)}
-                  className={cn(
-                    "text-[10px] font-bold px-2 py-0.5 rounded border transition-all",
-                    starFilter === s ? "bg-deep-violet border-deep-violet text-white" : "border-stone-gray/20 text-slate-blue hover:bg-powder-blue"
-                  )}
-                >
-                  {s}★
-                </button>
-              ))}
+           <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Filter className="h-3 w-3 text-ghost-gray" />
+                <span className="text-[10px] font-bold text-slate-blue uppercase whitespace-nowrap">Filter:</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[5, 4, 3, 2, 1].map(s => (
+                  <button 
+                    key={s} 
+                    onClick={() => setStarFilter(starFilter === s ? null : s)}
+                    className={cn(
+                      "text-[10px] font-bold px-2.5 py-0.5 rounded border transition-all min-w-[34px] text-center",
+                      starFilter === s ? "bg-deep-violet border-deep-violet text-white" : "border-stone-gray/20 text-slate-blue hover:bg-powder-blue"
+                    )}
+                  >
+                    {s}★
+                  </button>
+                ))}
+              </div>
            </div>
         </div>
 
