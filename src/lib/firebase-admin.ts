@@ -3,22 +3,16 @@ import { getAuth, Auth } from 'firebase-admin/auth';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
- * @fileOverview Hardened Firebase Admin SDK Initialization.
- * Implements aggressive cleaning of credentials to prevent "UNAUTHENTICATED" errors.
+ * @fileOverview Production-grade Firebase Admin SDK Initialization.
+ * Strictly uses the FIREBASE_SERVICE_ACCOUNT JSON string for atomic credential management.
  */
 
 function getAdminApp(): App {
-  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.trim();
+  const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
 
-  if (!projectId || !clientEmail || !privateKey) {
-    console.error('[FIREBASE_ADMIN_ERROR]: Missing environment variables', { 
-      hasProjectId: !!projectId, 
-      hasEmail: !!clientEmail, 
-      hasKey: !!privateKey 
-    });
-    throw new Error('Missing critical Firebase Admin environment variables.');
+  if (!serviceAccountRaw) {
+    console.error('[FIREBASE_ADMIN_ERROR]: FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
+    throw new Error('Server configuration error: Missing service account.');
   }
 
   // Check if we already have an initialized app with this name
@@ -27,34 +21,27 @@ function getAdminApp(): App {
 
   try {
     /**
-     * ADVANCED KEY CLEANING
-     * Handles wrapping quotes, literal newlines, and escaped newlines.
+     * CLEANING LOGIC:
+     * 1. Remove potential wrapping quotes from the env var.
+     * 2. Parse JSON.
+     * 3. Fix newlines in the private key if the string was double-escaped.
      */
-    let cleanedKey = privateKey;
-    
-    // Remove surrounding quotes if present
-    if ((cleanedKey.startsWith('"') && cleanedKey.endsWith('"')) || 
-        (cleanedKey.startsWith("'") && cleanedKey.endsWith("'"))) {
-      cleanedKey = cleanedKey.substring(1, cleanedKey.length - 1);
-    }
-    
-    // Convert escaped \n or \\n into actual newline characters
-    const formattedPrivateKey = cleanedKey.replace(/\\n/g, '\n');
-
-    // Basic validity check for RSA key
-    if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
-      throw new Error('Private key format appears invalid (missing header).');
+    let sanitized = serviceAccountRaw;
+    if (sanitized.startsWith("'") || sanitized.startsWith('"')) {
+      sanitized = sanitized.substring(1, sanitized.length - 1);
     }
 
-    console.log(`[FIREBASE_ADMIN_INIT]: Initializing for project: ${projectId}`);
+    const serviceAccount = JSON.parse(sanitized);
+    
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+
+    console.log(`[FIREBASE_ADMIN_INIT]: Attempting initialization for project: ${serviceAccount.project_id}`);
 
     return initializeApp({
-      credential: cert({
-        projectId,
-        clientEmail,
-        privateKey: formattedPrivateKey,
-      }),
-      projectId,
+      credential: cert(serviceAccount),
+      projectId: serviceAccount.project_id,
     }, 'admin-app');
   } catch (e: any) {
     console.error('[FIREBASE_ADMIN_CRITICAL_FAILURE]:', e.message);
@@ -73,7 +60,5 @@ export const getAdminAuth = (): Auth => {
  * Singleton getter for Admin Firestore.
  */
 export const getAdminDb = (): Firestore => {
-  const app = getAdminApp();
-  // Ensure the app returned is the named 'admin-app' to use correct credentials
-  return getFirestore(app);
+  return getFirestore(getAdminApp());
 };
