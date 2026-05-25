@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ShoppingCart, Heart, ShieldCheck, LayoutDashboard, Settings, LogOut, User } from 'lucide-react';
+import { ShoppingCart, Heart, ShieldCheck, LayoutDashboard, Settings, LogOut, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -21,6 +20,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { CartDrawer } from '../store/CartDrawer';
 import { doc } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
 
 export function Navbar() {
   const { user, role } = useUser();
@@ -52,33 +52,33 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-        <nav className="mx-auto max-w-[1200px] h-[72px] flex items-center justify-between px-4 md:px-8">
-          <div className="flex items-center gap-12">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="relative h-7 w-7 overflow-hidden rounded bg-primary flex items-center justify-center">
-                <ShieldCheck className="h-4 w-4 text-white" />
+      <header className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
+        <nav className="w-full max-w-5xl h-16 flex items-center justify-between px-6 bg-white/70 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] pointer-events-auto">
+          <div className="flex items-center gap-10">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:rotate-12 transition-all">
+                <Zap className="h-5 w-5 text-white" />
               </div>
-              <span className="font-bold text-lg tracking-tight text-foreground">Prontly</span>
+              <span className="font-bold text-lg tracking-tight text-midnight-ink uppercase">Prontly</span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
-              <Link href="/products" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Marketplace</Link>
-              <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Resources</Link>
+              <Link href="/products" className="text-sm font-semibold text-slate-blue hover:text-deep-violet transition-colors">Marketplace</Link>
+              <Link href="/blog" className="text-sm font-semibold text-slate-blue hover:text-deep-violet transition-colors">Resources</Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 border-r pr-4 mr-2">
-              <Button variant="ghost" size="icon" className="text-muted-foreground" asChild>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 border-r border-stone-gray/20 pr-3 mr-1">
+              <Button variant="ghost" size="icon" className="text-slate-blue hover:text-deep-violet rounded-full transition-colors h-9 w-9" asChild title="Wishlist">
                 <Link href="/wishlist">
-                  <Heart className="h-4 w-4" />
+                  <Heart className="h-[18px] w-[18px]" />
                 </Link>
               </Button>
 
-              <Button variant="ghost" size="icon" className="relative text-muted-foreground" onClick={() => setIsCartOpen(true)}>
-                <ShoppingCart className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="relative text-slate-blue hover:text-deep-violet rounded-full transition-colors h-9 w-9" onClick={() => setIsCartOpen(true)} title="Cart">
+                <ShoppingCart className="h-[18px] w-[18px]" />
                 {cartItemCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-deep-violet border-2 border-white" />
                 )}
               </Button>
             </div>
@@ -86,49 +86,69 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
-                    <Avatar className="h-9 w-9 border">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 border border-stone-gray/20 hover:border-deep-violet transition-colors overflow-hidden">
+                    <Avatar className="h-full w-full">
                       <AvatarImage src={user.photoURL || ''} />
-                      <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                      <AvatarFallback className="bg-powder-blue text-deep-violet font-bold text-xs uppercase">{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 mt-2 rounded-lg" align="end">
-                  <DropdownMenuLabel className="font-normal p-4">
-                    <p className="text-sm font-semibold text-foreground">{user.displayName || 'Creator'}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{user.email}</p>
+                <DropdownMenuContent className="w-64 mt-3 p-2 rounded-2xl border border-stone-gray/20 shadow-2xl bg-white/95 backdrop-blur-xl" align="end">
+                  <DropdownMenuLabel className="font-normal p-3">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-bold text-midnight-ink truncate">{user.displayName || 'Creator'}</p>
+                      <p className="text-[11px] text-slate-blue truncate font-medium">{user.email}</p>
+                      <div className="pt-2">
+                         <Badge variant="outline" className="text-[9px] uppercase tracking-widest font-black py-0 px-2 border-deep-violet/20 text-deep-violet bg-deep-violet/5">
+                           {role}
+                         </Badge>
+                      </div>
+                    </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="flex items-center gap-2 p-3">
-                        <ShieldCheck className="h-4 w-4" /> Admin Panel
+                  <DropdownMenuSeparator className="bg-stone-gray/10 mx-1" />
+                  <div className="p-1">
+                    {isAdmin && (
+                      <DropdownMenuItem asChild className="rounded-xl focus:bg-deep-violet/5 focus:text-deep-violet cursor-pointer">
+                        <Link href="/admin" className="flex items-center gap-3 p-2 text-sm font-bold">
+                          <ShieldCheck className="h-4 w-4" /> Admin Terminal
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild className="rounded-xl focus:bg-deep-violet/5 focus:text-deep-violet cursor-pointer">
+                      <Link href="/dashboard" className="flex items-center gap-3 p-2 text-sm font-bold">
+                        <LayoutDashboard className="h-4 w-4" /> My Library
                       </Link>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center gap-2 p-3">
-                      <LayoutDashboard className="h-4 w-4" /> My Library
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive p-3" onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" /> Sign Out
-                  </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-xl focus:bg-deep-violet/5 focus:text-deep-violet cursor-pointer">
+                      <Link href="/dashboard/settings" className="flex items-center gap-3 p-2 text-sm font-bold">
+                        <Settings className="h-4 w-4" /> Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+                  <DropdownMenuSeparator className="bg-stone-gray/10 mx-1" />
+                  <div className="p-1">
+                    <DropdownMenuItem className="rounded-xl text-destructive focus:bg-destructive/5 focus:text-destructive cursor-pointer p-2 text-sm font-bold" onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/login">
-                  <Button variant="ghost" className="text-muted-foreground">Log in</Button>
+              <div className="flex items-center gap-2">
+                <Link href="/login" className="hidden sm:block">
+                  <Button variant="ghost" className="text-slate-blue hover:text-midnight-ink font-bold text-sm px-4 h-9">Log in</Button>
                 </Link>
                 <Link href="/signup">
-                  <Button className="h-9 px-5">Get started</Button>
+                  <Button className="h-9 px-5 rounded-full bg-deep-violet hover:bg-deep-violet/90 text-white font-bold text-sm shadow-md shadow-deep-violet/20 transition-all active:scale-95">
+                    Sign up
+                  </Button>
                 </Link>
               </div>
             )}
           </div>
         </nav>
       </header>
+      <div className="h-28" /> {/* Fixed spacer for floating navbar */}
       <CartDrawer open={isCartOpen} onOpenChange={setIsCartOpen} />
     </>
   );
