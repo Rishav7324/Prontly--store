@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    /* ElevenLabs Color Tokens */
-    --background: 0 10% 99.2%; /* Eggshell #fdfcfc */
-    --foreground: 0 0% 0%; /* Obsidian #000000 */
-    --card: 0 0% 100%; /* White #ffffff */
-    --card-foreground: 0 0% 0%;
-    --popover: 0 10% 99.2%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 0 0% 0%; /* Obsidian */
-    --primary-foreground: 0 10% 99.2%; /* Eggshell */
-    --secondary: 33 6% 95.3%; /* Powder #f5f3f1 */
-    --secondary-foreground: 33 6% 44%; /* Gravel #777169 */
-    --muted: 33 6% 95.3%;
-    --muted-foreground: 33 6% 44%;
-    --accent: 33 6% 95.3%;
-    --accent-foreground: 0 0% 0%;
+    /* Stripe Color Tokens */
+    --background: 0 0% 100%; /* Platinum White #ffffff */
+    --foreground: 211 78% 11%; /* Midnight Ink #061b31 */
+    --card: 210 44% 93%; /* Powder Blue #e5edf5 */
+    --card-foreground: 211 78% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 211 78% 11%;
+    --primary: 248 98% 61%; /* Deep Violet #533afd */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 216 67% 98%; /* Porcelain White #f8fafd */
+    --secondary-foreground: 216 21% 39%; /* Slate Blue #50617a */
+    --muted: 216 67% 98%;
+    --muted-foreground: 211 15% 48%; /* Ghost Gray #64748d */
+    --accent: 248 98% 61%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 20% 98%;
-    --border: 0 0% 90%; /* Chalk #e5e5e5 */
-    --input: 0 0% 90%;
-    --ring: 0 0% 0%;
-    --radius: 1rem; /* 16px */
+    --border: 210 44% 93%; /* Powder Blue #e5edf5 */
+    --input: 210 44% 93%;
+    --ring: 248 98% 61%;
+    --radius: 0.25rem; /* 4px for buttons/inputs */
   }
 }
 
@@ -40,23 +40,23 @@
   }
 }
 
-/* ElevenLabs Specific Utilities */
-.hairline-shadow {
-  box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 1px 0px, rgba(0, 0, 0, 0.04) 0px 2px 4px 0px;
+/* Stripe Specific Utilities */
+.stripe-shadow {
+  box-shadow: rgba(50, 50, 93, 0.12) 0px 16px 32px 0px, rgba(0, 0, 0, 0.04) 0px 4px 8px 0px;
 }
 
-.inset-detail {
-  box-shadow: rgba(0, 0, 0, 0.075) 0px 0px 0px 0.5px inset;
+.stripe-shadow-sm {
+  box-shadow: rgba(23, 23, 23, 0.06) 0px 3px 6px 0px;
 }
 
-/* Custom CMS Typography */
-.prose-content {
-  @apply max-w-none text-muted-foreground leading-[1.6] font-body;
+.stripe-shadow-xl {
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 32px 8px;
 }
 
-.prose-content h2 { @apply text-[32px] font-headline text-foreground mt-12 mb-6; }
-.prose-content p { @apply mb-6 text-[15px]; }
+.dreamy-gradient {
+  background: radial-gradient(circle at top right, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%);
+}
 
-.pill-button {
-  @apply rounded-full px-6 transition-all duration-200 active:scale-95 font-medium;
+.sunburst-gradient {
+  background: linear-gradient(90deg, rgb(114, 50, 241) 3.13%, rgb(251, 118, 250) 50%, rgb(255, 207, 94));
 }

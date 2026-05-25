@@ -43,8 +43,8 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
 
   return (
     <Link href={`/products/${id}`} className="group block">
-      <Card className="h-full border-chalk bg-white rounded-2xl overflow-hidden hairline-shadow inset-detail transition-all duration-300 hover:border-obsidian">
-        <div className="relative aspect-[4/5] bg-powder overflow-hidden">
+      <Card className="h-full border-none bg-secondary/50 rounded-md overflow-hidden stripe-shadow-sm transition-all duration-300 hover:stripe-shadow hover:-translate-y-1">
+        <div className="relative aspect-[16/10] bg-muted overflow-hidden">
           <Image
             src={imageUrl}
             alt={title}
@@ -52,43 +52,44 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
             className="object-cover transition-transform duration-700 group-hover:scale-105"
             data-ai-hint="product design"
           />
-          <Badge className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm text-obsidian border-chalk font-medium text-[10px] uppercase tracking-widest px-3 py-1">
+          <Badge className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-foreground border-none font-bold text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-sm">
             {category}
           </Badge>
           <button 
             onClick={(e) => { e.preventDefault(); toggleItem(id); }}
             className={cn(
-              "absolute top-4 right-4 h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm border border-chalk flex items-center justify-center transition-all hover:bg-white",
-              isWishlisted ? "text-red-500" : "text-gravel"
+              "absolute top-3 right-3 h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-white",
+              isWishlisted ? "text-primary" : "text-muted-foreground"
             )}
           >
             <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
           </button>
         </div>
 
-        <CardContent className="p-6 space-y-4">
-          <div className="flex items-center justify-between text-[11px] font-medium text-gravel uppercase tracking-widest">
-            <div className="flex items-center gap-1.5">
-              <Star className="h-3 w-3 fill-current text-obsidian" />
-              <span>{rating}</span>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 fill-primary text-primary" />
+              <span className="text-foreground">{rating}</span>
             </div>
             <span>{sales} USERS</span>
           </div>
 
-          <h3 className="text-xl font-headline text-obsidian leading-tight line-clamp-2">
+          <h3 className="text-base font-bold text-foreground leading-snug line-clamp-1">
             {title}
           </h3>
 
           <div className="flex items-center justify-between pt-2">
-            <div className="space-y-0.5">
+            <div className="flex items-baseline gap-2">
+              <p className="text-xl font-bold text-foreground">{price}</p>
               {compareAtPrice && compareAtPrice > priceRaw && (
-                <span className="text-xs text-gravel line-through">₹{(compareAtPrice / 100).toLocaleString()}</span>
+                <span className="text-xs text-muted-foreground line-through decoration-primary/30">₹{(compareAtPrice / 100).toLocaleString()}</span>
               )}
-              <p className="text-2xl font-medium text-obsidian">{price}</p>
             </div>
             <Button 
               size="icon" 
-              className="h-10 w-10 bg-obsidian text-white"
+              variant="outline"
+              className="h-8 w-8 rounded bg-white text-primary border-primary/20 hover:bg-primary hover:text-white"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="h-4 w-4" />

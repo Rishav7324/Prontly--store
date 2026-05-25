@@ -45,64 +45,71 @@ export default function Home() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="container mx-auto px-4 pt-32 pb-24 lg:pt-48">
-          <div className="max-w-[1200px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-              <div className="lg:col-span-8 space-y-8">
-                <p className="text-gravel font-medium tracking-[0.05em] uppercase text-xs">
-                  Premium Digital Inventory
-                </p>
-                <h1 className="text-5xl md:text-7xl lg:text-[84px] leading-[1.05] text-obsidian max-w-4xl">
+        <section className="relative overflow-hidden dreamy-gradient pt-32 pb-32 lg:pt-48 lg:pb-48">
+          <div className="absolute inset-0 bg-white/20 backdrop-blur-[100px]" />
+          <div className="container mx-auto px-4 relative z-10 max-w-[1200px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-7 space-y-8">
+                <Badge variant="outline" className="bg-white/50 border-primary/20 text-primary px-3 py-1 font-bold uppercase tracking-widest text-[10px]">
+                  Digital Command Center
+                </Badge>
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight">
                   {heroHeadline}
                 </h1>
-                <p className="text-lg md:text-xl text-gravel max-w-xl leading-relaxed">
+                <p className="text-lg md:text-xl text-secondary-foreground max-w-xl leading-relaxed">
                   {heroSubheadline}
                 </p>
                 <div className="flex flex-wrap items-center gap-4 pt-4">
                   <Button asChild size="lg" className="h-12 px-8">
                     <Link href="/products">Explore Marketplace</Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="h-12 px-8">
-                    <Link href="/signup">Create Account</Link>
+                  <Button asChild variant="ghost" size="lg" className="h-12 px-8 text-foreground font-bold">
+                    <Link href="/signup" className="flex items-center gap-2">
+                      Get started <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               </div>
-            </div>
-            
-            <div className="mt-32 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-chalk pt-12">
-              {[
-                { icon: Shield, label: 'Lifetime Updates' },
-                { icon: Rocket, label: 'Instant Delivery' },
-                { icon: Crown, label: 'Hand-Curated' },
-                { icon: Zap, label: 'Pro Optimized' },
-              ].map((feature, i) => (
-                <div key={i} className="space-y-3">
-                  <feature.icon className="h-5 w-5 text-obsidian" />
-                  <span className="block font-medium text-xs uppercase tracking-widest text-gravel">{feature.label}</span>
-                </div>
-              ))}
+              <div className="lg:col-span-5 hidden lg:block">
+                 <div className="relative aspect-square w-full rounded-lg stripe-shadow-xl overflow-hidden bg-white border border-border">
+                    <div className="absolute inset-0 sunburst-gradient opacity-10" />
+                    <div className="p-8 space-y-6">
+                       <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+                       <div className="h-4 w-full bg-muted rounded animate-pulse" />
+                       <div className="h-4 w-2/3 bg-muted rounded animate-pulse" />
+                       <div className="grid grid-cols-3 gap-4 pt-12">
+                          {[1,2,3].map(i => <div key={i} className="aspect-video bg-muted rounded animate-pulse" />)}
+                       </div>
+                    </div>
+                 </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Categories Section */}
-        <section className="bg-powder py-32">
+        <section className="bg-secondary/30 py-24 border-y border-border">
           <div className="container mx-auto px-4 max-w-[1200px]">
-            <header className="mb-16 space-y-4">
-              <p className="text-gravel font-medium uppercase text-[10px] tracking-[0.2em]">Curated Categories</p>
-              <h2 className="text-4xl md:text-5xl text-obsidian">Browse by Specialty</h2>
+            <header className="mb-12 flex justify-between items-end">
+              <div className="space-y-2">
+                <p className="text-primary font-bold uppercase text-[10px] tracking-[0.2em]">Curated Tracks</p>
+                <h2 className="text-3xl font-bold text-foreground tracking-tight">Browse by specialty</h2>
+              </div>
+              <Button variant="link" className="text-primary font-bold h-auto p-0 flex items-center gap-1">
+                View all <ArrowRight className="h-4 w-4" />
+              </Button>
             </header>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {categories?.map((cat: any) => (
                 <Link key={cat.id} href={`/products?category=${cat.slug}`}>
-                  <Card className="group h-full bg-white border-chalk hover:border-obsidian transition-all duration-300 rounded-2xl hairline-shadow inset-detail overflow-hidden">
-                    <CardContent className="p-8 space-y-6">
-                      <div className="h-12 w-12 rounded-xl bg-powder flex items-center justify-center group-hover:bg-obsidian group-hover:text-white transition-all">
-                        <span className="text-2xl">{cat.iconEmoji}</span>
+                  <Card className="group h-full bg-white border-none stripe-shadow-sm hover:stripe-shadow transition-all duration-300 rounded-md overflow-hidden">
+                    <CardContent className="p-6 space-y-4">
+                      <div className="h-10 w-10 rounded bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                        <span className="text-xl">{cat.iconEmoji}</span>
                       </div>
                       <div>
-                        <h4 className="text-xl font-headline mb-2 text-obsidian">{cat.name}</h4>
-                        <p className="text-sm text-gravel leading-relaxed line-clamp-2">{cat.description}</p>
+                        <h4 className="text-lg font-bold mb-1 text-foreground">{cat.name}</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{cat.description}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -113,31 +120,27 @@ export default function Home() {
         </section>
 
         {/* Featured Section */}
-        <section className="container mx-auto px-4 py-32 max-w-[1200px]">
-          <div className="mb-16 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end border-b border-chalk pb-12">
-            <div className="max-w-xl space-y-4">
-              <p className="text-gravel font-medium uppercase text-[10px] tracking-[0.2em]">Trending Now</p>
-              <h2 className="text-4xl md:text-5xl text-obsidian">Professional Selection</h2>
-            </div>
-            <Button asChild variant="ghost" className="gap-2 group text-obsidian">
-              <Link href="/products">
-                View All Assets <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
+        <section className="container mx-auto px-4 py-24 max-w-[1200px]">
+          <div className="mb-12 space-y-2 border-b pb-8">
+            <p className="text-primary font-bold uppercase text-[10px] tracking-[0.2em]">Market Intelligence</p>
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">Professional selection</h2>
           </div>
 
           <ProductGrid products={featuredProducts} loading={loading} />
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto px-4 py-32">
-          <div className="max-w-[1200px] mx-auto rounded-[32px] bg-obsidian text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-powder/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <h2 className="text-4xl md:text-6xl max-w-3xl mx-auto">Elevate your digital workflow today.</h2>
-            <p className="text-lg text-white/60 max-w-xl mx-auto">Join a community of thousands of designers and developers using Prontly assets.</p>
-            <div className="flex flex-wrap justify-center gap-4 pt-6">
-              <Button asChild size="lg" variant="outline" className="bg-white text-obsidian border-none hover:bg-powder h-14 px-12 text-lg">
-                <Link href="/signup">Get Started</Link>
+        <section className="container mx-auto px-4 py-24">
+          <div className="max-w-[1200px] mx-auto rounded-lg bg-foreground text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden stripe-shadow-xl">
+            <div className="absolute inset-0 dreamy-gradient opacity-10" />
+            <h2 className="text-4xl md:text-5xl font-bold max-w-3xl mx-auto tracking-tight">Ready to build your digital empire?</h2>
+            <p className="text-lg text-white/60 max-w-xl mx-auto">Join a community of 50k+ designers and developers using Prontly assets.</p>
+            <div className="flex flex-wrap justify-center gap-4 pt-6 relative z-10">
+              <Button asChild size="lg" className="bg-white text-foreground hover:bg-secondary h-12 px-10 text-base font-bold">
+                <Link href="/signup">Get started now</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-12 px-10 text-base font-bold">
+                <Link href="/products">Browse full catalog</Link>
               </Button>
             </div>
           </div>

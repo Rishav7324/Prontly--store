@@ -52,38 +52,33 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-chalk bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <nav className="mx-auto max-w-[1200px] h-[72px] flex items-center justify-between px-4 md:px-8">
           <div className="flex items-center gap-12">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-powder">
-                <Image 
-                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
-                  alt="Prontly Logo" 
-                  fill 
-                  className="object-cover"
-                />
+            <Link href="/" className="flex items-center gap-2">
+              <div className="relative h-7 w-7 overflow-hidden rounded bg-primary flex items-center justify-center">
+                <ShieldCheck className="h-4 w-4 text-white" />
               </div>
-              <span className="font-medium text-lg tracking-tight text-obsidian uppercase">Prontly</span>
+              <span className="font-bold text-lg tracking-tight text-foreground">Prontly</span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
-              <Link href="/products" className="text-sm font-medium text-gravel hover:text-obsidian transition-colors">Marketplace</Link>
-              <Link href="/blog" className="text-sm font-medium text-gravel hover:text-obsidian transition-colors">Resources</Link>
+              <Link href="/products" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Marketplace</Link>
+              <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Resources</Link>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 border-r border-chalk pr-4 mr-2">
-              <Button variant="ghost" size="icon" className="text-gravel" asChild>
+            <div className="flex items-center gap-1 border-r pr-4 mr-2">
+              <Button variant="ghost" size="icon" className="text-muted-foreground" asChild>
                 <Link href="/wishlist">
                   <Heart className="h-4 w-4" />
                 </Link>
               </Button>
 
-              <Button variant="ghost" size="icon" className="relative text-gravel" onClick={() => setIsCartOpen(true)}>
+              <Button variant="ghost" size="icon" className="relative text-muted-foreground" onClick={() => setIsCartOpen(true)}>
                 <ShoppingCart className="h-4 w-4" />
                 {cartItemCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-obsidian" />
+                  <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
                 )}
               </Button>
             </div>
@@ -92,18 +87,18 @@ export function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
-                    <Avatar className="h-9 w-9 border border-chalk">
+                    <Avatar className="h-9 w-9 border">
                       <AvatarImage src={user.photoURL || ''} />
                       <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 mt-2 rounded-2xl border-chalk" align="end">
+                <DropdownMenuContent className="w-56 mt-2 rounded-lg" align="end">
                   <DropdownMenuLabel className="font-normal p-4">
-                    <p className="text-sm font-semibold text-obsidian">{user.displayName || 'Creator'}</p>
-                    <p className="text-[10px] text-gravel uppercase tracking-widest">{user.email}</p>
+                    <p className="text-sm font-semibold text-foreground">{user.displayName || 'Creator'}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{user.email}</p>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-chalk" />
+                  <DropdownMenuSeparator />
                   {isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="flex items-center gap-2 p-3">
@@ -124,10 +119,10 @@ export function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <Link href="/login">
-                  <Button variant="ghost" className="text-gravel">Login</Button>
+                  <Button variant="ghost" className="text-muted-foreground">Log in</Button>
                 </Link>
                 <Link href="/signup">
-                  <Button className="h-10 px-6">Join</Button>
+                  <Button className="h-9 px-5">Get started</Button>
                 </Link>
               </div>
             )}
