@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.store.prontly.in';
 
 interface GenerateMetaProps {
   title: string;

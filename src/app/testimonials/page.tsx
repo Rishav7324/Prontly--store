@@ -1,43 +1,21 @@
-'use client';
-
-import { useMemo } from 'react';
+import { Metadata } from 'next';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
-import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { generateMeta } from '@/lib/seo/generate-meta';
 import { Badge } from '@/components/ui/badge';
-import { Star, Quote, Heart, Sparkles, ShoppingBag } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Star, Quote, Sparkles, Heart } from 'lucide-react';
 import Link from 'next/link';
 
+export async function generateMetadata(): Promise<Metadata> {
+  return generateMeta({
+    title: "Customer Reviews & Success Stories",
+    description: "Read what professional creators and developers say about Prontly Store's premium AI prompts and digital assets.",
+    path: '/testimonials',
+    noIndex: true // Keep noindex until real testimonials are added
+  });
+}
+
 export default function TestimonialsPage() {
-  const db = useFirestore();
-
-  // Simplified query to avoid composite index requirements
-  const testimonialsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(
-      collection(db, 'reviews'),
-      where('rating', '>=', 4),
-      limit(100)
-    );
-  }, [db]);
-
-  const { data: allReviews, loading } = useCollection(testimonialsQuery);
-
-  // Client-side sorting for better reliability without manual indexes
-  const sortedReviews = useMemo(() => {
-    if (!allReviews) return [];
-    return [...allReviews].sort((a: any, b: any) => {
-      const dateA = a.createdAt?.toMillis?.() || 0;
-      const dateB = b.createdAt?.toMillis?.() || 0;
-      return dateB - dateA;
-    }).slice(0, 50);
-  }, [allReviews]);
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -52,73 +30,18 @@ export default function TestimonialsPage() {
             The Wall of <span className="text-primary">Love.</span>
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Join thousands of professional creators who have accelerated their workflow with Prontly's digital assets. Here's what our community has to say.
+            Professional creators are accelerating their workflow with Prontly's digital assets. Be among the first to share your journey.
           </p>
         </header>
 
-        {loading ? (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-60 w-full bg-muted animate-pulse rounded-[2.5rem]" />
-            ))}
+        <div className="text-center py-40 bg-muted/5 border-dashed border-2 rounded-[3rem] border-white/5">
+          <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+          <h4 className="text-2xl font-bold font-headline mb-2">Real Stories Coming Soon</h4>
+          <p className="text-muted-foreground max-w-sm mx-auto">We're currently collecting feedback from our early adopters. Check back shortly to see the impact.</p>
+          <div className="mt-8">
+            <Link href="/products" className="text-primary font-bold hover:underline">Browse our latest assets →</Link>
           </div>
-        ) : sortedReviews.length > 0 ? (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {sortedReviews.map((review: any) => (
-              <Card 
-                key={review.id} 
-                className="break-inside-avoid bg-card/40 border-white/5 rounded-[2.5rem] p-8 transition-all hover:border-primary/20 hover:bg-card/60 group"
-              >
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={cn("h-3 w-3", i < review.rating ? "text-yellow-500 fill-current" : "text-muted-foreground/20")} />
-                      ))}
-                    </div>
-                    <Quote className="h-8 w-8 text-primary/10 group-hover:text-primary/20 transition-colors" />
-                  </div>
-
-                  <p className="text-lg leading-relaxed text-foreground/90 italic">
-                    "{review.comment}"
-                  </p>
-
-                  <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-                    <Avatar className="h-10 w-10 border border-primary/20">
-                      <AvatarImage src={review.userAvatar} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-bold">{review.userName?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm truncate">{review.userName}</span>
-                        <Badge className="bg-green-500/10 text-green-500 border-none text-[8px] uppercase tracking-widest px-1.5 py-0">Verified</Badge>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
-                        {review.createdAt ? format(new Date(review.createdAt.toDate()), 'MMM dd, yyyy') : 'Recent'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {review.productName && (
-                    <Link 
-                      href={`/products/${review.productId}`}
-                      className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:text-accent transition-colors"
-                    >
-                      <ShoppingBag className="h-3 w-3" />
-                      View Asset: {review.productName}
-                    </Link>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-40 bg-muted/5 border-dashed border-2 rounded-[3rem] border-white/5">
-            <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <h4 className="text-xl font-bold">No reviews yet</h4>
-            <p className="text-muted-foreground">Be the first to share your experience on our product pages!</p>
-          </div>
-        )}
+        </div>
 
         <section className="mt-32 pt-20 border-t border-white/5 text-center">
           <h2 className="text-3xl font-bold font-headline mb-6">Ready to create something great?</h2>

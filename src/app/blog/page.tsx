@@ -1,29 +1,50 @@
-'use client';
-
+import { Metadata } from 'next';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import { Calendar, Clock, ArrowRight, User } from 'lucide-react';
+import { firebaseConfig } from '@/firebase/config';
+import { generateMeta } from '@/lib/seo/generate-meta';
+import { Calendar, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
-export default function BlogListingPage() {
-  const db = useFirestore();
-  
-  const blogQuery = useMemoFirebase(() => {
-    return db ? query(
-      collection(db, 'blog_posts'),
-      where('status', '==', 'published'),
-      orderBy('createdAt', 'desc')
-    ) : null;
-  }, [db]);
+async function getPosts() {
+  const projectId = firebaseConfig.projectId;
+  const res = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blog_posts?pageSize=100`,
+    { next: { revalidate: 3600 } }
+  );
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.documents || [])
+    .map((doc: any) => {
+      const fields = doc.fields || {};
+      return {
+        id: doc.name.split('/').pop(),
+        title: fields.title?.stringValue || "",
+        slug: fields.slug?.stringValue || "",
+        excerpt: fields.excerpt?.stringValue || "",
+        featuredImage: fields.featuredImage?.stringValue || "",
+        status: fields.status?.stringValue || "draft",
+        publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
+        tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || []
+      };
+    })
+    .filter((p: any) => p.status === 'published');
+}
 
-  const { data: posts, loading } = useCollection(blogQuery);
+export async function generateMetadata(): Promise<Metadata> {
+  return generateMeta({
+    title: "AI Prompt Tips & Creator Guides — Prontly Blog",
+    description: "Expert guides on AI prompt engineering, creator workflows, and digital product best practices — from the Prontly team.",
+    path: '/blog'
+  });
+}
+
+export default async function BlogListingPage() {
+  const posts = await getPosts();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -36,13 +57,7 @@ export default function BlogListingPage() {
           <p className="text-xl text-muted-foreground">Expert guides, industry news, and tips to master your digital workflow.</p>
         </header>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-[400px] rounded-2xl bg-muted animate-pulse" />
-            ))}
-          </div>
-        ) : posts && posts.length > 0 ? (
+        {posts && posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post: any) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className="group">
@@ -53,14 +68,13 @@ export default function BlogListingPage() {
                       alt={post.title} 
                       fill 
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      data-ai-hint="blog post image"
                     />
                   </div>
                   <CardHeader className="space-y-2">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {post.publishedAt ? format(new Date(post.publishedAt.toDate()), 'MMM dd, yyyy') : 'Recently'}
+                        {post.publishedAt ? format(new Date(post.publishedAt), 'MMM dd, yyyy') : 'Recently'}
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -89,8 +103,8 @@ export default function BlogListingPage() {
           </div>
         ) : (
           <div className="text-center py-20 bg-muted/20 rounded-3xl border border-dashed">
-            <h3 className="text-2xl font-bold">No articles yet</h3>
-            <p className="text-muted-foreground">Stay tuned for updates from our team.</p>
+            <h3 className="text-2xl font-bold">New Insights Coming Soon</h3>
+            <p className="text-muted-foreground">We are curating expert guides for you. Check back shortly.</p>
           </div>
         )}
       </main>
