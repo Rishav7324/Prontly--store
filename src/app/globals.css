@@ -25,6 +25,18 @@
     --input: 210 44% 93%;
     --ring: 248 98% 61%;
     --radius: 0.25rem; /* 4px for buttons/inputs */
+
+    /* Stripe Specific Colors */
+    --color-midnight-ink: #061b31;
+    --color-slate-blue: #50617a;
+    --color-ghost-gray: #64748d;
+    --color-platinum-white: #ffffff;
+    --color-porcelain-white: #f8fafd;
+    --color-powder-blue: #e5edf5;
+    --color-stone-gray: #d8d6df;
+    --color-deep-violet: #533afd;
+    --color-washed-violet: #b9b9f9;
+    --color-soft-violet: #8087ff;
   }
 }
 
