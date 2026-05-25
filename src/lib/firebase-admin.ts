@@ -3,9 +3,8 @@ import { getAuth, Auth } from 'firebase-admin/auth';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
- * @fileOverview Refactored Firebase Admin SDK Initialization.
- * Uses individual environment variables to prevent JSON parsing errors
- * caused by newline characters in private keys.
+ * @fileOverview Hardened Firebase Admin SDK Initialization.
+ * Implements aggressive cleaning of private keys to prevent "UNAUTHENTICATED" errors.
  */
 
 function getAdminApp(): App {
@@ -14,7 +13,7 @@ function getAdminApp(): App {
   const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error('Firebase Admin environment variables are missing (Project ID, Client Email, or Private Key).');
+    throw new Error('Missing critical Firebase Admin environment variables.');
   }
 
   // Check if we already have an initialized app with this name
@@ -22,8 +21,19 @@ function getAdminApp(): App {
   if (existingApp) return existingApp;
 
   try {
-    // Correctly format the private key to restore newline characters
-    const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
+    /**
+     * AGGRESSIVE KEY CLEANING
+     * 1. Remove surrounding quotes that might be added by env loaders
+     * 2. Remove leading/trailing whitespace
+     * 3. Handle both \n and \\n escaping
+     */
+    let cleanedKey = privateKey.trim();
+    if (cleanedKey.startsWith('"') && cleanedKey.endsWith('"')) {
+      cleanedKey = cleanedKey.substring(1, cleanedKey.length - 1);
+    }
+    const formattedPrivateKey = cleanedKey.replace(/\\n/g, '\n');
+
+    console.log(`[FIREBASE_ADMIN_INIT]: Initializing for project ${projectId} with service account ${clientEmail}`);
 
     return initializeApp({
       credential: cert({
@@ -34,8 +44,8 @@ function getAdminApp(): App {
       projectId,
     }, 'admin-app');
   } catch (e: any) {
-    console.error('CRITICAL: Firebase Admin Initialization Failed:', e.message);
-    throw new Error('Internal Server Error: Secure Service Layer unavailable.');
+    console.error('[FIREBASE_ADMIN_CRITICAL_FAILURE]:', e.message);
+    throw new Error(`Authentication bridge failed: ${e.message}`);
   }
 }
 

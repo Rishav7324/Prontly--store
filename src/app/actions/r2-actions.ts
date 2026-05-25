@@ -52,15 +52,24 @@ export async function getDownloadUrl(productId: string, userId: string) {
       db = getAdminDb();
     } catch (adminErr: any) {
       console.error('SECURE_DOWNLOAD_INIT_ERROR:', adminErr.message);
-      throw new Error('The secure verification service is currently unavailable. Please try again later.');
+      throw new Error('The secure verification service is currently unavailable. Please verify environment variables.');
     }
     
     // 1. Verify User Ownership via Orders
     // We check for 'paid' or 'delivered' status to ensure access
-    const ordersSnap = await db.collection('orders')
-      .where('userId', '==', userId)
-      .where('status', 'in', ['paid', 'delivered'])
-      .get();
+    let ordersSnap;
+    try {
+      ordersSnap = await db.collection('orders')
+        .where('userId', '==', userId)
+        .where('status', 'in', ['paid', 'delivered'])
+        .get();
+    } catch (dbErr: any) {
+      console.error('SECURE_DOWNLOAD_DB_FETCH_ERROR:', dbErr.message);
+      if (dbErr.message.includes('UNAUTHENTICATED')) {
+        throw new Error('Backend authentication failed. Please check service account permissions.');
+      }
+      throw new Error('Could not retrieve order history for verification.');
+    }
 
     console.log(`SECURE_DOWNLOAD: Found ${ordersSnap.size} relevant orders for user.`);
 
