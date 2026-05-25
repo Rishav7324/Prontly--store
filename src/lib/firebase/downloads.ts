@@ -48,11 +48,13 @@ export async function createDownloadRecord(
     isActive: true,
   };
 
-  await docRef.set(record, { merge: false });
+  await docRef.set(record, { merge: true });
 }
 
 /**
  * ─── Get All Downloads For A User ─────────────────────────────────────────────
+ * Removed server-side orderBy to prevent silent failures if indices are stale.
+ * Sorting is handled in the API layer.
  */
 export async function getUserDownloads(
   userId: string
@@ -62,7 +64,6 @@ export async function getUserDownloads(
     .collection("downloads")
     .doc(userId)
     .collection("products")
-    .orderBy("purchasedAt", "desc")
     .get();
 
   return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DownloadRecord));

@@ -5,7 +5,7 @@ import { DownloadButton } from './DownloadButton';
 import type { DownloadRecord } from '@/types/download';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { FileText, Package, Clock, Calendar } from 'lucide-react';
 
 interface DownloadCardProps {
@@ -14,6 +14,7 @@ interface DownloadCardProps {
 
 export function DownloadCard({ record }: DownloadCardProps) {
   const formatFileSize = (bytes: number): string => {
+    if (!bytes) return '0 B';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -21,12 +22,20 @@ export function DownloadCard({ record }: DownloadCardProps) {
 
   const progressPercent = Math.round((record.downloadCount / record.downloadLimit) * 100);
 
-  // Helper to normalize dates from both API (string) and Firebase (Timestamp)
+  // Robust helper to normalize and format dates from any source (API string, Timestamp, or Date)
   const formatFriendlyDate = (dateVal: any, formatStr: string) => {
     if (!dateVal) return 'N/A';
     try {
-      const d = dateVal.toDate ? dateVal.toDate() : (typeof dateVal === 'string' ? parseISO(dateVal) : new Date(dateVal));
-      return format(d, formatStr);
+      let d: Date;
+      if (dateVal.toDate) {
+        d = dateVal.toDate();
+      } else if (typeof dateVal === 'string') {
+        d = parseISO(dateVal);
+      } else {
+        d = new Date(dateVal);
+      }
+      
+      return isValid(d) ? format(d, formatStr) : 'Recent';
     } catch (e) {
       return 'Recent';
     }
@@ -38,7 +47,12 @@ export function DownloadCard({ record }: DownloadCardProps) {
         <div className="flex gap-6">
           <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-muted border border-white/5 shrink-0">
             {record.productImage ? (
-              <Image src={record.productImage} alt={record.productName} fill className="object-cover transition-transform group-hover:scale-110" />
+              <Image 
+                src={record.productImage} 
+                alt={record.productName} 
+                fill 
+                className="object-cover transition-transform group-hover:scale-110" 
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
                 <Package className="h-8 w-8" />
@@ -53,13 +67,13 @@ export function DownloadCard({ record }: DownloadCardProps) {
               </h3>
               <div className="flex flex-wrap gap-2 mt-1">
                 <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] uppercase font-black tracking-widest px-2 py-0">
-                  {record.fileFormat.toUpperCase()}
+                  {(record.fileFormat || 'SOURCE').toUpperCase()}
                 </Badge>
                 <Badge variant="outline" className="border-white/10 text-muted-foreground text-[10px] font-bold">
                   {formatFileSize(record.fileSize)}
                 </Badge>
                 <Badge variant="outline" className="border-white/10 text-muted-foreground text-[10px] font-bold">
-                  v{record.fileVersion}
+                  v{record.fileVersion || '1.0'}
                 </Badge>
               </div>
             </div>
@@ -79,7 +93,7 @@ export function DownloadCard({ record }: DownloadCardProps) {
                   className={`h-full rounded-full transition-all duration-1000 ${
                     progressPercent >= 100 ? "bg-red-500" : progressPercent >= 60 ? "bg-amber-500" : "bg-primary"
                   }`}
-                  style={{ width: `${progressPercent}%` }}
+                  style={{ width: `${Math.min(100, progressPercent)}%` }}
                 />
               </div>
             </div>
