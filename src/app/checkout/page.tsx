@@ -7,16 +7,17 @@ import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/hooks/use-cart';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, increment, updateDoc } from 'firebase/firestore';
-import { ShoppingBag, Loader2, CheckCircle2, CreditCard, ShieldCheck } from 'lucide-react';
+import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { ShoppingBag, Loader2, CheckCircle2, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
-import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 import { createRazorpayOrder, verifyRazorpayPayment } from '@/app/actions/razorpay-actions';
 import Script from 'next/script';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCart();
@@ -55,7 +56,7 @@ export default function CheckoutPage() {
     if (!db || items.length === 0) return;
     
     if (!scriptLoaded || !(window as any).Razorpay) {
-      toast({ variant: "destructive", title: "Gateway Unready", description: "Payment system is initializing. Please wait 5 seconds." });
+      toast({ variant: "destructive", title: "Gateway Fault", description: "Initializing payment stack..." });
       return;
     }
 
@@ -67,15 +68,12 @@ export default function CheckoutPage() {
         throw new Error(orderRes.error || 'Failed to initiate secure payment.');
       }
 
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      if (!razorpayKey) throw new Error('Razorpay client configuration missing.');
-
       const options = {
-        key: razorpayKey,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderRes.order.amount,
         currency: orderRes.order.currency,
         name: settings?.siteName || "Prontly Store",
-        description: `Unlock ${items.length} Digital Assets`,
+        description: `Order for ${items.length} assets`,
         order_id: orderRes.order.id,
         handler: async (response: any) => {
           await finalizeOrder(response, orderRes.order!.id);
@@ -86,18 +84,16 @@ export default function CheckoutPage() {
       };
 
       const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', (res: any) => {
-        toast({ variant: "destructive", title: "Declined", description: res.error.description });
-        setIsProcessing(false);
-      });
       rzp.open();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Checkout Error", description: error.message });
+      toast({ variant: "destructive", title: "Checkout Exception", description: error.message });
       setIsProcessing(false);
     }
   };
 
   const finalizeOrder = async (rzpResponse: any, razorpayOrderId: string) => {
+    if (!db) return;
+    
     try {
       const verifyRes = await verifyRazorpayPayment(
         razorpayOrderId, 
@@ -105,8 +101,9 @@ export default function CheckoutPage() {
         rzpResponse.razorpay_signature
       );
 
-      if (!verifyRes.success) throw new Error('Security signature mismatch.');
+      if (!verifyRes.success) throw new Error('Verification integrity failure.');
 
+      const orderRef = doc(collection(db, 'orders'));
       const orderData = {
         userId: user?.uid || 'guest',
         userName: formData.name,
@@ -120,42 +117,40 @@ export default function CheckoutPage() {
         subtotal: total,
         discount: 0,
         total: total,
-        status: 'paid',
-        paymentId: rzpResponse.razorpay_payment_id,
+        status: 'paid', // Optimistic status, webhook will confirm
+        paymentId: razorpayOrderId,
         createdAt: serverTimestamp(),
-        paidAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db!, 'orders'), orderData);
-      
-      // Async dispatch using the new professional Multi-Sender architecture
-      sendOrderConfirmationEmail({ ...orderData, id: docRef.id }).catch(console.error);
+      // Non-blocking Firestore Record creation
+      setDoc(orderRef, orderData)
+        .then(() => {
+          setIsSuccess(true);
+          clearCart();
+          setTimeout(() => router.push('/dashboard'), 3000);
+        })
+        .catch(async () => {
+          const permissionError = new FirestorePermissionError({
+            path: orderRef.path,
+            operation: 'create',
+            requestResourceData: orderData,
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        });
 
-      if (user) {
-        updateDoc(doc(db!, 'users', user.uid), { 
-          totalSpent: increment(total), 
-          orderCount: increment(1) 
-        }).catch(console.error);
-      }
-
-      setIsSuccess(true);
-      clearCart();
-      setTimeout(() => router.push('/dashboard'), 3000);
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Fulfillment Failed", description: error.message });
+      toast({ variant: "destructive", title: "Fulfillment System Error", description: error.message });
       setIsProcessing(false);
     }
   };
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-8 animate-in fade-in zoom-in duration-500">
-          <CheckCircle2 className="h-24 w-24 text-primary mx-auto animate-bounce" />
-          <h1 className="text-4xl font-bold font-headline">Success!</h1>
-          <p className="text-muted-foreground">Verification complete. An invoice has been sent from <strong>orders@store.prontly.in</strong>.</p>
-          <Button asChild size="lg" className="w-full rounded-2xl h-14 font-bold shadow-xl"><Link href="/dashboard">Access Library</Link></Button>
-        </div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+        <CheckCircle2 className="h-24 w-24 text-primary mb-8 animate-bounce" />
+        <h1 className="text-4xl font-bold font-headline mb-4">Transaction Verified.</h1>
+        <p className="text-muted-foreground mb-8">Accessing your digital vault in moments...</p>
+        <Button asChild className="rounded-xl h-14 px-10"><Link href="/dashboard">Go to Library</Link></Button>
       </div>
     );
   }
@@ -165,45 +160,46 @@ export default function CheckoutPage() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" onLoad={() => setScriptLoaded(true)} />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
-        <h1 className="text-2xl text-center font-bold font-headline mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold font-headline mb-12">Secure Checkout</h1>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <form onSubmit={handleCheckout} className="lg:col-span-7 space-y-8">
-            <Card className="border-white/5 bg-card/30 rounded-[2.5rem] p-8">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                    <Input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-10 bg-background/50 border-white/10 rounded-2xl px-6 text-lg" />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Email Address</Label>
-                    <Input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-10 bg-background/50 border-white/10 rounded-2xl px-6 text-lg" />
-                  </div>
+            <div className="p-8 rounded-[2rem] bg-card/30 border border-white/5 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Full Name</Label>
+                  <Input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-12 bg-background/50 rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Email Address</Label>
+                  <Input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 bg-background/50 rounded-xl" />
                 </div>
               </div>
-            </Card>
-            <Button type="submit" size="lg" className="w-80 h-12 text-1xl display-flex font-bold rounded-[2rem] shadow-2xl shadow-primary/20 gap-4" disabled={isProcessing || !mounted || items.length === 0}>
-              {isProcessing ? <Loader2 className="h-8 w-8 animate-spin" /> : <CreditCard className="h-8 w-8" />}
-              {isProcessing ? 'Validating...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
+            </div>
+            <Button type="submit" size="lg" className="w-full h-16 text-lg font-bold rounded-2xl shadow-2xl shadow-primary/20" disabled={isProcessing || items.length === 0}>
+              {isProcessing ? <Loader2 className="h-6 w-6 animate-spin mr-3" /> : <CreditCard className="h-6 w-6 mr-3" />}
+              {isProcessing ? 'Verifying Gateway...' : `Authorize Payment • ₹${(total / 100).toLocaleString('en-IN')}`}
             </Button>
           </form>
           <div className="lg:col-span-5">
-            <Card className="border-white/5 bg-card/50 backdrop-blur-3xl rounded-[3rem] p-10 sticky top-28">
-              <h4 className="text-1xl font-bold font-headline mb-8 flex items-center gap-3"><ShoppingBag className="h-6 w-6 text-primary" /> Order Summary</h4>
+            <Card className="border-white/5 bg-card/50 rounded-[2.5rem] p-10 sticky top-28">
+              <h4 className="text-xl font-bold font-headline mb-8 flex items-center gap-3">
+                <ShoppingBag className="h-6 w-6 text-primary" /> 
+                Order Recap
+              </h4>
               <div className="space-y-6">
                 {mounted && items.map((item) => (
                   <div key={item.id} className="flex justify-between items-start gap-4">
-                    <div className="space-y-1">
-                      <p className="font-semi w-70 h-15  overflow-hidden text-1xl leading">{item.name}</p>
-                      <p className="text-xs text-muted-foreground uppercase font-bold">Qty: {item.quantity}</p>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm leading-tight line-clamp-2">{item.name}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-1">License: Perpetual</p>
                     </div>
-                    <span className="font-bold text-lg">₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}</span>
+                    <span className="font-bold">₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}</span>
                   </div>
                 ))}
-                <div className="pt-8 mt-4 border-t border-white/10">
-                  <div className="flex justify-between text-1xl font-bold font-headline">
-                    <span>Total</span>
-                    <span className="text-primary">{mounted ? `₹${(total / 100).toLocaleString('en-IN')}` : '...'}</span>
+                <div className="pt-8 mt-4 border-t border-white/5">
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-bold text-lg">Total Due</span>
+                    <span className="text-3xl font-bold text-primary">{mounted ? `₹${(total / 100).toLocaleString('en-IN')}` : '...'}</span>
                   </div>
                 </div>
               </div>
