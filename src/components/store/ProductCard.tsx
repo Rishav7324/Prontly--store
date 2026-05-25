@@ -11,6 +11,12 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 interface ProductCardProps {
   id: string;
@@ -19,12 +25,12 @@ interface ProductCardProps {
   priceRaw: number;
   compareAtPrice?: number;
   category: string;
-  imageUrl: string;
+  images: string[];
   rating: number;
   sales: string;
 }
 
-export function ProductCard({ id, title, price, priceRaw, compareAtPrice, category, imageUrl, rating, sales }: ProductCardProps) {
+export function ProductCard({ id, title, price, priceRaw, compareAtPrice, category, images, rating, sales }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
@@ -35,35 +41,72 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    addItem({ id, name: title, price: priceRaw, imageUrl, category });
+    e.stopPropagation();
+    addItem({ id, name: title, price: priceRaw, imageUrl: images[0] || '', category });
     toast({ title: "Added to cart", description: `${title} is ready for checkout.` });
   };
 
   const isWishlisted = mounted ? isInWishlist(id) : false;
 
+  const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/400'];
+
   return (
-    <Link href={`/products/${id}`} className="group block h-full">
-      <Card className="h-full border-none bg-white rounded-[6px] overflow-hidden shadow-sm hover:shadow-xl-2 transition-all duration-300 hover:-translate-y-1 relative">
+    <Card className="h-full border-none bg-white rounded-[6px] overflow-hidden shadow-sm hover:shadow-xl-2 transition-all duration-300 hover:-translate-y-1 relative group/card">
+      <Link href={`/products/${id}`} className="block h-full">
         <div className="relative aspect-[4/3] bg-porcelain-white overflow-hidden rounded-[4px] m-1">
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-            data-ai-hint="product digital asset"
-          />
+          {displayImages.length > 1 ? (
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              plugins={[
+                Autoplay({
+                  delay: 3000,
+                  stopOnInteraction: false,
+                }),
+              ]}
+              className="w-full h-full"
+            >
+              <CarouselContent className="-ml-0 h-full">
+                {displayImages.map((img, index) => (
+                  <CarouselItem key={index} className="pl-0 relative aspect-[4/3] h-full">
+                    <Image
+                      src={img}
+                      alt={`${title} - image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      data-ai-hint="product digital asset"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          ) : (
+            <Image
+              src={displayImages[0]}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover/card:scale-105"
+              data-ai-hint="product digital asset"
+            />
+          )}
           
           {/* Top Overlays */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 z-10 pointer-events-none">
             <Badge className="bg-white/90 backdrop-blur-md text-midnight-ink border-none font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-[4px] shadow-sm">
               {category}
             </Badge>
           </div>
 
           <button 
-            onClick={(e) => { e.preventDefault(); toggleItem(id); }}
+            onClick={(e) => { 
+              e.preventDefault(); 
+              e.stopPropagation(); 
+              toggleItem(id); 
+            }}
             className={cn(
-              "absolute top-3 right-3 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center transition-all shadow-sm border border-stone-gray/10 hover:scale-110 active:scale-90",
+              "absolute top-3 right-3 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center transition-all shadow-sm border border-stone-gray/10 hover:scale-110 active:scale-90 z-10",
               isWishlisted ? "text-deep-violet" : "text-ghost-gray hover:text-midnight-ink"
             )}
           >
@@ -83,7 +126,7 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
             </div>
           </div>
 
-          <h3 className="text-base font-bold text-midnight-ink leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-deep-violet transition-colors">
+          <h3 className="text-base font-bold text-midnight-ink leading-tight line-clamp-2 min-h-[2.5rem] group-hover/card:text-deep-violet transition-colors">
             {title}
           </h3>
 
@@ -97,14 +140,14 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
             <Button 
               size="icon" 
               variant="default"
-              className="h-10 w-10 rounded-[4px] bg-deep-violet text-white hover:opacity-90 transition-all shadow-sm"
+              className="h-10 w-10 rounded-[4px] bg-deep-violet text-white hover:opacity-90 transition-all shadow-sm relative z-20"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 }

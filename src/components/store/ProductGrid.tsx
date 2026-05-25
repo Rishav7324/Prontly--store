@@ -37,7 +37,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
           priceRaw={product.price}
           compareAtPrice={product.compareAtPrice}
           category={product.categorySlug || 'Asset'}
-          imageUrl={product.images?.[0] || 'https://picsum.photos/seed/placeholder/600/400'}
+          images={product.images || []}
           rating={product.averageRating || 5.0}
           sales={product.salesCount?.toString() || '0'}
         />
