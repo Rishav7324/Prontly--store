@@ -10,7 +10,7 @@ interface ProductGridProps {
 export function ProductGrid({ products, loading }: ProductGridProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="h-[420px] rounded-md bg-porcelain-white animate-pulse border border-stone-gray/10" />
         ))}
@@ -27,7 +27,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8">
       {products.map((product: any) => (
         <ProductCard 
           key={product.id} 

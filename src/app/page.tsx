@@ -165,10 +165,10 @@ export default function Home() {
                   <Card className="group h-full bg-white border-none shadow-sm hover:shadow-xl-2 transition-all duration-500 rounded-md overflow-hidden relative">
                     <CardContent className="p-8 space-y-6">
                       <div className="h-12 w-12 rounded-lg bg-powder-blue/50 flex items-center justify-center group-hover:bg-deep-violet/10 transition-colors">
-                        <span className="text-2xl group-hover:scale-110 transition-transform">{cat.iconEmoji}</span>
+                        <span className="text-2xl items-flex">{cat.iconEmoji}</span>
                       </div>
                       <div>
-                        <h4 className="text-xl font-bold mb-2 text-midnight-ink">{cat.name}</h4>
+                        <h4 className="text-xl font-bold mb-2  text-midnight-ink">{cat.name}</h4>
                         <p className="text-sm text-slate-blue leading-relaxed line-clamp-3">{cat.description}</p>
                       </div>
                       <div className="pt-4 flex items-center text-xs font-black uppercase text-ghost-gray tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
