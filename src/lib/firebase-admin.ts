@@ -4,7 +4,7 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Hardened Firebase Admin SDK Initialization.
- * Implements aggressive cleaning of private keys to prevent "UNAUTHENTICATED" errors.
+ * Implements aggressive cleaning of credentials to prevent "UNAUTHENTICATED" errors.
  */
 
 function getAdminApp(): App {
@@ -73,5 +73,5 @@ export const getAdminAuth = (): Auth => {
  * Singleton getter for Admin Firestore.
  */
 export const getAdminDb = (): Firestore => {
-  return getFirestore(getAdminApp());
+  return getAdminApp().name ? getFirestore(getAdminApp()) : getFirestore();
 };
