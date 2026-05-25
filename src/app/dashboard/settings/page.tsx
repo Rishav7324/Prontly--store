@@ -156,6 +156,21 @@ export default function UserSettingsPage() {
     );
   }
 
+  const deletionEmailBody = `Hello support,
+
+I am requesting the deletion of my account and all associated data in accordance with DPDPA 2023 guidelines.
+
+User Identity Attributes:
+Name: ${formData.displayName || user.displayName || 'Anonymous Creator'}
+Email: ${user.email}
+UID: ${user.uid}
+
+I understand that this action is permanent and will immediately revoke my access to all purchased digital assets and source files stored in the secure R2 vault.
+
+Regards,`;
+
+  const deletionMailto = `mailto:store.support@prontly.in?subject=Account Deletion Request - ${user.email}&body=${encodeURIComponent(deletionEmailBody)}`;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -313,7 +328,9 @@ export default function UserSettingsPage() {
                      <h4 className="font-bold text-red-500">Account Termination</h4>
                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Permanently purge your identity from our systems. This will immediately revoke all perpetual licenses and R2 source file access.</p>
                    </div>
-                   <Button variant="destructive" className="w-full h-12 rounded-xl font-bold stripe-shadow-sm">Request Deletion</Button>
+                   <Button variant="destructive" className="w-full h-12 rounded-xl font-bold stripe-shadow-sm" asChild>
+                     <a href={deletionMailto}>Request Deletion</a>
+                   </Button>
                 </div>
               </div>
 
