@@ -14,46 +14,45 @@ function getAdminApp(): App {
     throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
   }
 
-  if (getApps().length === 0) {
-    try {
-      // 1. Clean the string: remove surrounding quotes, extra whitespace, and handle escaped newlines
-      let cleanedStr = serviceAccountStr.trim();
-      
-      // Remove surrounding single or double quotes if they exist
-      if ((cleanedStr.startsWith("'") && cleanedStr.endsWith("'")) || 
-          (cleanedStr.startsWith('"') && cleanedStr.endsWith('"'))) {
-        cleanedStr = cleanedStr.substring(1, cleanedStr.length - 1);
-      }
+  // Check if we already have an initialized app with this name
+  const existingApp = getApps().find(app => app.name === 'admin-app');
+  if (existingApp) return existingApp;
 
-      // Handle literal escaped newlines that might be in the env string
-      cleanedStr = cleanedStr.replace(/\\n/g, '\n');
-
-      // 2. Parse JSON
-      let serviceAccount;
-      try {
-        serviceAccount = JSON.parse(cleanedStr);
-      } catch (jsonError) {
-        // Fallback for cases where the string might still have double-escaped characters
-        console.error('Initial JSON parse failed, attempting secondary cleanup...');
-        serviceAccount = JSON.parse(JSON.stringify(cleanedStr).replace(/\\\\n/g, '\\n'));
-      }
-
-      // 3. Fix the private key newlines specifically if they are still double-escaped
-      if (serviceAccount.private_key) {
-        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-      }
-
-      return initializeApp({
-        credential: cert(serviceAccount),
-        projectId: serviceAccount.project_id,
-      }, 'admin-app');
-    } catch (e: any) {
-      console.error('CRITICAL: Firebase Admin Initialization Failed:', e.message);
-      throw new Error(`Invalid Service Account Configuration: ${e.message}`);
+  try {
+    // 1. Clean the string: handle potential double-quoting from env loaders
+    let cleanedStr = serviceAccountStr.trim();
+    
+    // Remove potential surrounding quotes added by env loaders (single or double)
+    // We do this in a loop to handle multiple layers of wrapping if they exist
+    while (
+      (cleanedStr.startsWith('"') && cleanedStr.endsWith('"')) || 
+      (cleanedStr.startsWith("'") && cleanedStr.endsWith("'"))
+    ) {
+      cleanedStr = cleanedStr.slice(1, -1).trim();
     }
+
+    // 2. Resolve escaped characters (common when pasting multi-line JSON into single-line env fields)
+    // Replace literal '\n' strings with actual newline characters
+    cleanedStr = cleanedStr.replace(/\\n/g, '\n');
+
+    // 3. Parse the service account JSON
+    const serviceAccount = JSON.parse(cleanedStr);
+
+    // 4. Ensure the private_key is correctly formatted (it must have real newlines)
+    if (serviceAccount.private_key) {
+      // Sometimes the private key itself within the JSON still has escaped \n
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+    }
+
+    return initializeApp({
+      credential: cert(serviceAccount),
+      projectId: serviceAccount.project_id,
+    }, 'admin-app');
+  } catch (e: any) {
+    console.error('CRITICAL: Firebase Admin Initialization Failed:', e.message);
+    // Provide a descriptive error for the UI
+    throw new Error(`Invalid Service Account Configuration: ${e.message}`);
   }
-  
-  return getApps().find(app => app.name === 'admin-app') || getApps()[0];
 }
 
 /**
