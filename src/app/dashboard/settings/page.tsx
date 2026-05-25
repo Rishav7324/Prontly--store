@@ -23,7 +23,9 @@ import {
   Camera, 
   Upload,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Download,
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -280,20 +282,46 @@ export default function UserSettingsPage() {
             </div>
           </form>
 
-          <Card className="rounded-[2.5rem] border-destructive/20 bg-destructive/5 overflow-hidden">
-            <CardHeader className="p-10">
-              <div className="flex items-center gap-3 text-destructive mb-2">
-                <Shield className="h-6 w-6" />
-                <CardTitle className="text-2xl font-headline">Privacy & Data Control</CardTitle>
-              </div>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mt-4">
-                <div>
-                  <p className="font-bold text-foreground">Terminate Account</p>
-                  <p className="text-sm text-muted-foreground max-w-md">This will permanently revoke access to all purchased digital assets and source files in accordance with DPDPA 2023 guidelines.</p>
+          {/* Upgraded Privacy & Compliance Section */}
+          <Card className="rounded-[2.5rem] border-red-500/20 bg-red-500/[0.02] overflow-hidden">
+            <CardContent className="p-10 space-y-10">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 text-red-500">
+                  <Shield className="h-6 w-6" />
+                  <h3 className="text-2xl font-bold font-headline">Privacy & Compliance</h3>
                 </div>
-                <Button variant="destructive" size="lg" type="button" className="rounded-2xl px-10 h-14 font-bold">Request Deletion</Button>
+                <p className="text-muted-foreground">Manage your data rights and account lifecycle in accordance with global privacy standards.</p>
               </div>
-            </CardHeader>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="p-8 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                     <Download className="h-5 w-5" />
+                   </div>
+                   <div>
+                     <h4 className="font-bold text-foreground">Portable Data Export</h4>
+                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Download a structured archive of your transaction history and library index. Processed within 24 hours.</p>
+                   </div>
+                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-primary/5 hover:text-primary transition-all">Request JSON Archive</Button>
+                </div>
+
+                <div className="p-8 rounded-3xl bg-red-500/[0.03] border border-red-500/10 space-y-4">
+                   <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
+                     <AlertCircle className="h-5 w-5" />
+                   </div>
+                   <div>
+                     <h4 className="font-bold text-red-500">Account Termination</h4>
+                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Permanently purge your identity from our systems. This will immediately revoke all perpetual licenses and R2 source file access.</p>
+                   </div>
+                   <Button variant="destructive" className="w-full h-12 rounded-xl font-bold stripe-shadow-sm">Request Deletion</Button>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-white/5 flex items-center gap-2 text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-50">
+                <ShieldCheck className="h-3 w-3" />
+                DPDPA 2023 & GDPR Compliant Infrastructure
+              </div>
+            </CardContent>
           </Card>
         </div>
       </main>
