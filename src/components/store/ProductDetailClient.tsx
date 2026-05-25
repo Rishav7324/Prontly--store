@@ -122,12 +122,12 @@ const ProductShare = ({ product }: { product: any }) => {
 };
 
 const ProductBreadcrumbs = ({ category, name }: { category: string, name: string }) => (
-  <nav className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-ghost-gray mb-8">
-    <Link href="/products" className="hover:text-deep-violet transition-colors">Marketplace</Link>
-    <ChevronRight className="h-3 w-3" />
-    <Link href={`/products?category=${category}`} className="hover:text-deep-violet transition-colors">{category}</Link>
-    <ChevronRight className="h-3 w-3" />
-    <span className="text-midnight-ink">{name}</span>
+  <nav className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-ghost-gray mb-8 overflow-hidden whitespace-nowrap">
+    <Link href="/products" className="hover:text-deep-violet transition-colors shrink-0">Marketplace</Link>
+    <ChevronRight className="h-3 w-3 shrink-0" />
+    <Link href={`/products?category=${category}`} className="hover:text-deep-violet transition-colors shrink-0">{category}</Link>
+    <ChevronRight className="h-3 w-3 shrink-0" />
+    <span className="text-midnight-ink truncate max-w-[200px]">{name}</span>
   </nav>
 );
 
