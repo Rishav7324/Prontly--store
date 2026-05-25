@@ -165,7 +165,7 @@ export default function CheckoutPage() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" onLoad={() => setScriptLoaded(true)} />
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
-        <h1 className="text-4xl font-bold font-headline mb-8">Checkout</h1>
+        <h1 className="text-2xl text-center font-bold font-headline mb-8">Checkout</h1>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <form onSubmit={handleCheckout} className="lg:col-span-7 space-y-8">
             <Card className="border-white/5 bg-card/30 rounded-[2.5rem] p-8">
@@ -173,35 +173,35 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                    <Input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-14 bg-background/50 border-white/10 rounded-2xl px-6 text-lg" />
+                    <Input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-10 bg-background/50 border-white/10 rounded-2xl px-6 text-lg" />
                   </div>
                   <div className="space-y-3">
                     <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Email Address</Label>
-                    <Input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-14 bg-background/50 border-white/10 rounded-2xl px-6 text-lg" />
+                    <Input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-10 bg-background/50 border-white/10 rounded-2xl px-6 text-lg" />
                   </div>
                 </div>
               </div>
             </Card>
-            <Button type="submit" size="lg" className="w-full h-20 text-2xl font-bold rounded-[2rem] shadow-2xl shadow-primary/20 gap-4" disabled={isProcessing || !mounted || items.length === 0}>
+            <Button type="submit" size="lg" className="w-80 h-12 text-1xl display-flex font-bold rounded-[2rem] shadow-2xl shadow-primary/20 gap-4" disabled={isProcessing || !mounted || items.length === 0}>
               {isProcessing ? <Loader2 className="h-8 w-8 animate-spin" /> : <CreditCard className="h-8 w-8" />}
               {isProcessing ? 'Validating...' : `Pay ₹${(total / 100).toLocaleString('en-IN')}`}
             </Button>
           </form>
           <div className="lg:col-span-5">
             <Card className="border-white/5 bg-card/50 backdrop-blur-3xl rounded-[3rem] p-10 sticky top-28">
-              <h3 className="text-2xl font-bold font-headline mb-8 flex items-center gap-3"><ShoppingBag className="h-6 w-6 text-primary" /> Order Summary</h3>
+              <h4 className="text-1xl font-bold font-headline mb-8 flex items-center gap-3"><ShoppingBag className="h-6 w-6 text-primary" /> Order Summary</h4>
               <div className="space-y-6">
                 {mounted && items.map((item) => (
                   <div key={item.id} className="flex justify-between items-start gap-4">
                     <div className="space-y-1">
-                      <p className="font-bold text-base leading-tight">{item.name}</p>
+                      <p className="font-semi w-70 h-15  overflow-hidden text-1xl leading">{item.name}</p>
                       <p className="text-xs text-muted-foreground uppercase font-bold">Qty: {item.quantity}</p>
                     </div>
                     <span className="font-bold text-lg">₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}</span>
                   </div>
                 ))}
                 <div className="pt-8 mt-4 border-t border-white/10">
-                  <div className="flex justify-between text-3xl font-bold font-headline">
+                  <div className="flex justify-between text-1xl font-bold font-headline">
                     <span>Total</span>
                     <span className="text-primary">{mounted ? `₹${(total / 100).toLocaleString('en-IN')}` : '...'}</span>
                   </div>

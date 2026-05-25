@@ -111,23 +111,23 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-primary/5 border border-primary/10">
                   <div className="flex items-center gap-3">
                     <TrendingUp className="h-4 w-4 text-primary" />
-                    <span className="text-xs font-medium text-muted-foreground">Portfolio Value</span>
+                    <span className="text-.5xl font-medium text-muted-foreground">Portfolio Value</span>
                   </div>
                   <span className="font-bold text-primary">₹{stats.spent.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
               <div className="mt-8 space-y-2">
-                <Button variant="secondary" className="w-full justify-start gap-4 h-12 rounded-xl bg-primary/10 text-primary hover:bg-primary/20">
+                <Button variant="secondary" className="w-full justify-start gap-4 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20">
                   <LayoutDashboard className="h-4 w-4" /> Overview
                 </Button>
-                <Button variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-muted-foreground hover:text-foreground" asChild>
+                <Button variant="ghost" className="w-50 justify-start gap-4 h-10 rounded-xl text-muted-foreground hover:text-foreground" asChild>
                   <Link href="/dashboard/downloads"><Download className="h-4 w-4" /> My Downloads</Link>
                 </Button>
-                <Button variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-muted-foreground hover:text-foreground" asChild>
+                <Button variant="ghost" className="w-full justify-start gap-4 h-10 rounded-xl text-muted-foreground hover:text-foreground" asChild>
                   <Link href="/dashboard/settings"><Settings className="h-4 w-4" /> Account Settings</Link>
                 </Button>
-                <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start gap-4 h-12 rounded-xl text-destructive hover:bg-destructive/10">
+                <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start gap-4 h-8 rounded-xl text-destructive hover:bg-destructive/10">
                   <LogOut className="h-4 w-4" /> Sign Out
                 </Button>
               </div>
@@ -138,10 +138,10 @@ export default function Dashboard() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <Badge variant="outline" className="mb-4 border-primary/50 text-primary uppercase tracking-widest px-3 py-1 font-bold text-[10px]">Active Hub</Badge>
-                <h1 className="text-5xl font-bold font-headline leading-tight">Welcome Home.</h1>
-                <p className="text-xl text-muted-foreground mt-2">Manage your purchases and access your digital inventory.</p>
+                <h1 className="text-1.5xl font-bold font-headline leading-tight">Welcome Home.</h1>
+                <p className="text-1.5xl font-semi text-muted-foreground mt-2">Manage your purchases and access your digital inventory.</p>
               </div>
-              <Button asChild size="lg" className="rounded-2xl h-14 px-8 shadow-xl shadow-primary/20"><Link href="/dashboard/downloads">Go to Downloads Library <ChevronRight className="ml-2 h-4 w-4" /></Link></Button>
+              <Button asChild size="lg" className="rounded-2xl h-10 px-8 shadow-xl shadow-primary/20"><Link href="/dashboard/downloads">Go to Downloads Library <ChevronRight className="ml-2 h-4 w-4" /></Link></Button>
             </header>
 
             <section className="space-y-8">
@@ -149,19 +149,19 @@ export default function Dashboard() {
                 <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                   <History className="h-5 w-5" />
                 </div>
-                <h2 className="text-2xl font-bold font-headline">Recent Transactions</h2>
+                <h2 className="text-1xl font-bold font-headline">Recent Transactions</h2>
               </div>
               
-              <div className="rounded-[2.5rem] border border-white/5 overflow-hidden bg-card/30 backdrop-blur-md shadow-2xl">
+              <div className="rounded-[2rem] border border-white/5 overflow-hidden bg-card/30 backdrop-blur-md shadow-2xl">
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50 border-b border-white/5">
+                  <table className="w-full h-10 text-sm">
+                    <thead className="bg-muted/30 border-b border-white/5">
                       <tr>
-                        <th className="px-8 py-5 text-left font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Order ID</th>
-                        <th className="px-8 py-5 text-left font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Date</th>
-                        <th className="px-8 py-5 text-left font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Status</th>
-                        <th className="px-8 py-5 text-right font-bold uppercase tracking-widest text-[10px] text-muted-foreground">Amount</th>
-                        <th className="px-8 py-5"></th>
+                        <th className="px-6 py-5 text-left  font-semi uppercase tracking-widest text-[8px] text-muted-foreground">Order ID</th>
+                        <th className="px-6 py-5 text-left font-bold uppercase tracking-widest text-[8px] text-muted-foreground">Date</th>
+                        <th className="px-6 py-5 text-left font-bold uppercase tracking-widest text-[8px] text-muted-foreground">Status</th>
+                        <th className="px-6 py-5 text-right font-bold uppercase tracking-widest text-[8px] text-muted-foreground">Amount</th>
+                        <th className="px-6 py-5"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -169,18 +169,18 @@ export default function Dashboard() {
                         [1,2,3].map(i => <tr key={i} className="animate-pulse"><td colSpan={5} className="h-16 bg-white/5"></td></tr>)
                       ) : sortedOrders?.map((order: any) => (
                         <tr key={order.id} className="hover:bg-white/5 transition-colors group">
-                          <td className="px-8 py-6 font-code text-primary uppercase text-xs font-bold tracking-widest">#{order.id?.slice(-8)}</td>
-                          <td className="px-8 py-6 text-muted-foreground font-medium">
+                          <td className="px-5 py-6 font-code text-primary uppercase text-1xl font-bold tracking-widest">#{order.id?.slice(-8)}</td>
+                          <td className="px-5 py-6 text-muted-foreground font-medium">
                             {order.createdAt ? format(new Date(order.createdAt.toDate()), 'MMM dd, yyyy') : 'N/A'}
                           </td>
-                          <td className="px-8 py-6">
+                          <td className="px-5 py-6">
                             <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-none text-[9px] uppercase font-black tracking-widest px-3 py-1 rounded-lg">
                               {order.status}
                             </Badge>
                           </td>
-                          <td className="px-8 py-6 text-right font-headline font-bold text-base">₹{(order.total / 100).toLocaleString('en-IN')}</td>
-                          <td className="px-8 py-6 text-right">
-                            <Button variant="ghost" size="sm" className="rounded-xl gap-2 text-[10px] uppercase font-bold border-white/10 opacity-0 group-hover:opacity-100 transition-opacity" asChild>
+                          <td className="px-5 py-6 text-right font-headline font-bold text-base">₹{(order.total / 100).toLocaleString('en-IN')}</td>
+                          <td className="px-5 py-6 text-right">
+                            <Button variant="ghost" size="sm" className="rounded-xl gap-2 text-[10px] uppercase font-bold border-white/10 transition-opacity" asChild>
                               <Link href={`/dashboard/orders/${order.id}`}>
                                 View Receipt
                                 <ExternalLink className="h-3 w-3" />

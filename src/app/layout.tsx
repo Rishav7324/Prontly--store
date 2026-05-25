@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -49,26 +48,23 @@ export default function RootLayout({
   const globalSchema = getGlobalSchema();
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
         
-        {/* Global Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(globalSchema) }}
         />
 
-        {/* Google Analytics - Respect Cookie Consent */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-            // Function to check consent
             function hasConsent() {
               try {
                 return localStorage.getItem('cookieConsent') === 'all';
@@ -76,15 +72,12 @@ export default function RootLayout({
                 return false;
               }
             }
-
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-
             if (hasConsent()) {
               gtag('config', '${GA_MEASUREMENT_ID}');
             } else {
-              // Deny tracking if no consent
               gtag('consent', 'default', {
                 'analytics_storage': 'denied',
                 'ad_storage': 'denied'
@@ -93,7 +86,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="font-body antialiased selection:bg-primary selection:text-primary-foreground">
+      <body className="antialiased selection:bg-black selection:text-white">
         <FirebaseClientProvider>
           {children}
           <Toaster />
