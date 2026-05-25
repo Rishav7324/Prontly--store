@@ -6,8 +6,6 @@
 import { Resend } from 'resend';
 import { EmailType, SENDER_MAP } from './types';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface SendEmailProps {
   /** The business context of the email (e.g., 'security', 'order') */
   type: EmailType;
@@ -36,10 +34,14 @@ export async function sendEmail({
   cc
 }: SendEmailProps) {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.error('Email Dispatch Aborted: RESEND_API_KEY is missing.');
-      throw new Error('Email infrastructure unready.');
+    const apiKey = process.env.RESEND_API_KEY;
+    
+    if (!apiKey) {
+      console.warn(`Email Dispatch Skipped [${type}]: RESEND_API_KEY is missing from environment.`);
+      return { success: false, error: 'Email service unconfigured' };
     }
+
+    const resend = new Resend(apiKey);
 
     // Dynamic Sender Selection based on the EmailType
     const config = SENDER_MAP[type];

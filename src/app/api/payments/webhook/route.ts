@@ -66,10 +66,15 @@ export async function POST(req: NextRequest) {
 
     // 3. Core Fulfillment Sequence
     try {
+      console.log(`[WEBHOOK_FULFILLING_ASSETS]: Processing ${orderData.items?.length || 0} items...`);
+      
       await Promise.all(
         orderData.items.map(async (item: any) => {
           const productSnap = await db.collection('products').doc(item.productId).get();
-          if (!productSnap.exists) return;
+          if (!productSnap.exists) {
+            console.error(`[WEBHOOK_ITEM_ERROR]: Product ${item.productId} missing from catalog.`);
+            return;
+          }
 
           const product = productSnap.data()!;
           
@@ -120,11 +125,12 @@ export async function POST(req: NextRequest) {
       }
 
       // 6. Dispatch final confirmation communications
-      await sendOrderConfirmationEmail({ 
+      // We don't await this to be critical so failures in email don't roll back the webhook response
+      sendOrderConfirmationEmail({ 
         ...orderData, 
         id: orderDoc.id,
         paidAt: new Date().toISOString()
-      });
+      }).catch(err => console.error('[WEBHOOK_EMAIL_ERROR]:', err.message));
 
       console.log(`[WEBHOOK_SUCCESS]: Fulfillment sequence completed for ${orderDoc.id}`);
 

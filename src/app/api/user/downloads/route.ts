@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '@/lib/firebase-admin';
 import { getUserDownloads } from '@/lib/firebase/downloads';
 
+/**
+ * @fileOverview Secure User Downloads API
+ * Fetches perpetual licenses for the authenticated user and strips sensitive metadata.
+ */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "") ?? "";
@@ -19,8 +23,16 @@ export async function GET(req: NextRequest) {
   try {
     const downloads = await getUserDownloads(uid);
 
-    // IMPORTANT: Strip fileKey from response for security
-    const safeDownloads = downloads.map(({ fileKey, ...rest }: any) => rest);
+    // IMPORTANT: Strip fileKey from response for security 
+    // AND convert Timestamps to strings for JSON serialization
+    const safeDownloads = downloads.map((record: any) => {
+      const { fileKey, ...rest } = record;
+      return {
+        ...rest,
+        purchasedAt: record.purchasedAt?.toDate ? record.purchasedAt.toDate().toISOString() : record.purchasedAt,
+        lastDownloadedAt: record.lastDownloadedAt?.toDate ? record.lastDownloadedAt.toDate().toISOString() : record.lastDownloadedAt,
+      };
+    });
 
     return NextResponse.json({ success: true, data: safeDownloads });
   } catch (e: any) {

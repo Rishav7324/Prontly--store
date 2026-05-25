@@ -5,7 +5,7 @@ import { DownloadButton } from './DownloadButton';
 import type { DownloadRecord } from '@/types/download';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { FileText, Package, Clock, Calendar } from 'lucide-react';
 
 interface DownloadCardProps {
@@ -20,6 +20,17 @@ export function DownloadCard({ record }: DownloadCardProps) {
   };
 
   const progressPercent = Math.round((record.downloadCount / record.downloadLimit) * 100);
+
+  // Helper to normalize dates from both API (string) and Firebase (Timestamp)
+  const formatFriendlyDate = (dateVal: any, formatStr: string) => {
+    if (!dateVal) return 'N/A';
+    try {
+      const d = dateVal.toDate ? dateVal.toDate() : (typeof dateVal === 'string' ? parseISO(dateVal) : new Date(dateVal));
+      return format(d, formatStr);
+    } catch (e) {
+      return 'Recent';
+    }
+  };
 
   return (
     <Card className="bg-card/40 border-white/5 rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-300">
@@ -59,7 +70,7 @@ export function DownloadCard({ record }: DownloadCardProps) {
                 {record.lastDownloadedAt && (
                   <span className="flex items-center gap-1">
                     <Clock className="h-2.5 w-2.5" /> 
-                    {format(new Date(record.lastDownloadedAt.toDate()), 'MMM dd')}
+                    {formatFriendlyDate(record.lastDownloadedAt, 'MMM dd')}
                   </span>
                 )}
               </div>
@@ -75,7 +86,7 @@ export function DownloadCard({ record }: DownloadCardProps) {
 
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
               <Calendar className="h-3 w-3" />
-              Purchased {format(new Date(record.purchasedAt.toDate()), 'PPP')}
+              Purchased {formatFriendlyDate(record.purchasedAt, 'PPP')}
             </div>
           </div>
         </div>
