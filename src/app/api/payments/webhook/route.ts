@@ -5,9 +5,9 @@ import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 /**
- * ─── ROBUST PURCHASE FULFILLMENT ENGINE ──────────────────────────────────────
- * Implements a global Firestore Transaction to ensure data integrity.
- * Updates: Orders, Users (Aggregates), Downloads, and Analytics atomically.
+ * ─── ATOMIC PURCHASE FULFILLMENT ENGINE ──────────────────────────────────────
+ * Implements a global Firestore Transaction to ensure data integrity across:
+ * Orders, Users, Downloads, Analytics, and Revenue.
  */
 export async function POST(req: NextRequest) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -43,29 +43,29 @@ export async function POST(req: NextRequest) {
 
     try {
       await db.runTransaction(async (transaction) => {
-        // 1. Locate the Pending Order
+        // 1. Locate the Pending Order Intent
         const ordersQuery = db.collection('orders').where('paymentId', '==', razorpayOrderId).limit(1);
         const orderSnap = await transaction.get(ordersQuery);
 
         if (orderSnap.empty) {
-          throw new Error(`Order ${razorpayOrderId} not found.`);
+          throw new Error(`Order intent for ${razorpayOrderId} not found in database.`);
         }
 
         const orderDoc = orderSnap.docs[0];
         const orderData = orderDoc.data();
 
-        // 2. Strict Idempotency Check
-        if (orderData.status === 'paid') {
-          console.log('[FULFILLMENT_SKIP]: Already fulfilled.');
+        // 2. Strict Idempotency & Duplicate Protection
+        if (orderData.status === 'paid' || orderData.paymentCapturedId === paymentId) {
+          console.log('[FULFILLMENT_SKIP]: Transaction already processed.');
           return;
         }
 
-        // 3. Prepare Aggregates & References
+        // 3. Prepare Collection References
         const userRef = db.collection('users').doc(orderData.userId);
         const analyticsRef = db.collection('analytics').doc('global');
-        const revenueRef = db.collection('revenue').doc(new Date().toISOString().slice(0, 7)); // Monthly rev
+        const revenueRef = db.collection('revenue').doc(new Date().toISOString().slice(0, 7)); // Monthly track
 
-        // 4. Fulfillment Loop for each product
+        // 4. Fulfillment Loop: Digital Asset Licensing
         for (const item of orderData.items) {
           const productRef = db.collection('products').doc(item.productId);
           const productSnap = await transaction.get(productRef);
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
           if (productSnap.exists) {
             const product = productSnap.data()!;
             
-            // Generate Secure Download Record (License)
+            // Create Secure Download License (Denormalized for persistence)
             const downloadRef = db.collection('downloads')
               .doc(orderData.userId)
               .collection('products')
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
               isActive: true,
             }, { merge: true });
 
-            // Increment Product Sales
+            // Increment Product Statistics
             transaction.update(productRef, {
               salesCount: FieldValue.increment(1),
               updatedAt: FieldValue.serverTimestamp()
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // 5. Update User Profile Aggregates
+        // 5. Update User Profile Aggregates for Dashboard Stats
         if (orderData.userId !== 'guest') {
           transaction.update(userRef, {
             totalSpent: FieldValue.increment(orderData.total),
@@ -115,28 +115,29 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // 6. Update Global Analytics
+        // 6. Global Analytics Ledger
         transaction.set(analyticsRef, {
           totalRevenue: FieldValue.increment(orderData.total),
           totalOrders: FieldValue.increment(1),
           lastUpdatedAt: FieldValue.serverTimestamp()
         }, { merge: true });
 
+        // 7. Monthly Revenue Aggregation
         transaction.set(revenueRef, {
           revenue: FieldValue.increment(orderData.total),
           orderCount: FieldValue.increment(1),
           month: new Date().toISOString().slice(0, 7)
         }, { merge: true });
 
-        // 7. Finalize Order Status
+        // 8. Finalize Order Record
         transaction.update(orderDoc.ref, {
           status: 'paid',
           paymentCapturedId: paymentId,
           paidAt: FieldValue.serverTimestamp(),
-          verifiedVia: 'webhook_transactional'
+          verifiedVia: 'webhook_transaction_engine'
         });
 
-        // Background: Dispatch Email (Outside transaction context but within webhook logic)
+        // 9. Dispatch Customer Confirmation Email (Async/Background)
         sendOrderConfirmationEmail({ 
           ...orderData, 
           id: orderDoc.id,
@@ -144,7 +145,7 @@ export async function POST(req: NextRequest) {
         }).catch(err => console.error('[WEBHOOK_EMAIL_ERROR]:', err.message));
       });
 
-      console.log(`[FULFILLMENT_SUCCESS]: Completed atomic transaction for ${razorpayOrderId}`);
+      console.log(`[FULFILLMENT_SUCCESS]: Completed atomic transaction for ${paymentId}`);
       return NextResponse.json({ success: true, processed: true });
 
     } catch (error: any) {

@@ -3,9 +3,8 @@ import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import type { DownloadRecord, DownloadLog } from '@/types/download';
 
 /**
- * ─── Create Download Record After Purchase ────────────────────────────────────
- * This is the atomic definition for a digital license.
- * Standardized across the webhook and manual admin overrides.
+ * ─── Create Download Record ──────────────────────────────────────────────────
+ * Defines a digital asset license. Atomic fulfillment handled by webhook transaction.
  */
 export async function createDownloadRecord(
   userId: string,
@@ -54,12 +53,13 @@ export async function createDownloadRecord(
 
 /**
  * ─── Get All Downloads For A User ─────────────────────────────────────────────
- * Fetches the user's digital vault content.
+ * Fetches user's digital vault content. Query is simplified to avoid index requirements.
  */
 export async function getUserDownloads(
   userId: string
 ): Promise<DownloadRecord[]> {
   const db = getAdminDb();
+  // Simplified query for robustness; sorting handled in-memory in the API route
   const snap = await db
     .collection("downloads")
     .doc(userId)
