@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
 import { uploadFileAction } from '@/app/actions/r2-actions';
 import { Progress } from '@/components/ui/progress';
+import { optimizeImage } from '@/lib/image-optimizer';
 import Image from 'next/image';
 
 export default function EditBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -56,12 +57,20 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileName = `blog/${formData.slug}/featured.webp`;
-    
+    if (!formData.slug) {
+      toast({ variant: "destructive", title: "Slug Required", description: "Define a URL slug before uploading media." });
+      return;
+    }
+
     try {
       setUploadProgress(30);
+      // 1. Optimize image to WebP
+      const optimized = await optimizeImage(file);
+      const optimizedFile = new File([optimized.blob], `${formData.slug}-cover.webp`, { type: 'image/webp' });
+      
+      const fileName = `blog/covers/${formData.slug}/${optimizedFile.name}`;
       const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
+      uploadFormData.append('file', optimizedFile);
       uploadFormData.append('key', fileName);
 
       setUploadProgress(60);
@@ -69,7 +78,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
       
       if (result.success) {
         setFormData(prev => ({ ...prev, featuredImage: result.url! }));
-        toast({ title: "Upload Success", description: "Featured image updated." });
+        toast({ title: "Cover Optimized", description: `Uploaded ${Math.round(optimized.optimizedSize / 1024)}KB asset.` });
       } else {
         toast({ variant: "destructive", title: "Upload Failed", description: result.error });
       }

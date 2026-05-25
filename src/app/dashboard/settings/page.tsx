@@ -67,7 +67,7 @@ export default function UserSettingsPage() {
     setUploadProgress(10);
 
     try {
-      // 1. Optimize image client-side
+      // 1. Optimize image client-side (Limit to 400px width for avatars)
       setUploadProgress(30);
       const optimized = await optimizeImage(file, 400, 0.8);
       const optimizedFile = new File([optimized.blob], `profile-${user.uid}.webp`, { type: 'image/webp' });
@@ -85,7 +85,7 @@ export default function UserSettingsPage() {
         // 3. Update local state immediately
         setFormData(prev => ({ ...prev, photoURL: result.url! }));
         
-        // 4. Persist to Firestore (Non-blocking)
+        // 4. Persist to Firestore (Non-blocking write)
         const userRef = doc(db!, 'users', user.uid);
         setDoc(userRef, { 
           photoURL: result.url,
@@ -100,7 +100,7 @@ export default function UserSettingsPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: "Visual ID Updated", description: "Your profile picture has been synchronized." });
+        toast({ title: "Visual ID Updated", description: `Compressed to ${Math.round(optimized.optimizedSize / 1024)}KB.` });
       } else {
         throw new Error(result.error || 'Upload failed');
       }
@@ -219,7 +219,7 @@ Regards,`;
                   {isUploading && (
                     <div className="w-full max-w-xs space-y-2">
                       <div className="flex justify-between text-[10px] uppercase font-bold text-primary tracking-widest">
-                        <span>Uploading Visual...</span>
+                        <span>Optimizing...</span>
                         <span>{uploadProgress}%</span>
                       </div>
                       <Progress value={uploadProgress} className="h-1" />
@@ -289,8 +289,8 @@ Regards,`;
             </Card>
 
             <div className="flex justify-end gap-4 pt-4">
-              <Button variant="ghost" type="button" asChild className="h-12 px-8 rounded-xl font-bold"><Link href="/dashboard">Discard</Link></Button>
-              <Button type="submit" disabled={isSaving} className="h-12 px-10 rounded-xl text-lg font-bold shadow-xl shadow-primary/20 min-w-[200px]">
+              <Button variant="ghost" type="button" asChild className="h-10 px-6 rounded-xl font-bold"><Link href="/dashboard">Discard</Link></Button>
+              <Button type="submit" disabled={isSaving} className="h-10 px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Sync Profile
               </Button>
