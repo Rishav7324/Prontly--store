@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/use-cart';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
