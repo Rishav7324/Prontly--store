@@ -4,7 +4,7 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Production-grade Firebase Admin SDK Initialization.
- * Strictly uses the FIREBASE_SERVICE_ACCOUNT JSON string.
+ * Strictly uses the FIREBASE_SERVICE_ACCOUNT JSON string for atomic credential management.
  */
 
 function getAdminApp(): App {
@@ -15,27 +15,27 @@ function getAdminApp(): App {
     throw new Error('Server configuration error: Missing service account credentials.');
   }
 
-  // Check if we already have an initialized app with this name
+  // Check if we already have an initialized app with this name to prevent duplicate app errors
   const existingApp = getApps().find(app => app.name === 'admin-app');
   if (existingApp) return existingApp;
 
   try {
     /**
      * CLEANING LOGIC:
-     * 1. Remove potential wrapping quotes from the env var.
+     * Handles surrounding quotes added by some environment loaders.
      */
     let sanitized = serviceAccountRaw;
-    
     if ((sanitized.startsWith("'") && sanitized.endsWith("'")) || 
         (sanitized.startsWith('"') && sanitized.endsWith('"'))) {
       sanitized = sanitized.substring(1, sanitized.length - 1);
     }
 
-    // Parse the JSON first. JSON.parse will handle \n if they were properly escaped as strings.
+    // Parse the JSON object
     const serviceAccount = JSON.parse(sanitized);
     
     /**
-     * 2. Properly restore newline characters in the private key if they are still escaped.
+     * PRIVATE KEY RESTORATION:
+     * Ensures the RSA private key has literal newlines (\n) instead of the string "\\n".
      */
     if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');

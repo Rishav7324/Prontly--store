@@ -6,40 +6,6 @@ import { r2, R2_BUCKET_NAME } from '@/lib/r2';
 import { getAdminDb } from '@/lib/firebase-admin';
 
 /**
- * Robust server-side file upload to Cloudflare R2.
- */
-export async function uploadFileAction(formData: FormData) {
-  try {
-    const file = formData.get('file') as File;
-    const key = formData.get('key') as string;
-    
-    if (!file || !key) {
-      return { success: false, error: 'File and key are required for upload.' };
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const command = new PutObjectCommand({
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-      Body: buffer,
-      ContentType: file.type,
-    });
-
-    await r2.send(command);
-
-    return { 
-      success: true, 
-      url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${key}` 
-    };
-  } catch (error: any) {
-    console.error('R2 Server Action Error:', error);
-    return { success: false, error: 'Upload failed.' };
-  }
-}
-
-/**
  * Generates a pre-signed URL for downloading a private file from R2.
  * Includes security verification to ensure the user has purchased the asset.
  */
@@ -59,7 +25,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
     } catch (dbErr: any) {
       console.error('[SECURE_DOWNLOAD_DB_FETCH_ERROR]:', dbErr.message);
       
-      // Handle the specific 'Missing Index' error
+      // Handle the specific 'Missing Index' error (Firestore requires composite indexes for complex queries)
       if (dbErr.message.includes('FAILED_PRECONDITION')) {
         throw new Error('Database indexing in progress. Please check server logs for the creation link.');
       }
@@ -117,6 +83,40 @@ export async function getDownloadUrl(productId: string, userId: string) {
   } catch (error: any) {
     console.error('[SECURE_DOWNLOAD_EXCEPTION]:', error.message);
     throw new Error(error.message || 'Verification process failed.');
+  }
+}
+
+/**
+ * Robust server-side file upload to Cloudflare R2.
+ */
+export async function uploadFileAction(formData: FormData) {
+  try {
+    const file = formData.get('file') as File;
+    const key = formData.get('key') as string;
+    
+    if (!file || !key) {
+      return { success: false, error: 'File and key are required for upload.' };
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+      Body: buffer,
+      ContentType: file.type,
+    });
+
+    await r2.send(command);
+
+    return { 
+      success: true, 
+      url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${key}` 
+    };
+  } catch (error: any) {
+    console.error('R2 Server Action Error:', error);
+    return { success: false, error: 'Upload failed.' };
   }
 }
 
