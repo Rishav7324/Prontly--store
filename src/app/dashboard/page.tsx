@@ -21,7 +21,8 @@ import {
   FileCode,
   TrendingUp,
   ShieldCheck,
-  History
+  History,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -70,11 +71,21 @@ export default function Dashboard() {
     setDownloadingId(productId);
     try {
       // Secure Download Request with Ownership Verification
-      const { url } = await getDownloadUrl(productId, user.uid);
-      window.open(url, '_blank');
-      toast({ title: "Secure Link Generated", description: `Downloading ${productName}...` });
+      const result = await getDownloadUrl(productId, user.uid);
+      
+      if (result && result.url) {
+        window.open(result.url, '_blank');
+        toast({ title: "Secure Link Generated", description: `Downloading ${productName}...` });
+      } else {
+        throw new Error('Verification service returned an empty response.');
+      }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Access Denied", description: error.message || "Could not verify purchase." });
+      console.error('Download Verification Failure:', error.message);
+      toast({ 
+        variant: "destructive", 
+        title: "Download Unavailable", 
+        description: error.message || "We could not verify your purchase. Please contact support." 
+      });
     } finally {
       setDownloadingId(null);
     }

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useMemo } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ProductGrid } from '@/components/store/ProductGrid';
@@ -66,7 +66,7 @@ export default function Home() {
               {heroBadge}
             </Badge>
             <h1 className="mx-auto max-w-5xl font-headline text-5xl font-bold tracking-tight md:text-8xl lg:leading-[1.1]">
-              {heroHeadline.split(' ').map((word, i) => (
+              {heroHeadline.split(' ').map((word: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
                 <span key={i} className={i > 4 ? "bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent" : ""}>
                   {word}{' '}
                 </span>

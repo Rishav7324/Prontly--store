@@ -47,7 +47,13 @@ export async function getDownloadUrl(productId: string, userId: string) {
   console.log(`SECURE_DOWNLOAD: Initiating request for Product ${productId} by User ${userId}`);
   
   try {
-    const db = getAdminDb();
+    let db;
+    try {
+      db = getAdminDb();
+    } catch (adminErr: any) {
+      console.error('SECURE_DOWNLOAD_INIT_ERROR:', adminErr.message);
+      throw new Error('The secure verification service is currently unavailable. Please try again later.');
+    }
     
     // 1. Verify User Ownership via Orders
     // We check for 'paid' or 'delivered' status to ensure access
