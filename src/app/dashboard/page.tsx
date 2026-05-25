@@ -77,7 +77,7 @@ export default function Dashboard() {
           <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <ShoppingBag className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold font-headline mb-4">Account Required</h1>
+          <h1 className="text-1xl font-bold font-headline mb-4">Account Required</h1>
           <p className="text-muted-foreground mb-8">Please sign in to access your digital downloads and purchase history.</p>
           <Button asChild size="lg" className="w-full rounded-2xl h-14 font-bold text-lg"><Link href="/login">Sign In</Link></Button>
         </div>

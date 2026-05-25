@@ -181,8 +181,8 @@ Regards,`;
             <Link href="/dashboard"><ChevronLeft className="h-6 w-6" /></Link>
           </Button>
           <div>
-            <h1 className="text-4xl font-bold font-headline">Account Center</h1>
-            <p className="text-muted-foreground mt-1">Manage your identity and preferences across the Prontly ecosystem.</p>
+            <h2 className="text-3xl font-bold font-headline">Account Center</h2>
+            <p className="text-muted-foreground text-sm mt-1">Manage your identity and preferences across the Prontly ecosystem.</p>
           </div>
         </div>
 
@@ -290,7 +290,7 @@ Regards,`;
 
             <div className="flex justify-end gap-4 pt-4">
               <Button variant="ghost" type="button" asChild className="h-10 px-6 rounded-xl font-bold"><Link href="/dashboard">Discard</Link></Button>
-              <Button type="submit" disabled={isSaving} className="h-10 px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
+              <Button type="submit" disabled={isSaving} className="h-10 w-80 px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Sync Profile
               </Button>
@@ -298,18 +298,18 @@ Regards,`;
           </form>
 
           {/* Upgraded Privacy & Compliance Section */}
-          <Card className="rounded-[2.5rem] border-red-500/20 bg-red-500/[0.02] overflow-hidden">
-            <CardContent className="p-10 space-y-10">
+          <Card className="rounded-[1rem] h-100 border-red-500/20 bg-red-500/[0.02] overflow-hidden">
+            <CardContent className="p-7 space-y-7">
               <div className="space-y-2">
                 <div className="flex items-center gap-3 text-red-500">
                   <Shield className="h-6 w-6" />
-                  <h3 className="text-2xl font-bold font-headline">Privacy & Compliance</h3>
+                  <h3 className="text-1xl font-bold font-headline">Privacy & Compliance</h3>
                 </div>
-                <p className="text-muted-foreground">Manage your data rights and account lifecycle in accordance with global privacy standards.</p>
+                <p className="text-sm text-muted-foreground">Manage your data rights and account lifecycle in accordance with global privacy standards.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="p-8 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+                <div className="p-8 rounded-1xl bg-white/5 border border-white/5 space-y-4">
                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                      <Download className="h-5 w-5" />
                    </div>
@@ -328,7 +328,7 @@ Regards,`;
                      <h4 className="font-bold text-red-500">Account Termination</h4>
                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Permanently purge your identity from our systems. This will immediately revoke all perpetual licenses and R2 source file access.</p>
                    </div>
-                   <Button variant="destructive" className="w-full h-12 rounded-xl font-bold stripe-shadow-sm" asChild>
+                   <Button variant="destructive" className="w-full h-10 rounded-xl font-bold stripe-shadow-sm" asChild>
                      <a href={deletionMailto}>Request Deletion</a>
                    </Button>
                 </div>

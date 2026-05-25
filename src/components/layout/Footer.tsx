@@ -30,40 +30,37 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-4">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-foreground">Catalog</h4>
-            <ul className="space-y-4 text-sm text-muted-foreground font-medium">
+            <ul className="space-y-2 text-sm text-muted-foreground font-medium">
               <li><Link href="/products" className="hover:text-primary transition-colors">Marketplace</Link></li>
               <li><Link href="/blog" className="hover:text-primary transition-colors">Resources</Link></li>
               <li><Link href="/wishlist" className="hover:text-primary transition-colors">Wishlist</Link></li>
             </ul>
           </div>
 
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-4">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-foreground">Legal</h4>
-            <ul className="space-y-4 text-sm text-muted-foreground font-medium">
+            <ul className="space-y-2 text-sm text-muted-foreground font-medium">
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link></li>
               <li><Link href="/terms" className="hover:text-primary transition-colors">Terms</Link></li>
               <li><Link href="/refund-policy" className="hover:text-primary transition-colors">Refunds</Link></li>
             </ul>
           </div>
 
-          <div className="md:col-span-4 space-y-8">
+          <div className="md:col-span-2 space-y-4">
             <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-foreground">Support</h4>
             <p className="text-sm text-muted-foreground">Inquiries regarding enterprise licensing or custom assets should be directed to our support desk.</p>
             <div className="flex items-center gap-3 text-primary font-bold group">
               <Mail className="h-4 w-4" />
-              <span className="hover:underline cursor-pointer">support@prontly.in</span>
+              <span className="hover:underline cursor-pointer">store.support@prontly.in</span>
             </div>
           </div>
         </div>
 
-        <div className="mt-24 pt-12 border-t flex flex-col md:flex-row items-center justify-between gap-6 text-[11px] text-muted-foreground font-bold uppercase tracking-[0.1em]">
+        <div className="mt-15 pt-20 border-t flex flex-col md:flex-row items-center justify-between gap-6 text-[11px] text-muted-foreground font-bold uppercase tracking-[0.1em]">
           <p>© {new Date().getFullYear()} Prontly Store — Built for Creators</p>
-          <div className="flex gap-8">
-            <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-green-500" /> Operational</span>
-            <span>Patna, Bihar</span>
-          </div>
+          
         </div>
       </div>
     </footer>

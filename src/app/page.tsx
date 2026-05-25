@@ -45,10 +45,10 @@ export default function Home() {
       
       <main className="flex-1">
         {/* Architectural Hero Section */}
-        <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-48">
+        <section className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-48">
           {/* Stripe-style Background Pattern */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-[10%] -left-[10%] w-[120%] h-[120%] bg-[#ffffff]" />
+            <div className="absolute -top-[30%] -left-[10%] w-[120%] h-[120%] bg-[#ffffff]" />
             <div className="absolute top-0 right-0 w-[80%] h-[100%] bg-[radial-gradient(circle_at_70%_20%,rgba(83,58,253,0.1),transparent_50%)]" />
             <div className="absolute bottom-0 left-0 w-[60%] h-[60%] bg-[radial-gradient(circle_at_20%_80%,rgba(247,45,243,0.05),transparent_50%)]" />
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
@@ -174,7 +174,7 @@ export default function Home() {
         </section>
 
         {/* Featured Section */}
-        <section className="container mx-auto px-4 py-24 max-w-7xl">
+        <section className="container mx-auto px-4 py-10 max-w-7xl">
           <div className="mb-12 space-y-4 border-b border-stone-gray/10 pb-12">
             <Badge variant="outline" className="text-accent-green border-accent-green/20 bg-accent-green/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
               Top Tier Assets
@@ -186,7 +186,7 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto px-4 py-24">
+        <section className="container mx-auto px-4 py-4">
           <div className="max-w-7xl mx-auto rounded-xl bg-midnight-ink text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden shadow-xl-3">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.2),transparent)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(247,45,243,0.1),transparent)]" />
