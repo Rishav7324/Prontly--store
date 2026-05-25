@@ -4,7 +4,7 @@ import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Robust Firebase Admin SDK Initialization.
- * Handles malformed Service Account JSON and provides singleton instances.
+ * Handles complex environment variable formats and provides singleton instances.
  */
 
 function getAdminApp(): App {
@@ -16,16 +16,29 @@ function getAdminApp(): App {
 
   if (getApps().length === 0) {
     try {
-      // 1. Clean the string: remove surrounding quotes and extra whitespace
+      // 1. Clean the string: remove surrounding quotes, extra whitespace, and handle escaped newlines
       let cleanedStr = serviceAccountStr.trim();
-      if (cleanedStr.startsWith("'") || cleanedStr.startsWith('"')) {
+      
+      // Remove surrounding single or double quotes if they exist
+      if ((cleanedStr.startsWith("'") && cleanedStr.endsWith("'")) || 
+          (cleanedStr.startsWith('"') && cleanedStr.endsWith('"'))) {
         cleanedStr = cleanedStr.substring(1, cleanedStr.length - 1);
       }
 
-      // 2. Parse JSON
-      const serviceAccount = JSON.parse(cleanedStr);
+      // Handle literal escaped newlines that might be in the env string
+      cleanedStr = cleanedStr.replace(/\\n/g, '\n');
 
-      // 3. Fix the private key newlines if they are double-escaped
+      // 2. Parse JSON
+      let serviceAccount;
+      try {
+        serviceAccount = JSON.parse(cleanedStr);
+      } catch (jsonError) {
+        // Fallback for cases where the string might still have double-escaped characters
+        console.error('Initial JSON parse failed, attempting secondary cleanup...');
+        serviceAccount = JSON.parse(JSON.stringify(cleanedStr).replace(/\\\\n/g, '\\n'));
+      }
+
+      // 3. Fix the private key newlines specifically if they are still double-escaped
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
@@ -33,14 +46,14 @@ function getAdminApp(): App {
       return initializeApp({
         credential: cert(serviceAccount),
         projectId: serviceAccount.project_id,
-      });
+      }, 'admin-app');
     } catch (e: any) {
       console.error('CRITICAL: Firebase Admin Initialization Failed:', e.message);
       throw new Error(`Invalid Service Account Configuration: ${e.message}`);
     }
   }
   
-  return getApps()[0];
+  return getApps().find(app => app.name === 'admin-app') || getApps()[0];
 }
 
 /**

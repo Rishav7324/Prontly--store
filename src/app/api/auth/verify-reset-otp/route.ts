@@ -1,64 +1,66 @@
-
 import { NextResponse } from 'next/server';
-import { initializeFirebase } from '@/firebase';
-import { collection, query, where, getDocs, updateDoc, orderBy, limit, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { hashOTP, generateResetToken } from '@/lib/otp-utils';
+import { FieldValue } from 'firebase-admin/firestore';
 
+/**
+ * Verifies OTP and generates a temporary reset session.
+ */
 export async function POST(req: Request) {
   try {
     const { email, otp } = await req.json();
-    const { db } = initializeFirebase();
-
+    
     if (!email || !otp) {
       return NextResponse.json({ error: 'Email and OTP required' }, { status: 400 });
     }
 
+    const db = getAdminDb();
+    
     // 1. Fetch latest active OTP for this email
-    const otpQuery = query(
-      collection(db, 'passwordResetOTP'),
-      where('email', '==', email),
-      where('used', '==', false),
-      orderBy('createdAt', 'desc'),
-      limit(1)
-    );
+    const otpSnap = await db.collection('passwordResetOTP')
+      .where('email', '==', email.toLowerCase())
+      .where('used', '==', false)
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .get();
 
-    const snapshot = await getDocs(otpQuery);
-    if (snapshot.empty) {
-      return NextResponse.json({ error: 'Invalid or expired code' }, { status: 400 });
+    if (otpSnap.empty) {
+      return NextResponse.json({ error: 'No active verification code found' }, { status: 400 });
     }
 
-    const otpDoc = snapshot.docs[0];
+    const otpDoc = otpSnap.docs[0];
     const data = otpDoc.data();
 
     // 2. Security Checks
     if (data.attempts >= 5) {
-      return NextResponse.json({ error: 'Too many attempts. Request a new code.' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many attempts. Please request a new code.' }, { status: 429 });
     }
 
     if (data.expiresAt.toDate() < new Date()) {
-      return NextResponse.json({ error: 'Code has expired' }, { status: 400 });
+      return NextResponse.json({ error: 'Verification code has expired' }, { status: 400 });
     }
 
     if (data.otpHash !== hashOTP(otp)) {
-      await updateDoc(otpDoc.ref, { attempts: data.attempts + 1 });
+      await otpDoc.ref.update({ attempts: FieldValue.increment(1) });
       return NextResponse.json({ error: 'Incorrect verification code' }, { status: 400 });
     }
 
-    // 3. Mark Used & Create Session
-    await updateDoc(otpDoc.ref, { used: true });
+    // 3. Mark OTP as used
+    await otpDoc.ref.update({ used: true });
 
+    // 4. Create secure temporary reset session
     const resetToken = generateResetToken();
-    await addDoc(collection(db, 'passwordResetSessions'), {
-      email,
+    await db.collection('passwordResetSessions').add({
+      email: email.toLowerCase(),
       token: resetToken,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minute validity
       used: false,
-      createdAt: serverTimestamp()
+      createdAt: FieldValue.serverTimestamp()
     });
 
     return NextResponse.json({ success: true, resetToken });
   } catch (error: any) {
-    console.error('OTP Verification Error:', error);
-    return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
+    console.error('SERVER_OTP_VERIFY_FAILURE:', error.message);
+    return NextResponse.json({ error: 'System error during verification' }, { status: 500 });
   }
 }

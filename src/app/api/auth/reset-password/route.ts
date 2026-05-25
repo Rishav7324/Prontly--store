@@ -1,51 +1,52 @@
-
 import { NextResponse } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
-import { initializeFirebase } from '@/firebase';
-import { collection, query, where, getDocs, updateDoc, limit } from 'firebase/firestore';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 
+/**
+ * Secure Password Reset Endpoint using Firebase Admin SDK.
+ */
 export async function POST(req: Request) {
   try {
     const { email, resetToken, newPassword } = await req.json();
-    const { db } = initializeFirebase();
-
+    
     if (!email || !resetToken || !newPassword || newPassword.length < 8) {
       return NextResponse.json({ error: 'Incomplete or invalid request' }, { status: 400 });
     }
 
-    // 1. Validate Session
-    const sessionQuery = query(
-      collection(db, 'passwordResetSessions'),
-      where('email', '==', email),
-      where('token', '==', resetToken),
-      where('used', '==', false),
-      limit(1)
-    );
-
-    const snapshot = await getDocs(sessionQuery);
-    if (snapshot.empty) {
-      return NextResponse.json({ error: 'Invalid reset session' }, { status: 401 });
-    }
-
-    const sessionDoc = snapshot.docs[0];
-    if (sessionDoc.data().expiresAt.toDate() < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
-    }
-
-    // 2. Perform Reset
+    const db = getAdminDb();
     const auth = getAdminAuth();
-    const user = await auth.getUserByEmail(email);
-    
-    await auth.updateUser(user.uid, {
+
+    // 1. Validate Reset Session in Firestore using Admin SDK
+    const sessionSnap = await db.collection('passwordResetSessions')
+      .where('email', '==', email.toLowerCase())
+      .where('token', '==', resetToken)
+      .where('used', '==', false)
+      .limit(1)
+      .get();
+
+    if (sessionSnap.empty) {
+      return NextResponse.json({ error: 'Invalid or expired reset session' }, { status: 401 });
+    }
+
+    const sessionDoc = sessionSnap.docs[0];
+    const sessionData = sessionDoc.data();
+
+    // Check expiry
+    if (sessionData.expiresAt.toDate() < new Date()) {
+      return NextResponse.json({ error: 'Reset session has expired' }, { status: 401 });
+    }
+
+    // 2. Perform Password Update via Admin Auth
+    const userRecord = await auth.getUserByEmail(email);
+    await auth.updateUser(userRecord.uid, {
       password: newPassword
     });
 
     // 3. Invalidate Session
-    await updateDoc(sessionDoc.ref, { used: true });
+    await sessionDoc.ref.update({ used: true });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Password Reset Execution Error:', error);
-    return NextResponse.json({ error: 'Failed to update password' }, { status: 500 });
+    console.error('SERVER_PW_RESET_FAILURE:', error.message);
+    return NextResponse.json({ error: 'Failed to update password. Please try again.' }, { status: 500 });
   }
 }

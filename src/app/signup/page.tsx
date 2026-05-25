@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { sendWelcomeEmail } from '@/app/actions/email-actions';
@@ -64,13 +64,14 @@ export default function SignupPage() {
         lastLoginAt: serverTimestamp()
       });
 
-      // Dispatch Welcome Email
-      sendWelcomeEmail(formData.email, formData.name).catch(console.error);
+      // Dispatch Welcome Email - isolated to prevent flow block
+      sendWelcomeEmail(formData.email, formData.name)
+        .catch(e => console.warn('Background welcome email failed:', e.message));
       
       toast({ title: "Welcome to Prontly!", description: "Your account is ready." });
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Signup failed', error);
+      console.error('Signup failed:', error);
       toast({ variant: "destructive", title: "Signup Failed", description: error.message || "Failed to create account." });
     } finally {
       setLoading(false);
@@ -82,10 +83,12 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Unify with Google Login logic: check if exists
+      // Check if exists
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
       
@@ -106,7 +109,8 @@ export default function SignupPage() {
 
         // Send Welcome Email
         if (user.email) {
-          sendWelcomeEmail(user.email, user.displayName || 'Creator').catch(console.error);
+          sendWelcomeEmail(user.email, user.displayName || 'Creator')
+            .catch(e => console.warn('Background welcome email failed:', e.message));
         }
         toast({ title: "Account Verified", description: "Welcome to the Prontly community." });
       } else {
@@ -115,10 +119,16 @@ export default function SignupPage() {
 
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Google signup failed', error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ variant: "destructive", title: "Auth Error", description: "Failed to link Google account." });
+      console.error('Google signup failed:', error);
+      
+      let message = "Failed to link Google account.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        message = "Signup popup was closed before completion.";
+      } else if (error.code === 'auth/internal-error') {
+        message = "Authentication server error. Please ensure authorized domains are configured.";
       }
+      
+      toast({ variant: "destructive", title: "Auth Error", description: message });
     } finally {
       setLoading(false);
     }

@@ -48,6 +48,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      // Set parameters for better UX
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -73,9 +76,10 @@ export default function LoginPage() {
           lastLoginAt: serverTimestamp()
         });
 
-        // Send Welcome Email for new registration
+        // Send Welcome Email for new registration - isolated to prevent flow block
         if (user.email) {
-          sendWelcomeEmail(user.email, user.displayName || 'Creator').catch(console.error);
+          sendWelcomeEmail(user.email, user.displayName || 'Creator')
+            .catch(e => console.warn('Background welcome email failed:', e.message));
         }
         toast({ title: "Welcome to Prontly!", description: "Your account has been created successfully." });
       } else {
@@ -83,9 +87,8 @@ export default function LoginPage() {
         await setDoc(userRef, {
           lastLoginAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-          // Ensure display info stays fresh
-          displayName: user.displayName || userSnap.data().displayName,
-          photoURL: user.photoURL || userSnap.data().photoURL,
+          displayName: user.displayName || userSnap.data()?.displayName,
+          photoURL: user.photoURL || userSnap.data()?.photoURL,
         }, { merge: true });
         
         toast({ title: "Welcome back!", description: "Accessing your workspace." });
@@ -93,10 +96,18 @@ export default function LoginPage() {
 
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Google login failed', error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ variant: "destructive", title: "Authentication Error", description: "Google sign-in failed. Please try again." });
+      console.error('Google login failed:', error);
+      
+      let message = "Google sign-in failed. Please try again.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        message = "Sign-in popup was closed before completion.";
+      } else if (error.code === 'auth/internal-error') {
+        message = "Authentication server error. Please ensure authorized domains are configured.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        message = "This domain is not authorized for Google Sign-In in Firebase Console.";
       }
+      
+      toast({ variant: "destructive", title: "Authentication Error", description: message });
     } finally {
       setLoading(false);
     }
