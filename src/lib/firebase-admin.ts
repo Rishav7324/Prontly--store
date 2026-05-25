@@ -73,5 +73,7 @@ export const getAdminAuth = (): Auth => {
  * Singleton getter for Admin Firestore.
  */
 export const getAdminDb = (): Firestore => {
-  return getAdminApp().name ? getFirestore(getAdminApp()) : getFirestore();
+  const app = getAdminApp();
+  // Ensure the app returned is the named 'admin-app' to use correct credentials
+  return getFirestore(app);
 };
