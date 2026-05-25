@@ -6,7 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, RefreshCw, ShoppingBag, Loader2, Sparkles, HelpCircle } from 'lucide-react';
+import { Download, RefreshCw, ShoppingBag, Loader2, Sparkles, HelpCircle, Ban } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DownloadsPage() {
