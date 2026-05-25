@@ -19,28 +19,36 @@ function getAdminApp(): App {
   if (existingApp) return existingApp;
 
   try {
-    // 1. Clean the string: handle potential double-quoting from env loaders
+    // 1. Clean the string: handle potential double-quoting or escaping from env loaders
     let cleanedStr = serviceAccountStr.trim();
     
-    // Remove potential surrounding quotes added by env loaders (single or double)
-    // We do this in a loop to handle multiple layers of wrapping if they exist
-    while (
-      (cleanedStr.startsWith('"') && cleanedStr.endsWith('"')) || 
-      (cleanedStr.startsWith("'") && cleanedStr.endsWith("'"))
-    ) {
+    // Remove potential surrounding quotes (single or double)
+    if ((cleanedStr.startsWith('"') && cleanedStr.endsWith('"')) || 
+        (cleanedStr.startsWith("'") && cleanedStr.endsWith("'"))) {
       cleanedStr = cleanedStr.slice(1, -1).trim();
     }
 
-    // 2. Resolve escaped characters (common when pasting multi-line JSON into single-line env fields)
-    // Replace literal '\n' strings with actual newline characters
+    // 2. Resolve escaped characters (common in multi-line JSON flattened to one line)
+    // We handle both literal backslashes and already-escaped newlines
     cleanedStr = cleanedStr.replace(/\\n/g, '\n');
 
     // 3. Parse the service account JSON
-    const serviceAccount = JSON.parse(cleanedStr);
+    let serviceAccount;
+    try {
+      serviceAccount = JSON.parse(cleanedStr);
+    } catch (parseErr) {
+      // If parsing failed, it might be double-escaped (e.g. stringified twice)
+      // Try one more deep clean
+      cleanedStr = JSON.parse(`"${cleanedStr}"`);
+      serviceAccount = JSON.parse(cleanedStr);
+    }
 
-    // 4. Ensure the private_key is correctly formatted (it must have real newlines)
-    if (serviceAccount.private_key) {
-      // Sometimes the private key itself within the JSON still has escaped \n
+    if (!serviceAccount.private_key || !serviceAccount.project_id) {
+      throw new Error('Service account JSON is missing required fields (private_key or project_id).');
+    }
+
+    // 4. Ensure the private_key is correctly formatted (must have real newlines)
+    if (serviceAccount.private_key.includes('\\n')) {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
@@ -50,7 +58,6 @@ function getAdminApp(): App {
     }, 'admin-app');
   } catch (e: any) {
     console.error('CRITICAL: Firebase Admin Initialization Failed:', e.message);
-    // Provide a descriptive error for the UI
     throw new Error(`Invalid Service Account Configuration: ${e.message}`);
   }
 }

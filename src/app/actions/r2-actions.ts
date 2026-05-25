@@ -44,14 +44,19 @@ export async function uploadFileAction(formData: FormData) {
  * Includes security verification to ensure the user has purchased the asset.
  */
 export async function getDownloadUrl(productId: string, userId: string) {
+  console.log(`SECURE_DOWNLOAD: Initiating request for Product ${productId} by User ${userId}`);
+  
   try {
     const db = getAdminDb();
     
     // 1. Verify User Ownership via Orders
+    // We check for 'paid' or 'delivered' status to ensure access
     const ordersSnap = await db.collection('orders')
       .where('userId', '==', userId)
-      .where('status', '==', 'paid')
+      .where('status', 'in', ['paid', 'delivered'])
       .get();
+
+    console.log(`SECURE_DOWNLOAD: Found ${ordersSnap.size} relevant orders for user.`);
 
     const hasPurchased = ordersSnap.docs.some(doc => {
       const items = doc.data().items || [];
@@ -59,22 +64,29 @@ export async function getDownloadUrl(productId: string, userId: string) {
     });
 
     if (!hasPurchased) {
-      throw new Error('Access Denied: Product not found in your library.');
+      console.warn(`SECURE_DOWNLOAD: Access denied. No matching purchase found for ${productId}`);
+      throw new Error('Access Denied: Product not found in your library. Please ensure payment was successful.');
     }
 
     // 2. Fetch File Key
     const productSnap = await db.collection('products').doc(productId).get();
-    if (!productSnap.exists) throw new Error('Product not found.');
+    if (!productSnap.exists) throw new Error('Product metadata not found.');
     
     const product = productSnap.data();
     const key = product?.fileKey;
 
-    if (!key) throw new Error('Source file not available.');
+    if (!key) {
+      console.error(`SECURE_DOWNLOAD: Product ${productId} exists but has no fileKey assigned.`);
+      throw new Error('Source file not available for this product.');
+    }
 
     // 3. Generate Signed URL
+    // Extract key if it's a full URL
     const cleanKey = key.includes('https://') 
       ? key.split('/').slice(3).join('/') 
       : key;
+
+    console.log(`SECURE_DOWNLOAD: Generating signed URL for R2 Key: ${cleanKey}`);
 
     const command = new GetObjectCommand({
       Bucket: R2_BUCKET_NAME,
@@ -83,9 +95,11 @@ export async function getDownloadUrl(productId: string, userId: string) {
 
     // Valid for 10 minutes
     const url = await getSignedUrl(r2, command, { expiresIn: 600 });
+    
+    console.log(`SECURE_DOWNLOAD: Success. Signed URL generated.`);
     return { url };
   } catch (error: any) {
-    console.error('Secure Download Error:', error.message);
+    console.error('SECURE_DOWNLOAD_ERROR:', error.message);
     throw new Error(error.message || 'Could not verify download permission.');
   }
 }
