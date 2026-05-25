@@ -44,7 +44,7 @@ export async function uploadFileAction(formData: FormData) {
  * Includes security verification to ensure the user has purchased the asset.
  */
 export async function getDownloadUrl(productId: string, userId: string) {
-  console.log(`[SECURE_DOWNLOAD]: Request for Product ${productId} by User ${userId}`);
+  console.log(`[SECURE_DOWNLOAD_REQUEST]: Product: ${productId} | User: ${userId}`);
   
   try {
     let db;
@@ -52,11 +52,11 @@ export async function getDownloadUrl(productId: string, userId: string) {
       db = getAdminDb();
     } catch (adminErr: any) {
       console.error('[SECURE_DOWNLOAD_INIT_ERROR]:', adminErr.message);
-      throw new Error('The secure verification service is currently misconfigured. Please check server environment variables.');
+      throw new Error('Verification service is currently unavailable. Please contact support.');
     }
     
     // 1. Verify User Ownership via Orders
-    // We check for 'paid' or 'delivered' status to ensure access
+    // We check for 'paid' or 'delivered' status
     let ordersSnap;
     try {
       ordersSnap = await db.collection('orders')
@@ -65,6 +65,11 @@ export async function getDownloadUrl(productId: string, userId: string) {
         .get();
     } catch (dbErr: any) {
       console.error('[SECURE_DOWNLOAD_DB_FETCH_ERROR]:', dbErr.message);
+      
+      // Handle the specific 'Missing Index' error which often happens with complex where clauses
+      if (dbErr.message.includes('FAILED_PRECONDITION')) {
+        throw new Error('The database is optimizing. Please try again in 2 minutes.');
+      }
       
       if (dbErr.message.includes('UNAUTHENTICATED') || dbErr.message.includes('PERMISSION_DENIED')) {
         throw new Error('Backend authentication failed. The service account may have insufficient permissions or an invalid key.');
@@ -78,8 +83,8 @@ export async function getDownloadUrl(productId: string, userId: string) {
     });
 
     if (!hasPurchased) {
-      console.warn(`[SECURE_DOWNLOAD]: Access denied. No valid order found for product ${productId}`);
-      throw new Error('Access Denied: Product not found in your library. Please ensure payment was successful.');
+      console.warn(`[SECURE_DOWNLOAD_DENIED]: No valid order for user ${userId} and product ${productId}`);
+      throw new Error('Access Denied: You must purchase this product to access the source files.');
     }
 
     // 2. Fetch File Key
@@ -90,7 +95,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
     const key = product?.fileKey;
 
     if (!key) {
-      console.error(`[SECURE_DOWNLOAD]: Product ${productId} exists but has no fileKey assigned.`);
+      console.error(`[SECURE_DOWNLOAD_ERROR]: Product ${productId} has no fileKey.`);
       throw new Error('Source file not available for this product yet.');
     }
 
@@ -100,7 +105,7 @@ export async function getDownloadUrl(productId: string, userId: string) {
       ? key.split('/').slice(3).join('/') 
       : key;
 
-    console.log(`[SECURE_DOWNLOAD]: Generating signed link for R2 Key: ${cleanKey}`);
+    console.log(`[SECURE_DOWNLOAD_SUCCESS]: Generating signed link for R2 Key: ${cleanKey}`);
 
     const command = new GetObjectCommand({
       Bucket: R2_BUCKET_NAME,
@@ -110,10 +115,9 @@ export async function getDownloadUrl(productId: string, userId: string) {
     // Valid for 10 minutes
     const url = await getSignedUrl(r2, command, { expiresIn: 600 });
     
-    console.log(`[SECURE_DOWNLOAD]: Signed URL generated successfully.`);
     return { url };
   } catch (error: any) {
-    console.error('[SECURE_DOWNLOAD_ERROR]:', error.message);
+    console.error('[SECURE_DOWNLOAD_EXCEPTION]:', error.message);
     throw new Error(error.message || 'Verification process failed.');
   }
 }

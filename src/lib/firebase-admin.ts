@@ -12,7 +12,7 @@ function getAdminApp(): App {
 
   if (!serviceAccountRaw) {
     console.error('[FIREBASE_ADMIN_ERROR]: FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
-    throw new Error('Server configuration error: Missing service account.');
+    throw new Error('Server configuration error: Missing service account credentials.');
   }
 
   // Check if we already have an initialized app with this name
@@ -22,22 +22,30 @@ function getAdminApp(): App {
   try {
     /**
      * CLEANING LOGIC:
-     * 1. Remove potential wrapping quotes from the env var.
-     * 2. Parse JSON.
-     * 3. Fix newlines in the private key if the string was double-escaped.
+     * 1. Remove potential wrapping quotes from the env var (common in some CI/CD environments).
+     * 2. Parse the JSON.
      */
     let sanitized = serviceAccountRaw;
-    if (sanitized.startsWith("'") || sanitized.startsWith('"')) {
+    
+    // Handle cases where the string is wrapped in single or double quotes
+    if ((sanitized.startsWith("'") && sanitized.endsWith("'")) || 
+        (sanitized.startsWith('"') && sanitized.endsWith('"'))) {
       sanitized = sanitized.substring(1, sanitized.length - 1);
     }
 
     const serviceAccount = JSON.parse(sanitized);
     
+    /**
+     * Handle the private key formatting. 
+     * In the JSON source, newlines are usually escaped as '\n'.
+     * We ensure they are restored to actual newline characters for the RSA parser.
+     */
     if (serviceAccount.private_key) {
+      // replace(/\\n/g, '\n') handles cases where the string is double-escaped
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
 
-    console.log(`[FIREBASE_ADMIN_INIT]: Attempting initialization for project: ${serviceAccount.project_id}`);
+    console.log(`[FIREBASE_ADMIN_INIT]: Attempting authentication for project: ${serviceAccount.project_id}`);
 
     return initializeApp({
       credential: cert(serviceAccount),
