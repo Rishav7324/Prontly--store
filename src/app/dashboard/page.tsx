@@ -66,23 +66,15 @@ export default function Dashboard() {
   };
 
   const handleDownload = async (productId: string, productName: string) => {
-    if (!db) return;
+    if (!user) return;
     setDownloadingId(productId);
     try {
-      const prodSnap = await getDoc(doc(db, 'products', productId));
-      if (!prodSnap.exists()) throw new Error("Asset missing");
-      
-      const product = prodSnap.data();
-      if (!product.fileKey) {
-        toast({ variant: "destructive", title: "Asset Unavailable", description: "No source file linked to this asset." });
-        return;
-      }
-
-      const { url } = await getDownloadUrl(product.fileKey);
+      // Secure Download Request with Ownership Verification
+      const { url } = await getDownloadUrl(productId, user.uid);
       window.open(url, '_blank');
-      toast({ title: "Secure Download Initiated", description: `Unpacking ${productName}...` });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Security Block", description: "You don't have authorization for this file." });
+      toast({ title: "Secure Link Generated", description: `Downloading ${productName}...` });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Access Denied", description: error.message || "Could not verify purchase." });
     } finally {
       setDownloadingId(null);
     }
