@@ -19,14 +19,14 @@ import {
   Copy,
   Check,
   Twitter,
-  Zap,
   Layers,
   ExternalLink,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from "lucide-react";
 import Image from "next/image";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, limit } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
+import { collection, query, where, limit, doc } from "firebase/firestore";
 import { analytics } from "@/lib/analytics";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -121,17 +121,24 @@ const ProductBreadcrumbs = ({ category, name }: { category: string, name: string
   </nav>
 );
 
-export function ProductDetailClient({ product }: { product: any }) {
+export function ProductDetailClient({ product: hydratedProduct }: { product: any }) {
   const router = useRouter();
   const db = useFirestore();
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>(product.images?.[0] || '');
+  const [selectedImage, setSelectedImage] = useState<string>(hydratedProduct.images?.[0] || '');
+
+  // Real-time data binding using the true Firestore ID
+  const productRef = useMemoFirebase(() => (db ? doc(db, 'products', hydratedProduct.id) : null), [db, hydratedProduct.id]);
+  const { data: liveProduct, loading: liveLoading } = useDoc(productRef);
+
+  // Use live data if available, otherwise fallback to hydrated data from the server
+  const product = liveProduct || hydratedProduct;
 
   useEffect(() => { 
     setMounted(true); 
-    analytics.viewProduct(product);
+    if (product) analytics.viewProduct(product);
   }, [product]);
 
   const suggestedQuery = useMemoFirebase(() => {
@@ -164,6 +171,7 @@ export function ProductDetailClient({ product }: { product: any }) {
         </Badge>
         <h1 className="text-3xl font-bold text-midnight-ink leading-tight tracking-tight">
           {product.name}
+          {liveLoading && <Loader2 className="inline ml-3 h-4 w-4 animate-spin opacity-20" />}
         </h1>
       </div>
 

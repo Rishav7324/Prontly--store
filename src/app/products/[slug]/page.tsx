@@ -12,15 +12,15 @@ interface ProductPageProps {
 }
 
 /**
- * Optimized SSR Product Resolver.
- * Uses slug-based filtering to fetch a complete product object.
+ * High-reliability Product Resolver.
+ * Resolves slugs or IDs using the Firestore REST API to ensure SEO metadata is generated.
  */
-async function getProduct(slug: string) {
+async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
   try {
-    // Attempt 1: Query by slug field
+    // 1. Attempt lookup by SLUG using RunQuery
     const queryRes = await fetch(`${baseUrl}:runQuery`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -31,7 +31,7 @@ async function getProduct(slug: string) {
             fieldFilter: {
               field: { fieldPath: 'slug' },
               op: 'EQUAL',
-              value: { stringValue: slug }
+              value: { stringValue: identifier }
             }
           },
           limit: 1
@@ -63,22 +63,45 @@ async function getProduct(slug: string) {
           fileVersion: fields.fileVersion?.stringValue || "1.0"
         };
       }
+    } else {
+      const errorData = await queryRes.json();
+      console.error('[REST_QUERY_FAILED]:', errorData);
     }
 
-    // Attempt 2: Legacy ID Lookup (Redirect support)
-    const idRes = await fetch(`${baseUrl}/products/${slug}`, { next: { revalidate: 3600 } });
+    // 2. Fallback: Attempt lookup by Document ID (Legacy URL support)
+    const idRes = await fetch(`${baseUrl}/products/${identifier}`, { next: { revalidate: 3600 } });
     if (idRes.ok) {
       const doc = await idRes.json();
       const fields = doc.fields || {};
       const actualSlug = fields.slug?.stringValue;
-      if (actualSlug && actualSlug !== slug) {
+      
+      // If an actual slug exists but we used the ID, trigger a permanent redirect
+      if (actualSlug && actualSlug !== identifier) {
         return { needsRedirect: true, targetSlug: actualSlug };
       }
+
+      return {
+        id: doc.name.split('/').pop(),
+        name: fields.name?.stringValue || "",
+        slug: fields.slug?.stringValue || "",
+        price: parseInt(fields.price?.integerValue || "0"),
+        compareAtPrice: parseInt(fields.compareAtPrice?.integerValue || "0"),
+        categorySlug: fields.categorySlug?.stringValue || "",
+        images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+        shortDescription: fields.shortDescription?.stringValue || "",
+        description: fields.description?.stringValue || "",
+        averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
+        reviewCount: parseInt(fields.reviewCount?.integerValue || "0"),
+        salesCount: parseInt(fields.salesCount?.integerValue || "0"),
+        tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+        fileFormat: fields.fileFormat?.stringValue || "",
+        fileVersion: fields.fileVersion?.stringValue || "1.0"
+      };
     }
 
     return null;
   } catch (error) {
-    console.error(`[RESOLVER_ERROR]:`, error);
+    console.error(`[RESOLVER_EXCEPTION]:`, error);
     return null;
   }
 }
@@ -89,8 +112,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product || product.needsRedirect) {
     return generateMeta({ 
-      title: "Asset Not Found", 
-      description: "This digital asset is unavailable.", 
+      title: "Asset Catalog", 
+      description: "Browsing the Prontly digital asset collection.", 
       path: `/products/${slug}`,
       noIndex: true
     });
@@ -113,8 +136,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
   if (product.needsRedirect) redirect(`/products/${product.targetSlug}`);
-
-  console.log(`[SSR_RESOLVED]: Found product ${product.name} via slug ${slug}`);
 
   const productSchema = getProductSchema(product);
   const breadcrumbSchema = getBreadcrumbSchema([
