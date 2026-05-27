@@ -1,17 +1,18 @@
 
 import { Metadata } from 'next';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
 import { firebaseConfig } from "@/firebase/config";
 import { generateMeta } from "@/lib/seo/generate-meta";
 import { getBlogSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
 import BlogPostDetailClient from "@/components/blog/BlogPostDetailClient";
 
+interface BlogPageProps {
+  params: Promise<{ id: string }>;
+}
+
 async function getPostData(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
-  // Try fetching by slug first
   const res = await fetch(
     `${baseUrl}:runQuery`,
     { 
@@ -53,7 +54,7 @@ async function getPostData(identifier: string) {
   return null;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
   const { id } = await params;
   const post = await getPostData(id);
   
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   });
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BlogPostPage({ params }: BlogPageProps) {
   const { id } = await params;
   const post = await getPostData(id);
 

@@ -5,18 +5,11 @@ import { ProductDetailClient } from "@/components/store/ProductDetailClient";
 import { generateMeta } from "@/lib/seo/generate-meta";
 import { firebaseConfig } from "@/firebase/config";
 import { getProductSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
-/**
- * High-reliability Product Resolver.
- * Resolves slugs or IDs using the Firestore REST API.
- * Uses 'id' as the folder param to avoid Next.js routing conflicts.
- */
 async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
@@ -74,7 +67,6 @@ async function getProduct(identifier: string) {
       const fields = doc.fields || {};
       const actualSlug = fields.slug?.stringValue;
       
-      // If an actual slug exists but we used the ID, trigger a permanent redirect
       if (actualSlug && actualSlug !== identifier) {
         return { needsRedirect: true, targetSlug: actualSlug };
       }
@@ -150,9 +142,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify([productSchema, breadcrumbSchema]) }}
       />
       <div className="min-h-screen bg-white flex flex-col">
-        <Navbar />
         <ProductDetailClient product={product} />
-        <Footer />
       </div>
     </>
   );

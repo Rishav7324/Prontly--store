@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -44,6 +45,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Navbar } from "../layout/Navbar";
+import { Footer } from "../layout/Footer";
 
 const ProductShare = ({ product }: { product: any }) => {
   const [copied, setCopied] = useState(false);
@@ -163,178 +166,182 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
   const isWishlisted = mounted ? isInWishlist(product.id) : false;
 
   return (
-    <main className="container mx-auto px-4 py-12 flex-1 max-w-7xl">
-      <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="container mx-auto px-4 py-12 flex-1 max-w-7xl">
+        <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
 
-      <div className="mb-8">
-        <Badge className="bg-deep-violet/5 text-deep-violet border-none px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-widest mb-2">
-          {product.categorySlug}
-        </Badge>
-        <h1 className="text-3xl font-bold text-midnight-ink leading-tight tracking-tight">
-          {product.name}
-          {liveLoading && <Loader2 className="inline ml-3 h-4 w-4 animate-spin opacity-20" />}
-        </h1>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-20">
-        <div className="lg:col-span-7 space-y-8">
-          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md border border-stone-gray/10 bg-porcelain-white shadow-sm">
-            <Image 
-              src={selectedImage || 'https://picsum.photos/seed/placeholder/1200/800'} 
-              alt={product.name} 
-              fill 
-              className="object-cover" 
-              priority
-            />
-          </div>
-          
-          {product.images?.length > 1 && (
-            <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
-              {product.images.map((img: string, i: number) => (
-                <button 
-                  key={i} 
-                  onClick={() => setSelectedImage(img)}
-                  className={cn(
-                    "relative h-20 w-32 rounded border transition-all shrink-0 overflow-hidden",
-                    selectedImage === img ? "border-deep-violet ring-2 ring-deep-violet/10" : "border-stone-gray/20 opacity-70 hover:opacity-100"
-                  )}
-                >
-                  <Image src={img} alt={`${product.name} thumbnail ${i + 1}`} fill className="object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="mb-8">
+          <Badge className="bg-deep-violet/5 text-deep-violet border-none px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-widest mb-2">
+            {product.categorySlug}
+          </Badge>
+          <h1 className="text-3xl font-bold text-midnight-ink leading-tight tracking-tight">
+            {product.name}
+            {liveLoading && <Loader2 className="inline ml-3 h-4 w-4 animate-spin opacity-20" />}
+          </h1>
         </div>
 
-        <div className="lg:col-span-5">
-          <div className="sticky top-28 space-y-8">
-            <div className="space-y-6">
-              <div className="flex items-center gap-6 py-4 border-y border-stone-gray/10">
-                <div className="flex items-center gap-1.5 text-yellow-500">
-                  <Star className="h-4 w-4 fill-current" />
-                  <span className="font-bold text-midnight-ink text-sm">{product.averageRating || '5.0'}</span>
-                  <span className="text-ghost-gray text-xs ml-1">({product.reviewCount || 0})</span>
-                </div>
-                <div className="h-4 w-[1px] bg-stone-gray/20" />
-                <div className="flex items-center gap-1.5 text-slate-blue">
-                  <Layers className="h-4 w-4" />
-                  <span className="font-bold text-midnight-ink text-sm">{product.salesCount || 0}</span>
-                  <span className="text-ghost-gray text-xs ml-1">Installs</span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-midnight-ink tracking-tighter">
-                    ₹{(product.price / 100).toLocaleString('en-IN')}
-                  </span>
-                </div>
-
-                <p className="text-slate-blue text-sm leading-relaxed">
-                  {product.shortDescription || "Unlock professional-grade assets with a perpetual license. Lifetime updates included."}
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 pt-4">
-                <Button 
-                  size="lg" 
-                  className="w-full h-12 rounded bg-deep-violet hover:bg-deep-violet/90 text-white font-bold stripe-shadow-sm transition-all"
-                  onClick={handleBuyNow}
-                >
-                  Buy Now
-                </Button>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline" 
-                    className="h-10 rounded border-stone-gray/20 text-midnight-ink hover:bg-powder-blue transition-all"
-                    onClick={handleAddToCart}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Add to Cart
-                  </Button>
-                  <Button 
-                    variant="outline"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-20">
+          <div className="lg:col-span-7 space-y-8">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md border border-stone-gray/10 bg-porcelain-white shadow-sm">
+              <Image 
+                src={selectedImage || 'https://picsum.photos/seed/placeholder/1200/800'} 
+                alt={product.name} 
+                fill 
+                className="object-cover" 
+                priority
+              />
+            </div>
+            
+            {product.images?.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
+                {product.images.map((img: string, i: number) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setSelectedImage(img)}
                     className={cn(
-                      "h-10 rounded border-stone-gray/20 transition-all",
-                      isWishlisted ? "text-deep-violet bg-deep-violet/5 border-deep-violet/30" : "text-midnight-ink hover:bg-powder-blue"
+                      "relative h-20 w-32 rounded border transition-all shrink-0 overflow-hidden",
+                      selectedImage === img ? "border-deep-violet ring-2 ring-deep-violet/10" : "border-stone-gray/20 opacity-70 hover:opacity-100"
                     )}
-                    onClick={() => toggleItem(product.id)}
                   >
-                    <Heart className={cn("mr-2 h-4 w-4", isWishlisted && "fill-current")} />
-                    {isWishlisted ? "Saved" : "Wishlist"}
-                  </Button>
+                    <Image src={img} alt={`${product.name} thumbnail ${i + 1}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="lg:col-span-5">
+            <div className="sticky top-28 space-y-8">
+              <div className="space-y-6">
+                <div className="flex items-center gap-6 py-4 border-y border-stone-gray/10">
+                  <div className="flex items-center gap-1.5 text-yellow-500">
+                    <Star className="h-4 w-4 fill-current" />
+                    <span className="font-bold text-midnight-ink text-sm">{product.averageRating || '5.0'}</span>
+                    <span className="text-ghost-gray text-xs ml-1">({product.reviewCount || 0})</span>
+                  </div>
+                  <div className="h-4 w-[1px] bg-stone-gray/20" />
+                  <div className="flex items-center gap-1.5 text-slate-blue">
+                    <Layers className="h-4 w-4" />
+                    <span className="font-bold text-midnight-ink text-sm">{product.salesCount || 0}</span>
+                    <span className="text-ghost-gray text-xs ml-1">Installs</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="pt-8 space-y-4 border-t border-stone-gray/10">
-                <h2 className="text-sm font-bold text-midnight-ink flex items-center gap-2">
-                  <Info className="h-4 w-4 text-deep-violet" />
-                  Specifications
-                </h2>
-                <div 
-                  className="prose-content text-sm"
-                  dangerouslySetInnerHTML={{ __html: product.description || '' }}
-                />
-              </div>
+                <div className="space-y-4">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-4xl font-bold text-midnight-ink tracking-tighter">
+                      ₹{(product.price / 100).toLocaleString('en-IN')}
+                    </span>
+                  </div>
 
-              <div className="pt-8 space-y-4 border-t border-stone-gray/10">
-                 <div className="flex items-center justify-between">
-                   <h3 className="text-[10px] font-black uppercase text-ghost-gray tracking-[0.15em]">Technical Audit</h3>
-                   <ProductShare product={product} />
-                 </div>
-                 
-                 <div className="grid grid-cols-2 gap-4">
-                   {[
-                     { label: 'Format', val: product.fileFormat || 'SOURCE', icon: Layers },
-                     { label: 'Version', val: product.fileVersion || '1.0', icon: Zap },
-                     { label: 'License', val: 'Perpetual', icon: ShieldCheck },
-                     { label: 'Delivery', val: 'Instant', icon: Clock },
-                   ].map((item, i) => (
-                     <div key={i} className="p-4 rounded border border-stone-gray/10 bg-porcelain-white flex flex-col gap-2">
-                       <item.icon className="h-4 w-4 text-deep-violet" />
-                       <div>
-                         <p className="text-[9px] text-ghost-gray font-bold uppercase">{item.label}</p>
-                         <p className="text-xs font-bold text-midnight-ink">{item.val}</p>
+                  <p className="text-slate-blue text-sm leading-relaxed">
+                    {product.shortDescription || "Unlock professional-grade assets with a perpetual license. Lifetime updates included."}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-4">
+                  <Button 
+                    size="lg" 
+                    className="w-full h-12 rounded bg-deep-violet hover:bg-deep-violet/90 text-white font-bold stripe-shadow-sm transition-all"
+                    onClick={handleBuyNow}
+                  >
+                    Buy Now
+                  </Button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="h-10 rounded border-stone-gray/20 text-midnight-ink hover:bg-powder-blue transition-all"
+                      onClick={handleAddToCart}
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add to Cart
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className={cn(
+                        "h-10 rounded border-stone-gray/20 transition-all",
+                        isWishlisted ? "text-deep-violet bg-deep-violet/5 border-deep-violet/30" : "text-midnight-ink hover:bg-powder-blue"
+                      )}
+                      onClick={() => toggleItem(product.id)}
+                    >
+                      <Heart className={cn("mr-2 h-4 w-4", isWishlisted && "fill-current")} />
+                      {isWishlisted ? "Saved" : "Wishlist"}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="pt-8 space-y-4 border-t border-stone-gray/10">
+                  <h2 className="text-sm font-bold text-midnight-ink flex items-center gap-2">
+                    <Info className="h-4 w-4 text-deep-violet" />
+                    Specifications
+                  </h2>
+                  <div 
+                    className="prose-content text-sm"
+                    dangerouslySetInnerHTML={{ __html: product.description || '' }}
+                  />
+                </div>
+
+                <div className="pt-8 space-y-4 border-t border-stone-gray/10">
+                   <div className="flex items-center justify-between">
+                     <h3 className="text-[10px] font-black uppercase text-ghost-gray tracking-[0.15em]">Technical Audit</h3>
+                     <ProductShare product={product} />
+                   </div>
+                   
+                   <div className="grid grid-cols-2 gap-4">
+                     {[
+                       { label: 'Format', val: product.fileFormat || 'SOURCE', icon: Layers },
+                       { label: 'Version', val: product.fileVersion || '1.0', icon: Zap },
+                       { label: 'License', val: 'Perpetual', icon: ShieldCheck },
+                       { label: 'Delivery', val: 'Instant', icon: Clock },
+                     ].map((item, i) => (
+                       <div key={i} className="p-4 rounded border border-stone-gray/10 bg-porcelain-white flex flex-col gap-2">
+                         <item.icon className="h-4 w-4 text-deep-violet" />
+                         <div>
+                           <p className="text-[9px] text-ghost-gray font-bold uppercase">{item.label}</p>
+                           <p className="text-xs font-bold text-midnight-ink">{item.val}</p>
+                         </div>
                        </div>
-                     </div>
-                   ))}
-                 </div>
+                     ))}
+                   </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <section className="py-20 border-t border-stone-gray/10">
-        <ReviewSystem productId={product.id} productName={product.name} />
-      </section>
-
-      {suggestedProducts.length > 0 && (
-        <section className="space-y-12 border-t border-stone-gray/10 pt-20 pb-32">
-          <div className="flex items-end justify-between">
-            <div className="space-y-2">
-              <Badge variant="outline" className="border-deep-violet/20 text-deep-violet bg-deep-violet/5 font-bold uppercase text-[9px] tracking-[0.2em] px-2 py-0.5">
-                Similar infrastructure
-              </Badge>
-              <h2 className="text-3xl font-bold font-headline text-midnight-ink tracking-tight">Expand your toolkit.</h2>
-            </div>
-            <Button variant="ghost" asChild className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
-              <Link href="/products" className="flex items-center gap-2">
-                Full catalog <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <ProductGrid products={suggestedProducts} />
+        <section className="py-20 border-t border-stone-gray/10">
+          <ReviewSystem productId={product.id} productName={product.name} />
         </section>
-      )}
 
-      <div className="flex justify-center py-20 border-t border-stone-gray/10 mt-20">
-        <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary rounded-full px-6">
-          <Link href="/blog" className="flex items-center">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog
-          </Link>
-        </Button>
-      </div>
-    </main>
+        {suggestedProducts.length > 0 && (
+          <section className="space-y-12 border-t border-stone-gray/10 pt-20 pb-32">
+            <div className="flex items-end justify-between">
+              <div className="space-y-2">
+                <Badge variant="outline" className="border-deep-violet/20 text-deep-violet bg-deep-violet/5 font-bold uppercase text-[9px] tracking-[0.2em] px-2 py-0.5">
+                  Similar infrastructure
+                </Badge>
+                <h2 className="text-3xl font-bold font-headline text-midnight-ink tracking-tight">Expand your toolkit.</h2>
+              </div>
+              <Button variant="ghost" asChild className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
+                <Link href="/products" className="flex items-center gap-2">
+                  Full catalog <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <ProductGrid products={suggestedProducts} />
+          </section>
+        )}
+
+        <div className="flex justify-center py-20 border-t border-stone-gray/10 mt-20">
+          <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary rounded-full px-6">
+            <Link href="/blog" className="flex items-center">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog
+            </Link>
+          </Button>
+        </div>
+      </main>
+      <Footer />
+    </div>
   );
 }

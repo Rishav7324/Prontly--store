@@ -1,57 +1,86 @@
+
 import { Metadata } from 'next';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
 import { firebaseConfig } from "@/firebase/config";
 import { generateMeta } from "@/lib/seo/generate-meta";
 import { getBlogSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
 import BlogPostDetailClient from "@/components/blog/BlogPostDetailClient";
 
-async function getPostData(slug: string) {
-  const projectId = firebaseConfig.projectId;
-  const res = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blog_posts?pageSize=1&mask=title,slug,content,excerpt,featuredImage,publishedAt,createdAt,updatedAt&filter=slug%20%3D%3D%20%22${slug}%22`,
-    { next: { revalidate: 3600 } }
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  const doc = data.documents?.[0];
-  if (!doc) return null;
-  
-  return {
-    id: doc.name.split('/').pop(),
-    title: doc.fields?.title?.stringValue || "",
-    slug: doc.fields?.slug?.stringValue || "",
-    excerpt: doc.fields?.excerpt?.stringValue || "",
-    featuredImage: doc.fields?.featuredImage?.stringValue || "",
-    publishedAt: doc.fields?.publishedAt?.timestampValue || doc.fields?.createdAt?.timestampValue,
-  };
+interface BlogPageProps {
+  params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await getPostData(slug);
+async function getPostData(identifier: string) {
+  const projectId = firebaseConfig.projectId;
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+
+  const res = await fetch(
+    `${baseUrl}:runQuery`,
+    { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'blog_posts' }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'slug' },
+              op: 'EQUAL',
+              value: { stringValue: identifier }
+            }
+          },
+          limit: 1
+        }
+      }),
+      next: { revalidate: 3600 } 
+    }
+  );
   
-  if (!post) return generateMeta({ title: "Article Not Found", description: "The requested article is missing.", path: `/blog/${slug}` });
+  if (res.ok) {
+    const results = await res.json();
+    const doc = results[0]?.document;
+    if (doc) {
+      const fields = doc.fields || {};
+      return {
+        id: doc.name.split('/').pop(),
+        title: fields.title?.stringValue || "",
+        slug: fields.slug?.stringValue || "",
+        excerpt: fields.excerpt?.stringValue || "",
+        featuredImage: fields.featuredImage?.stringValue || "",
+        publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
+      };
+    }
+  }
+  
+  return null;
+}
+
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+  const p = await params;
+  const id = p.id || (p as any).slug;
+  const post = await getPostData(id);
+  
+  if (!post) return generateMeta({ title: "Article Not Found", description: "The requested article is missing.", path: `/blog/${id}` });
 
   return generateMeta({
     title: post.title,
     description: post.excerpt,
-    path: `/blog/${slug}`,
+    path: `/blog/${post.slug || post.id}`,
     image: post.featuredImage,
     type: 'article'
   });
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const post = await getPostData(slug);
+export default async function BlogPostPage({ params }: BlogPageProps) {
+  const p = await params;
+  const id = p.id || (p as any).slug;
+  const post = await getPostData(id);
 
   let schemas: any[] = [];
   if (post) {
     schemas.push(getBlogSchema(post));
     schemas.push(getBreadcrumbSchema([
       { name: 'Blog', path: '/blog' },
-      { name: post.title, path: `/blog/${post.slug}` }
+      { name: post.title, path: `/blog/${post.slug || post.id}` }
     ]));
   }
 
@@ -63,7 +92,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
         />
       )}
-      <BlogPostDetailClient slug={slug} />
+      <BlogPostDetailClient slug={id} />
     </>
   );
 }
