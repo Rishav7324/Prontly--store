@@ -10,12 +10,18 @@ interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * Smart Resolver: 
+ * 1. Attempt lookup by Slug.
+ * 2. Fallback to Document ID lookup.
+ * 3. Redirect to Slug URL if ID was used but Slug exists.
+ */
 async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
   try {
-    // 1. Attempt lookup by SLUG using RunQuery
+    // 1. First Attempt: Run Query by Slug
     const queryRes = await fetch(`${baseUrl}:runQuery`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -60,13 +66,14 @@ async function getProduct(identifier: string) {
       }
     }
 
-    // 2. Fallback: Attempt lookup by Document ID (Legacy URL support)
+    // 2. Second Attempt: Direct Document ID lookup (Legacy Fallback)
     const idRes = await fetch(`${baseUrl}/products/${identifier}`, { next: { revalidate: 3600 } });
     if (idRes.ok) {
       const doc = await idRes.json();
       const fields = doc.fields || {};
       const actualSlug = fields.slug?.stringValue;
       
+      // If found by ID but a Slug exists, signal a redirect
       if (actualSlug && actualSlug !== identifier) {
         return { needsRedirect: true, targetSlug: actualSlug };
       }
@@ -103,7 +110,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product || product.needsRedirect) {
     return generateMeta({ 
-      title: "Asset Detail", 
+      title: "Digital Asset", 
       description: "Browsing premium digital assets.", 
       path: `/products/${id}`,
       noIndex: true
@@ -126,7 +133,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product: any = await getProduct(id);
 
   if (!product) notFound();
-  if (product.needsRedirect) redirect(`/products/${product.targetSlug}`);
+  
+  // SEO Fix: Permanent redirect legacy numeric ID URLs to hyphenated Slugs
+  if (product.needsRedirect) {
+    redirect(`/products/${product.targetSlug}`);
+  }
 
   const productSchema = getProductSchema(product);
   const breadcrumbSchema = getBreadcrumbSchema([

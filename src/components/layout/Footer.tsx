@@ -11,7 +11,7 @@ export function Footer() {
       <div className="container mx-auto px-4 max-w-[1200px]">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16 lg:gap-24">
           <div className="md:col-span-4 space-y-8">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" className="flex items-center gap-2">
               <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
                 <ShieldCheck className="h-4 w-4 text-white" />
               </div>

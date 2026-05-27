@@ -1,5 +1,6 @@
 
 import { Metadata } from 'next';
+import { notFound, redirect } from 'next/navigation';
 import { firebaseConfig } from "@/firebase/config";
 import { generateMeta } from "@/lib/seo/generate-meta";
 import { getBlogSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
@@ -9,6 +10,9 @@ interface BlogPageProps {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * Smart Blog Resolver: Resolves slug to document.
+ */
 async function getPostData(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
@@ -73,23 +77,21 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
   const { id } = await params;
   const post = await getPostData(id);
 
+  if (!post) notFound();
+
   let schemas: any[] = [];
-  if (post) {
-    schemas.push(getBlogSchema(post));
-    schemas.push(getBreadcrumbSchema([
-      { name: 'Blog', path: '/blog' },
-      { name: post.title, path: `/blog/${post.slug || post.id}` }
-    ]));
-  }
+  schemas.push(getBlogSchema(post));
+  schemas.push(getBreadcrumbSchema([
+    { name: 'Blog', path: '/blog' },
+    { name: post.title, path: `/blog/${post.slug || post.id}` }
+  ]));
 
   return (
     <>
-      {schemas.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
+      />
       <BlogPostDetailClient slug={id} />
     </>
   );
