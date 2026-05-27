@@ -65,7 +65,7 @@ export function Navbar() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-xl tracking-tight text-foreground font-script">Prontly Store</span>
+              <span className="font-bold text-xl tracking-tight text-foreground font-script"></span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
               <Link href="/products" className="text-sm font-semibold text-slate-blue hover:text-deep-violet transition-colors">Marketplace</Link>
@@ -116,7 +116,7 @@ export function Navbar() {
                     {isAdmin && (
                       <DropdownMenuItem asChild className="rounded-xl focus:bg-deep-violet/5 focus:text-deep-violet cursor-pointer">
                         <Link href="/admin" className="flex items-center gap-3 p-2 text-sm font-bold">
-                          <ShieldCheck className="h-4 w-4" /> Admin Terminal
+                          <ShieldCheck className="h-4 w-4" /> Admin Panel
                         </Link>
                       </DropdownMenuItem>
                     )}

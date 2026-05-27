@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Zap, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { sendWelcomeEmail } from '@/app/actions/email-actions';
@@ -34,12 +34,12 @@ export default function SignupPage() {
     if (!auth || !db) return;
 
     if (formData.password !== formData.confirmPassword) {
-      toast({ variant: "destructive", title: "Error", description: "Passwords do not match." });
+      toast({ variant: "destructive", title: "Validation Error", description: "Passwords do not match." });
       return;
     }
 
     if (!formData.acceptTerms) {
-      toast({ variant: "destructive", title: "Terms Required", description: "You must accept the terms of service." });
+      toast({ variant: "destructive", title: "Compliance Required", description: "You must accept the terms of service." });
       return;
     }
 
@@ -50,7 +50,6 @@ export default function SignupPage() {
 
       await updateProfile(user, { displayName: formData.name });
 
-      // Create Firestore User Profile
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         email: user.email,
@@ -64,15 +63,18 @@ export default function SignupPage() {
         lastLoginAt: serverTimestamp()
       });
 
-      // Dispatch Welcome Email - isolated to prevent flow block
       sendWelcomeEmail(formData.email, formData.name)
-        .catch(e => console.warn('Background welcome email failed:', e.message));
+        .catch(e => console.warn('Welcome email failure:', e.message));
       
-      toast({ title: "Welcome to Prontly!", description: "Your account is ready." });
+      toast({ title: "Account Initialized", description: "Redirecting to your library." });
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Signup failed:', error);
-      toast({ variant: "destructive", title: "Signup Failed", description: error.message || "Failed to create account." });
+      toast({ 
+        variant: "destructive", 
+        title: "Registration Fault", 
+        description: error.message || "Failed to create account. Email may already be in use." 
+      });
     } finally {
       setLoading(false);
     }
@@ -88,7 +90,6 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if exists
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
       
@@ -107,28 +108,28 @@ export default function SignupPage() {
           lastLoginAt: serverTimestamp()
         });
 
-        // Send Welcome Email
         if (user.email) {
           sendWelcomeEmail(user.email, user.displayName || 'Creator')
-            .catch(e => console.warn('Background welcome email failed:', e.message));
+            .catch(e => console.warn('Welcome email failure:', e.message));
         }
-        toast({ title: "Account Verified", description: "Welcome to the Prontly community." });
+        toast({ title: "Identity Linked", description: "Your account is now ready." });
       } else {
-        toast({ title: "Account Linked", description: "You already have an account. Signed in successfully." });
+        toast({ title: "Account Detected", description: "You already have an account. Logging in." });
       }
 
       router.push('/dashboard');
     } catch (error: any) {
-      console.error('Google signup failed:', error);
+      console.error('Google Auth Error:', error);
       
-      let message = "Failed to link Google account.";
-      if (error.code === 'auth/popup-closed-by-user') {
-        message = "Signup popup was closed before completion.";
-      } else if (error.code === 'auth/internal-error') {
-        message = "Authentication server error. Please ensure authorized domains are configured.";
+      let title = "Sync Error";
+      let message = "Could not initialize account via Google.";
+
+      if (error.code === 'auth/internal-error') {
+        title = "Domain Not Authorized";
+        message = "Please add your workstation domain to 'Authorized Domains' in Firebase Console.";
       }
       
-      toast({ variant: "destructive", title: "Auth Error", description: message });
+      toast({ variant: "destructive", title, description: message });
     } finally {
       setLoading(false);
     }
@@ -138,8 +139,8 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <Link href="/" className="flex items-center gap-3 mb-6">
-            <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-white/5 shadow-xl">
+          <Link href="/" className="flex items-center gap-3 mb-6 group">
+            <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-white/5 shadow-2xl transition-transform group-hover:scale-110">
               <Image 
                 src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
                 alt="Prontly Logo" 
@@ -147,40 +148,43 @@ export default function SignupPage() {
                 className="object-cover"
               />
             </div>
-            <span className="font-headline text-2xl font-bold tracking-tight">PRONTLY</span>
+            <span className="font-script text-3xl font-bold tracking-tight text-midnight-ink">Prontly Store</span>
           </Link>
-          <h1 className="text-3xl font-bold font-headline">Create account</h1>
-          <p className="text-muted-foreground mt-2">Join the marketplace for premium digital assets</p>
+          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Join the Marketplace</h1>
+          <p className="text-muted-foreground mt-2">Initialize your creative architecture</p>
         </div>
 
-        <Card className="border-border/50 bg-card/30 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Enter your details to get started</CardDescription>
+        <Card className="border-stone-gray/10 bg-white/50 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">
+              <Zap className="h-3.5 w-3.5" /> Registration Protocol
+            </div>
+            <CardTitle className="text-xl font-bold">New Account</CardTitle>
+            <CardDescription>Enter your identity details below</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Legal Name</Label>
                 <Input 
                   id="name" 
-                  placeholder="John Doe" 
+                  placeholder="e.g. John Doe" 
                   required 
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="bg-background/50"
+                  className="bg-background/50 h-11 rounded-xl"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="name@example.com" 
+                  placeholder="name@domain.com" 
                   required 
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="bg-background/50"
+                  className="bg-background/50 h-11 rounded-xl"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -192,7 +196,7 @@ export default function SignupPage() {
                     required 
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="bg-background/50"
+                    className="bg-background/50 h-11 rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
@@ -203,7 +207,7 @@ export default function SignupPage() {
                     required 
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                    className="bg-background/50"
+                    className="bg-background/50 h-11 rounded-xl"
                   />
                 </div>
               </div>
@@ -213,42 +217,47 @@ export default function SignupPage() {
                   id="terms" 
                   checked={formData.acceptTerms}
                   onCheckedChange={(checked) => setFormData({...formData, acceptTerms: !!checked})}
-                  className="border-primary"
+                  className="border-primary h-5 w-5 rounded-md"
                 />
-                <label htmlFor="terms" className="text-xs text-muted-foreground leading-none">
-                  I agree to the <Link href="/terms" className="text-primary hover:underline font-bold">Terms</Link> and <Link href="/privacy" className="text-primary hover:underline font-bold">Privacy</Link>
+                <label htmlFor="terms" className="text-[11px] text-muted-foreground leading-snug font-medium">
+                  I agree to the <Link href="/terms" className="text-primary hover:underline font-bold">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-bold">Privacy Protocol</Link>
                 </label>
               </div>
 
-              <Button type="submit" className="w-full h-11 rounded-xl font-bold" disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Create Account'}
+              <Button type="submit" className="w-full h-12 rounded-xl font-bold bg-deep-violet hover:bg-deep-violet/90 shadow-lg shadow-deep-violet/20" disabled={loading}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Initialize Account'}
               </Button>
             </form>
             
-            <div className="relative py-2">
+            <div className="relative py-4">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/10" />
+                <span className="w-full border-t border-stone-gray/10" />
               </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
-                <span className="bg-[#0c0c0e] px-4 text-muted-foreground">Or sign up with</span>
+              <div className="relative flex justify-center text-[9px] uppercase font-black tracking-widest">
+                <span className="bg-white px-4 text-ghost-gray">Alternative Entry</span>
               </div>
             </div>
 
-            <Button variant="outline" className="w-full h-11 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 font-bold" onClick={handleGoogleSignup} disabled={loading}>
+            <Button 
+              variant="outline" 
+              className="w-full h-12 rounded-xl border-stone-gray/20 bg-white hover:bg-porcelain-white font-bold transition-all" 
+              onClick={handleGoogleSignup} 
+              disabled={loading}
+            >
               <svg className="mr-3 h-4 w-4" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              Google Account
+              Signup with Google
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-white/5 pt-6">
-            <div className="text-sm text-muted-foreground">
+          <CardFooter className="flex justify-center border-t border-stone-gray/5 bg-porcelain-white/50 p-6">
+            <div className="text-sm text-muted-foreground font-medium">
               Already have an account?{' '}
               <Link href="/login" className="text-primary hover:underline font-bold">
-                Sign in
+                Authorize Session
               </Link>
             </div>
           </CardFooter>
