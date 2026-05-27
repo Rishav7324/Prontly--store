@@ -14,7 +14,7 @@ export interface PriceBreakdown {
 /**
  * Calculates the full price breakdown. GST is now removed.
  */
-export function calculateGST(params: {
+export function calculatePriceBreakdown(params: {
   subtotal: number;
   discountAmount: number;
 }): PriceBreakdown {

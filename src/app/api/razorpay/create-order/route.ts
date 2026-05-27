@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 import { createRazorpayOrder } from '@/lib/razorpay/client';
-import { calculateGST } from '@/lib/payment/gst';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { calculatePriceBreakdown } from '@/lib/payment/gst';
+import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * API: Initialize Payment Process
  * Creates a Razorpay order and logs a pending intent in Firestore.
- * GST removed from calculation.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -36,14 +35,14 @@ export async function POST(req: NextRequest) {
       if (!productSnap.exists) continue;
       
       const product = productSnap.data()!;
-      const price = product.price; // Expected in paise
-      subtotal += price * item.quantity;
+      const price = product.price || 0; // Expected in paise
+      subtotal += price * (item.quantity || 1);
       
       cartItems.push({
         productId: item.id,
         productName: product.name,
         price: price,
-        quantity: item.quantity
+        quantity: item.quantity || 1
       });
     }
 
@@ -61,14 +60,19 @@ export async function POST(req: NextRequest) {
       if (!couponSnap.empty) {
         const coupon = couponSnap.docs[0].data();
         discount = coupon.type === 'percentage' 
-          ? Math.round((subtotal * coupon.value) / 100) 
-          : coupon.value;
+          ? Math.round((subtotal * (coupon.value || 0)) / 100) 
+          : (coupon.value || 0);
         appliedCoupon = couponCode.toUpperCase();
       }
     }
 
-    // 4. Calculate Final Financials (GST = 0)
-    const breakdown = calculateGST({ subtotal, discountAmount: discount });
+    // 4. Calculate Final Financials
+    const breakdown = calculatePriceBreakdown({ subtotal, discountAmount: discount });
+
+    // Razorpay minimum amount is 100 paise (₹1)
+    if (breakdown.total < 100) {
+      return NextResponse.json({ error: 'Minimum transaction amount is ₹1.' }, { status: 400 });
+    }
 
     // 5. Create Razorpay Order
     const razorpayOrder = await createRazorpayOrder({
@@ -104,6 +108,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('[CREATE_ORDER_ERROR]:', error.message);
-    return NextResponse.json({ error: 'Failed to initialize payment' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to initialize payment gateway' }, { status: 500 });
   }
 }

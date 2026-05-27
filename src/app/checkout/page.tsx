@@ -14,7 +14,7 @@ import { useUser } from '@/firebase';
 import { ShoppingBag, Loader2, CreditCard, ShieldCheck, ChevronLeft, Lock, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useCheckout } from '@/hooks/use-checkout';
-import { formatPrice, calculateGST } from '@/lib/payment/gst';
+import { formatPrice, calculatePriceBreakdown } from '@/lib/payment/gst';
 import Script from 'next/script';
 
 export default function CheckoutPage() {
@@ -37,7 +37,7 @@ export default function CheckoutPage() {
   }, [user, authLoading, mounted, router]);
 
   const rawSubtotal = getTotal();
-  const breakdown = calculateGST({ subtotal: rawSubtotal, discountAmount: 0 });
+  const breakdown = calculatePriceBreakdown({ subtotal: rawSubtotal, discountAmount: 0 });
 
   if (authLoading || !mounted) {
     return (
