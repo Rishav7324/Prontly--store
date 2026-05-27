@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useUser, useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, limit } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { format } from 'date-fns';
 
@@ -37,13 +37,13 @@ export default function Dashboard() {
   const db = useFirestore();
 
   // Real-time Recent Transactions Feed
+  // Note: We avoid orderBy here to prevent mandatory composite index requirements in production
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
       collection(db, 'orders'), 
       where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      limit(10)
+      limit(50)
     );
   }, [db, user]);
 
@@ -60,6 +60,16 @@ export default function Dashboard() {
       count: profile?.orderCount || 0
     };
   }, [profile]);
+
+  // Sort orders in memory to avoid indexing issues
+  const sortedOrders = useMemo(() => {
+    if (!recentOrders) return [];
+    return [...recentOrders].sort((a: any, b: any) => {
+      const dateA = a.createdAt?.toMillis?.() || a.createdAt?.seconds || 0;
+      const dateB = b.createdAt?.toMillis?.() || b.createdAt?.seconds || 0;
+      return dateB - dateA;
+    }).slice(0, 10);
+  }, [recentOrders]);
 
   if (userLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
@@ -204,11 +214,11 @@ export default function Dashboard() {
                     <tbody className="divide-y divide-white/5">
                       {ordersLoading ? (
                         [1,2,3].map(i => <tr key={i} className="animate-pulse"><td colSpan={5} className="h-20 bg-white/5"></td></tr>)
-                      ) : recentOrders?.map((order: any) => (
+                      ) : sortedOrders.map((order: any) => (
                         <tr key={order.id} className="hover:bg-white/5 transition-colors group">
                           <td className="px-8 py-6 font-mono text-primary uppercase text-xs font-bold tracking-widest">#{order.id?.slice(-8)}</td>
                           <td className="px-8 py-6 text-muted-foreground font-medium">
-                            {order.createdAt ? format(new Date(order.createdAt.toDate()), 'MMM dd, yyyy') : 'Recently'}
+                            {order.createdAt ? format(new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt), 'MMM dd, yyyy') : 'Recently'}
                           </td>
                           <td className="px-8 py-6">
                             <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-none text-[9px] uppercase font-black tracking-widest px-3 py-1 rounded-lg">
@@ -225,7 +235,7 @@ export default function Dashboard() {
                           </td>
                         </tr>
                       ))}
-                      {!ordersLoading && recentOrders?.length === 0 && (
+                      {!ordersLoading && sortedOrders.length === 0 && (
                         <tr>
                           <td colSpan={5} className="px-8 py-24 text-center text-muted-foreground italic font-medium">
                             No recorded transactions. Start building your library today.

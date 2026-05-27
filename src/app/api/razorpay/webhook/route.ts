@@ -3,6 +3,7 @@ import { getAdminDb } from '@/lib/firebase-admin';
 import { verifyWebhookSignature } from '@/lib/razorpay/client';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { generateInvoicePdf } from '@/lib/payment/invoice';
+import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 
 /**
  * ─── PRODUCTION RAZORPAY WEBHOOK TERMINAL ───────────────────────────────────
@@ -100,14 +101,14 @@ export async function POST(req: NextRequest) {
 
       const userRef = db.collection('users').doc(order.userId);
       transaction.set(userRef, {
-        totalSpent: FieldValue.increment(order.totalAmount || order.total),
+        totalSpent: FieldValue.increment(order.totalAmount || order.total || 0),
         orderCount: FieldValue.increment(1),
         lastPurchaseAt: Timestamp.now()
       }, { merge: true });
 
       const analyticsRef = db.collection('analytics').doc('global');
       transaction.set(analyticsRef, {
-        totalRevenue: FieldValue.increment(order.totalAmount || order.total),
+        totalRevenue: FieldValue.increment(order.totalAmount || order.total || 0),
         totalOrders: FieldValue.increment(1)
       }, { merge: true });
 
@@ -120,8 +121,11 @@ export async function POST(req: NextRequest) {
         await db.collection('orders').doc(razorpayOrderId).update({
           invoicePdfBase64: pdfBase64
         });
-      } catch (pdfErr) {
-        console.error('[WEBHOOK_INVOICE_ERROR]:', pdfErr);
+        
+        // Dispatch Confirmation Email
+        await sendOrderConfirmationEmail(result.orderData);
+      } catch (err) {
+        console.error('[WEBHOOK_POST_PROCESSING_ERROR]:', err);
       }
     }
 

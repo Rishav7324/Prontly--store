@@ -3,6 +3,7 @@ import { getAdminDb } from '@/lib/firebase-admin';
 import { verifyPaymentSignature } from '@/lib/razorpay/client';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { generateInvoicePdf } from '@/lib/payment/invoice';
+import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 
 /**
  * API: Client-side Verification handler
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
       // C. Update User Aggregates (Merge-safe)
       const userRef = db.collection('users').doc(order.userId);
       transaction.set(userRef, {
-        totalSpent: FieldValue.increment(order.totalAmount),
+        totalSpent: FieldValue.increment(order.totalAmount || order.total || 0),
         orderCount: FieldValue.increment(1),
         lastPurchaseAt: Timestamp.now(),
         updatedAt: FieldValue.serverTimestamp()
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
       // D. Update Global Analytics
       const analyticsRef = db.collection('analytics').doc('global');
       transaction.set(analyticsRef, {
-        totalRevenue: FieldValue.increment(order.totalAmount),
+        totalRevenue: FieldValue.increment(order.totalAmount || order.total || 0),
         totalOrders: FieldValue.increment(1),
         lastUpdatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
@@ -121,8 +122,11 @@ export async function POST(req: NextRequest) {
         await db.collection('orders').doc(razorpay_order_id).update({
           invoicePdfBase64: pdfBase64
         });
-      } catch (pdfErr) {
-        console.error('[INVOICE_GEN_ERROR]:', pdfErr);
+        
+        // Dispatch Confirmation Email
+        await sendOrderConfirmationEmail(result.orderData);
+      } catch (err) {
+        console.error('[FULFILLMENT_POST_PROCESSING_ERROR]:', err);
       }
     }
 
