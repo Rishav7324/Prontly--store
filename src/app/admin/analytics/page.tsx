@@ -2,27 +2,20 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
   Cell,
   AreaChart,
-  Area
+  Area,
+  PieChart,
+  Pie
 } from 'recharts';
 import { 
-  TrendingUp, 
-  TrendingDown, 
   ShoppingBag, 
   Users, 
-  MousePointer2,
   Calendar,
   Download,
   CreditCard,
@@ -33,42 +26,34 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
-import { useMemo, useState, useEffect } from "react";
+import { collection } from "firebase/firestore";
+import { useMemo } from "react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 
 export default function AdminAnalytics() {
   const db = useFirestore();
-  const [conversionRate, setConversionRate] = useState('3.82%');
   
-  const ordersQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(1000)) : null;
-  }, [db]);
-
+  const ordersQuery = useMemoFirebase(() => db ? collection(db, 'orders') : null, [db]);
   const { data: orders, loading } = useCollection(ordersQuery);
 
-  useEffect(() => {
-    // Generate a consistent conversion rate on client to avoid hydration mismatch
-    setConversionRate((3.2 + (Math.random() * 0.8)).toFixed(2) + '%');
-  }, []);
-
   const stats = useMemo(() => {
-    if (!orders) return { total: 0, count: 0, aov: 0, conversion: conversionRate, pipeline: 0 };
+    if (!orders) return { total: 0, count: 0, aov: 0, conversion: '0%', pipeline: 0 };
     const paidOrders = orders.filter(o => o.status === 'paid');
-    const total = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const total = paidOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0);
+    const conv = orders.length > 0 ? ((paidOrders.length / orders.length) * 100).toFixed(1) : 0;
+    
     return {
       total: total / 100,
       count: paidOrders.length,
       aov: paidOrders.length > 0 ? (total / paidOrders.length / 100).toFixed(0) : 0,
-      conversion: conversionRate,
+      conversion: `${conv}%`,
       pipeline: orders.length
     };
-  }, [orders, conversionRate]);
+  }, [orders]);
 
   const revenueData = useMemo(() => {
     if (!orders) return [];
     
-    // Grouping by last 6 months
     const last6Months = Array.from({ length: 6 }).map((_, i) => subMonths(new Date(), i)).reverse();
     
     return last6Months.map(monthDate => {
@@ -76,14 +61,13 @@ export default function AdminAnalytics() {
       const monthEnd = endOfMonth(monthDate);
       
       const monthOrders = orders.filter(o => {
-        if (!o.createdAt) return false;
-        const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+        const d = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
         return isWithinInterval(d, { start: monthStart, end: monthEnd }) && o.status === 'paid';
       });
       
       return {
         month: format(monthDate, 'MMM'),
-        revenue: Math.round(monthOrders.reduce((sum, o) => sum + (o.total || 0), 0) / 100),
+        revenue: Math.round(monthOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0) / 100),
         orders: monthOrders.length
       };
     });
@@ -92,12 +76,10 @@ export default function AdminAnalytics() {
   const categoryMix = useMemo(() => {
     if (!orders) return [];
     
-    // In a real app, you'd iterate through line items
-    // For this MVP analytics, we derive mix from category slugs found in recent orders
     const counts: Record<string, number> = {};
-    orders.forEach(o => {
+    orders.filter(o => o.status === 'paid').forEach(o => {
       o.items?.forEach((item: any) => {
-        const cat = item.category || 'Digital Asset';
+        const cat = item.category || item.productName?.split(' ')[0] || 'Asset';
         counts[cat] = (counts[cat] || 0) + 1;
       });
     });
@@ -107,11 +89,8 @@ export default function AdminAnalytics() {
       .sort((a, b) => b.value - a.value)
       .slice(0, 3);
 
-    // Fallback if no orders
     if (sorted.length === 0) return [
-      { name: 'AI Prompts', value: 45 },
-      { name: 'UI Systems', value: 30 },
-      { name: 'Guides', value: 25 },
+      { name: 'Direct Sales', value: 100 },
     ];
 
     const totalItems = sorted.reduce((sum, s) => sum + s.value, 0);
@@ -125,40 +104,40 @@ export default function AdminAnalytics() {
     <div className="space-y-12">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-4xl font-bold font-headline">Market Intelligence</h1>
-          <p className="text-muted-foreground text-lg mt-1">Deep analysis of your digital store's economic health.</p>
+          <h1 className="text-4xl font-bold font-headline">Intelligence Terminal</h1>
+          <p className="text-muted-foreground text-lg mt-1">Direct analysis of the digital store economy.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" className="gap-2 h-12 rounded-xl border-white/10 px-6 font-bold">
             <Calendar className="h-4 w-4" />
-            Rolling History
+            Historical Drift
           </Button>
-          <Button className="gap-2 h-12 rounded-xl px-8 font-bold shadow-xl shadow-primary/20">
+          <Button className="gap-2 h-12 rounded-xl px-8 font-bold shadow-xl shadow-primary/20" onClick={() => window.print()}>
             <Download className="h-4 w-4" />
-            Export Intelligence
+            Audit Report
           </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: 'Market Conversion', value: stats.conversion, trend: '+0.51%', icon: Zap, color: 'text-primary' },
-          { label: 'Average Order (AOV)', value: `₹${Number(stats.aov).toLocaleString()}`, trend: '+₹210', icon: CreditCard, color: 'text-accent' },
-          { label: 'Total Volume', value: `₹${stats.total.toLocaleString()}`, trend: '+12%', icon: ShoppingBag, color: 'text-green-500' },
-          { label: 'Transaction Density', value: stats.count, trend: '+18.2%', icon: Users, color: 'text-blue-500' }
+          { label: 'Purchase Conversion', value: stats.conversion, icon: Zap, color: 'text-primary' },
+          { label: 'Average Ticket (AOV)', value: `₹${Number(stats.aov).toLocaleString()}`, icon: CreditCard, color: 'text-accent' },
+          { label: 'Verified Volume', value: `₹${stats.total.toLocaleString()}`, icon: ShoppingBag, color: 'text-green-500' },
+          { label: 'Customer Density', value: stats.count, icon: Users, color: 'text-blue-500' }
         ].map((item, i) => (
           <Card key={i} className="rounded-[2rem] border-white/5 bg-card/30 overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
               <item.icon className="h-16 w-16" />
             </div>
             <CardContent className="pt-8">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">{item.label}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{item.label}</p>
               <h3 className="text-4xl font-bold font-headline mb-3">
                 {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : item.value}
               </h3>
-              <p className="flex items-center text-xs font-bold text-green-500">
+              <p className="flex items-center text-[10px] font-bold text-green-500">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
-                {item.trend} <span className="text-muted-foreground ml-1 font-normal tracking-normal">vs previous period</span>
+                Live Feed <span className="text-muted-foreground ml-1 font-normal italic opacity-60">updating...</span>
               </p>
             </CardContent>
           </Card>
@@ -170,9 +149,9 @@ export default function AdminAnalytics() {
           <CardHeader className="p-8">
             <div className="flex items-center gap-3 mb-2">
               <Activity className="h-5 w-5 text-primary" />
-              <CardTitle className="text-2xl font-headline">Economic Growth</CardTitle>
+              <CardTitle className="text-2xl font-headline">Capital Influx</CardTitle>
             </div>
-            <CardDescription>Correlation between revenue volume and transaction density over 6 months.</CardDescription>
+            <CardDescription>Monthly correlation between revenue volume and fulfillment density.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[400px] w-full pt-4">
@@ -207,8 +186,8 @@ export default function AdminAnalytics() {
 
         <Card className="rounded-[2.5rem] border-white/5 bg-card/30 p-4">
           <CardHeader className="p-8">
-            <CardTitle className="text-2xl font-headline">Engagement Mix</CardTitle>
-            <CardDescription>Distribution across top-tier asset categories.</CardDescription>
+            <CardTitle className="text-2xl font-headline">Category Affinity</CardTitle>
+            <CardDescription>Sales distribution across primary asset classes.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             <div className="h-[320px] w-full">
@@ -236,7 +215,7 @@ export default function AdminAnalytics() {
                     <div className={`h-3 w-3 rounded-full ${index === 0 ? 'bg-primary' : index === 1 ? 'bg-accent' : 'bg-green-500'}`} />
                     <span className="text-sm font-bold">{cat.name}</span>
                   </div>
-                  <span className="text-xs font-mono text-muted-foreground">{cat.value}% affinity</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{cat.value}% mix</span>
                 </div>
               ))}
             </div>
