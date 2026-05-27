@@ -1,8 +1,9 @@
+
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ProductDetailClient } from "@/components/store/ProductDetailClient";
 import { generateMeta } from "@/lib/seo/generate-meta";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { firebaseConfig } from "@/firebase/config";
 import { getProductSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -12,39 +13,88 @@ interface ProductPageProps {
 }
 
 /**
- * Server-side data fetcher using Firebase Admin SDK.
- * Optimized for Next.js 15 App Router.
+ * High-reliability product resolver using Firestore REST API.
+ * Optimized for Next.js 15 Server Components.
  */
 async function getProduct(slug: string) {
-  console.log(`[ROUTING]: Resolving product for identifier: "${slug}"`);
-  const db = getAdminDb();
-  
-  try {
-    // 1. Primary Lookup: Query by SLUG
-    const snapshot = await db.collection('products')
-      .where('slug', '==', slug)
-      .limit(1)
-      .get();
+  const projectId = firebaseConfig.projectId;
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
-    if (!snapshot.empty) {
-      const doc = snapshot.docs[0];
-      return { id: doc.id, ...doc.data() };
+  try {
+    // 1. Primary Lookup: Query by SLUG using runQuery
+    const queryRes = await fetch(`${baseUrl}:runQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'products' }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'slug' },
+              op: 'EQUAL',
+              value: { stringValue: slug }
+            }
+          },
+          limit: 1
+        }
+      }),
+      next: { revalidate: 3600 } // Cache for 1 hour
+    });
+
+    if (queryRes.ok) {
+      const results = await queryRes.json();
+      const doc = results[0]?.document;
+      if (doc) {
+        const fields = doc.fields || {};
+        return {
+          id: doc.name.split('/').pop(),
+          name: fields.name?.stringValue || "",
+          slug: fields.slug?.stringValue || "",
+          price: parseInt(fields.price?.integerValue || "0"),
+          compareAtPrice: parseInt(fields.compareAtPrice?.integerValue || "0"),
+          categorySlug: fields.categorySlug?.stringValue || "",
+          images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+          shortDescription: fields.shortDescription?.stringValue || "",
+          description: fields.description?.stringValue || "",
+          bannerImage: fields.bannerImage?.stringValue || "",
+          averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
+          reviewCount: parseInt(fields.reviewCount?.integerValue || "0"),
+          salesCount: parseInt(fields.salesCount?.integerValue || "0"),
+          tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+          fileFormat: fields.fileFormat?.stringValue || "",
+          fileVersion: fields.fileVersion || "1.0"
+        };
+      }
     }
 
     // 2. Fallback: Lookup by ID (Legacy URL support)
-    const idDoc = await db.collection('products').doc(slug).get();
-    if (idDoc.exists) {
-      const data = idDoc.data();
+    const idRes = await fetch(`${baseUrl}/products/${slug}`, {
+      next: { revalidate: 3600 }
+    });
+
+    if (idRes.ok) {
+      const doc = await idRes.json();
+      const fields = doc.fields || {};
+      const actualSlug = fields.slug?.stringValue;
+      
       // If product has a slug, redirect to the SEO-friendly URL
-      if (data?.slug) {
-        return { id: idDoc.id, ...data, needsRedirect: true, targetSlug: data.slug };
+      if (actualSlug && actualSlug !== slug) {
+        return { needsRedirect: true, targetSlug: actualSlug };
       }
-      return { id: idDoc.id, ...data };
+
+      return {
+        id: doc.name.split('/').pop(),
+        name: fields.name?.stringValue || "",
+        slug: fields.slug?.stringValue || "",
+        price: parseInt(fields.price?.integerValue || "0"),
+        categorySlug: fields.categorySlug?.stringValue || "",
+        images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || []
+      };
     }
 
     return null;
-  } catch (error: any) {
-    console.error(`[ROUTING_ERROR]: Firestore lookup failed:`, error.message);
+  } catch (error) {
+    console.error(`[RESOLVER_ERROR]:`, error);
     return null;
   }
 }
@@ -53,7 +103,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const { slug } = await params;
   const product: any = await getProduct(slug);
 
-  if (!product) {
+  if (!product || product.needsRedirect) {
     return generateMeta({ 
       title: "Asset Not Found", 
       description: "This digital asset is unavailable.", 
@@ -81,9 +131,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Handle Legacy ID Redirect to maintain SEO
+  // Handle Legacy ID Redirect
   if (product.needsRedirect && product.targetSlug) {
-    console.log(`[REDIRECT]: Moving legacy ID to slug: /products/${product.targetSlug}`);
     redirect(`/products/${product.targetSlug}`);
   }
 
@@ -102,6 +151,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       />
       <div className="min-h-screen bg-white flex flex-col">
         <Navbar />
+        {/* Pass actual document ID to client for standard reference lookups */}
         <ProductDetailClient id={product.id} />
         <Footer />
       </div>

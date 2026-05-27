@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,6 +47,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
   };
 
   const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/400'];
+  // CRITICAL: Always prefer slug for URL structure
   const productPath = `/products/${slug || id}`;
 
   return (
@@ -100,7 +102,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
 
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between text-[10px] font-bold text-slate-blue uppercase tracking-wider">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-porcelain-white rounded-[3px] border border-stone-gray/10">
+            <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-porcelain-white rounded-[3px] border border-stone-gray/10">
               <Star className="h-2.5 w-2.5 fill-deep-violet text-deep-violet" />
               <span className="text-midnight-ink">{rating}</span>
             </div>
