@@ -1,14 +1,8 @@
-
 'use client';
 
-import { use } from 'react';
-import { redirect } from 'next/navigation';
-
 /**
- * Standardize dynamic path names. 
- * This file redirects to the [id] path to resolve parameter naming conflicts.
+ * DEPRECATED: This route has been consolidated into [id] to prevent dynamic path conflicts.
  */
-export default function EditBlogRedirect({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  redirect(`/admin/blog/edit/${slug}`);
+export default function EditBlogRedirect() {
+  return null;
 }

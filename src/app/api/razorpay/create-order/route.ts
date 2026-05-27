@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       if (!productSnap.exists) continue;
       
       const product = productSnap.data()!;
-      const price = product.price || 0; // Expected in paise
+      const price = product.price || 0; 
       subtotal += price * (item.quantity || 1);
       
       cartItems.push({

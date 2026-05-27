@@ -8,7 +8,6 @@ import { toast } from './use-toast';
 
 /**
  * Unified hook for handling the high-security Razorpay checkout flow.
- * Uses keyId from backend to ensure environment parity.
  */
 export function useCheckout() {
   const auth = useAuth();
