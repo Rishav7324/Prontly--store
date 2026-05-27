@@ -1,9 +1,7 @@
-
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
 import { ReviewSystem } from "@/components/store/ReviewSystem";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { Button } from "@/components/ui/button";
@@ -12,28 +10,23 @@ import {
   ShoppingCart, 
   Star, 
   Share2, 
-  Download, 
   ShieldCheck, 
   Clock, 
-  CheckCircle2, 
   Heart, 
   ArrowRight,
   ChevronRight,
   Info,
-  Loader2,
   Copy,
   Check,
   Twitter,
-  Linkedin,
   Zap,
   Layers,
   ExternalLink,
   ArrowLeft
 } from "lucide-react";
 import Image from "next/image";
-import { useDoc, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { doc, collection, query, where, limit } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where, limit } from "firebase/firestore";
 import { analytics } from "@/lib/analytics";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -69,9 +62,6 @@ const ProductShare = ({ product }: { product: any }) => {
     switch (platform) {
       case 'x':
         url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-        break;
-      case 'linkedin':
-        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
         break;
       case 'whatsapp':
         url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + shareUrl)}`;
@@ -131,19 +121,18 @@ const ProductBreadcrumbs = ({ category, name }: { category: string, name: string
   </nav>
 );
 
-export function ProductDetailClient({ id }: { id: string }) {
+export function ProductDetailClient({ product }: { product: any }) {
   const router = useRouter();
   const db = useFirestore();
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string>(product.images?.[0] || '');
 
-  useEffect(() => { setMounted(true); }, []);
-  
-  // CRITICAL: Must use the real Document ID here, not the slug
-  const productRef = useMemoFirebase(() => (db ? doc(db, 'products', id) : null), [db, id]);
-  const { data: product, loading } = useDoc(productRef);
+  useEffect(() => { 
+    setMounted(true); 
+    analytics.viewProduct(product);
+  }, [product]);
 
   const suggestedQuery = useMemoFirebase(() => {
     if (!db || !product?.categorySlug) return null;
@@ -151,46 +140,19 @@ export function ProductDetailClient({ id }: { id: string }) {
   }, [db, product?.categorySlug]);
 
   const { data: rawSuggested } = useCollection(suggestedQuery);
-  const suggestedProducts = useMemo(() => rawSuggested?.filter(p => p.id !== id).slice(0, 4) || [], [rawSuggested, id]);
-
-  useEffect(() => { 
-    if (product) {
-      analytics.viewProduct(product);
-      if (!selectedImage) setSelectedImage(product.images?.[0] || null);
-    }
-  }, [product, selectedImage]);
+  const suggestedProducts = rawSuggested?.filter(p => p.id !== product.id).slice(0, 4) || [];
 
   const handleAddToCart = () => {
-    if (!product) return;
     addItem({ id: product.id, name: product.name, price: product.price, imageUrl: product.images?.[0] || '', category: product.categorySlug || 'Asset' });
     toast({ title: "Added to cart", description: `${product.name} is ready for checkout.` });
   };
 
   const handleBuyNow = () => {
-    if (!product) return;
     addItem({ id: product.id, name: product.name, price: product.price, imageUrl: product.images?.[0] || '', category: product.categorySlug || 'Asset' });
     router.push('/checkout');
   };
 
-  const isWishlisted = mounted ? isInWishlist(id) : false;
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-12 space-y-8 flex-1">
-        <Skeleton className="h-4 w-48" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-8 space-y-6">
-            <Skeleton className="h-[500px] w-full rounded-md" />
-          </div>
-          <div className="lg:col-span-4">
-            <Skeleton className="h-[450px] w-full rounded-md" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!product) return <div className="container mx-auto px-4 py-20 text-center font-headline text-2xl">Asset metadata unavailable.</div>;
+  const isWishlisted = mounted ? isInWishlist(product.id) : false;
 
   return (
     <main className="container mx-auto px-4 py-12 flex-1 max-w-7xl">
@@ -287,7 +249,7 @@ export function ProductDetailClient({ id }: { id: string }) {
                       "h-10 rounded border-stone-gray/20 transition-all",
                       isWishlisted ? "text-deep-violet bg-deep-violet/5 border-deep-violet/30" : "text-midnight-ink hover:bg-powder-blue"
                     )}
-                    onClick={() => toggleItem(id)}
+                    onClick={() => toggleItem(product.id)}
                   >
                     <Heart className={cn("mr-2 h-4 w-4", isWishlisted && "fill-current")} />
                     {isWishlisted ? "Saved" : "Wishlist"}
@@ -335,7 +297,7 @@ export function ProductDetailClient({ id }: { id: string }) {
       </div>
 
       <section className="py-20 border-t border-stone-gray/10">
-        <ReviewSystem productId={id} productName={product.name} />
+        <ReviewSystem productId={product.id} productName={product.name} />
       </section>
 
       {suggestedProducts.length > 0 && (

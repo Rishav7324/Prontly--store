@@ -1,14 +1,12 @@
-'use client';
+"use client";
 
-import { useMemo, Suspense } from 'react';
+import { useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, QueryConstraint } from 'firebase/firestore';
-import { Filter, SlidersHorizontal, ChevronRight, LayoutGrid, List, Search, Loader2, Tag as TagIcon, X } from 'lucide-react';
+import { Filter, SlidersHorizontal, ChevronRight, Search, Tag as TagIcon, X } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -23,38 +21,18 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
   const categoryFilter = searchParams.get('category');
   const tagFilter = searchParams.get('tag');
   const searchQuery = searchParams.get('q');
-  const db = useFirestore();
-  
-  // Real-time categories for dynamic counts
-  const categoriesQuery = useMemoFirebase(() => {
-    return db ? collection(db, 'categories') : null;
-  }, [db]);
-  const { data: realTimeCategories } = useCollection(categoriesQuery);
-  const categories = realTimeCategories || initialCategories;
 
-  // Fetch Products with optional filtering
-  const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    const constraints: QueryConstraint[] = [];
-    
-    if (categoryFilter) {
-      constraints.push(where('categorySlug', '==', categoryFilter));
-    }
-    
-    if (!searchQuery) {
-      constraints.push(orderBy('createdAt', 'desc'));
-    }
-    
-    return query(collection(db, 'products'), ...constraints);
-  }, [db, categoryFilter, searchQuery]);
+  const products = initialProducts;
+  const categories = initialCategories;
 
-  const { data: realTimeProducts, loading } = useCollection(productsQuery);
-  const products = realTimeProducts || initialProducts;
-
-  // Client-side filtering for tags and search query
+  // Client-side filtering
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     let result = products;
+
+    if (categoryFilter) {
+      result = result.filter(p => p.categorySlug === categoryFilter);
+    }
 
     if (tagFilter) {
       result = result.filter(p => p.tags?.includes(tagFilter));
@@ -70,9 +48,8 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
     }
     
     return result;
-  }, [products, searchQuery, tagFilter]);
+  }, [products, categoryFilter, searchQuery, tagFilter]);
 
-  // Derive top tags from products
   const popularTags = useMemo(() => {
     if (!products) return [];
     const counts: Record<string, number> = {};
@@ -95,7 +72,6 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
 
   return (
     <div className="flex flex-col gap-8 md:flex-row">
-      {/* Sidebar / Filters */}
       <aside className="w-full md:w-64 space-y-10 flex-shrink-0">
         <div className="space-y-6">
           <div>
@@ -153,14 +129,13 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
 
         <Card className="bg-primary/5 border-primary/20 rounded-2xl">
           <CardContent className="pt-6">
-            <h4 className="font-bold mb-2">B2B GST Support</h4>
-            <p className="text-xs text-muted-foreground mb-4 leading-relaxed">Need a GST invoice for your business? All our premium assets are eligible for input tax credit.</p>
-            <Button variant="link" className="p-0 text-primary h-auto text-xs font-bold uppercase tracking-widest">Learn More</Button>
+            <h4 className="font-bold mb-2">B2B Support</h4>
+            <p className="text-xs text-muted-foreground mb-4 leading-relaxed">Need custom licensing for your enterprise? Contact our specialized support desk.</p>
+            <Button variant="link" className="p-0 text-primary h-auto text-xs font-bold uppercase tracking-widest">Inquire Now</Button>
           </CardContent>
         </Card>
       </aside>
 
-      {/* Main Content */}
       <div className="flex-1 space-y-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -207,9 +182,9 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
           </div>
         </header>
 
-        <ProductGrid products={filteredProducts} loading={loading && products.length === 0} />
+        <ProductGrid products={filteredProducts} />
         
-        {!loading && filteredProducts.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-32 bg-muted/10 border-dashed border-2 rounded-[3rem] border-white/5">
             <Search className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-20" />
             <h3 className="text-2xl font-bold font-headline">No matching assets</h3>

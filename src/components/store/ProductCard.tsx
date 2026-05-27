@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -10,7 +9,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import {
   Carousel,
   CarouselContent,
@@ -47,7 +45,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
   };
 
   const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/400'];
-  // CRITICAL: Always prefer slug for URL structure
+  // CRITICAL: Always use slug for SEO URLs
   const productPath = `/products/${slug || id}`;
 
   return (
@@ -76,7 +74,6 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
                       alt={`${title} - image ${index + 1}`}
                       fill
                       className="object-cover"
-                      data-ai-hint="product digital asset"
                     />
                   </CarouselItem>
                 ))}
@@ -88,11 +85,9 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
               alt={title}
               fill
               className="object-cover transition-transform duration-700 group-hover/card:scale-105"
-              data-ai-hint="product digital asset"
             />
           )}
           
-          {/* Top Overlays */}
           <div className="absolute top-3 left-3 z-10 pointer-events-none">
             <Badge className="bg-white/90 backdrop-blur-md text-midnight-ink border-none font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-[4px] shadow-sm">
               {category}
@@ -108,7 +103,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
             </div>
             <div className="flex items-center gap-1 opacity-70">
                <Layers className="h-2.5 w-2.5" />
-               <span>{sales} Users</span>
+               <span>{sales} Installs</span>
             </div>
           </div>
 
