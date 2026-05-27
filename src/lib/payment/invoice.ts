@@ -3,6 +3,7 @@ import { formatPrice } from './gst';
 
 /**
  * Generates a professional PDF invoice for digital asset purchases.
+ * Handles both Javascript Dates and Firestore Timestamps.
  */
 export async function generateInvoicePdf(order: any): Promise<string> {
   const doc = new jsPDF();
@@ -21,15 +22,20 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setFontSize(10);
   doc.text('PRONTLY DIGITAL STORE', 190, 25, { align: 'right' });
 
+  // Robust Date Handling
+  const orderDate = order.createdAt?.toDate 
+    ? order.createdAt.toDate() 
+    : (order.createdAt instanceof Date ? order.createdAt : new Date());
+
   // Order Info
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   y = 55;
   doc.text(`Invoice No: INV-${order.id.slice(-8).toUpperCase()}`, 20, y);
   y += 7;
-  doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, 20, y);
+  doc.text(`Date: ${orderDate.toLocaleDateString('en-IN')}`, 20, y);
   y += 7;
-  doc.text(`Customer: ${order.userName}`, 20, y);
+  doc.text(`Customer: ${order.userName || 'Verified Creator'}`, 20, y);
   y += 7;
   doc.text(`Email: ${order.userEmail}`, 20, y);
 
@@ -45,7 +51,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   // Table Body
   y += 10;
   doc.setFont('helvetica', 'normal');
-  for (const item of order.items) {
+  for (const item of (order.items || [])) {
     y += 10;
     doc.text(item.productName, 25, y);
     doc.text(String(item.quantity || 1), 122, y);
@@ -61,7 +67,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   y += 20;
   const startX = 130;
   doc.text('Subtotal:', startX, y);
-  doc.text(formatPrice(order.subtotal), 185, y, { align: 'right' });
+  doc.text(formatPrice(order.subtotal || 0), 185, y, { align: 'right' });
   
   if (order.discountAmount > 0) {
     y += 8;
@@ -82,7 +88,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setFontSize(14);
   doc.setTextColor(primaryColor);
   doc.text('Total Paid:', startX, y);
-  doc.text(formatPrice(order.totalAmount), 185, y, { align: 'right' });
+  doc.text(formatPrice(order.totalAmount || 0), 185, y, { align: 'right' });
 
   // Footer
   doc.setTextColor(150, 150, 150);

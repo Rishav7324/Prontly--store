@@ -8,6 +8,7 @@ import { generateInvoicePdf } from '@/lib/payment/invoice';
  * ─── PRODUCTION RAZORPAY WEBHOOK TERMINAL ───────────────────────────────────
  * Fallback fulfillment for missed client-side verifications.
  * Uses raw text body for cryptographic integrity.
+ * FIXED: Ensures all READS happen before WRITES in the transaction.
  */
 export async function POST(req: NextRequest) {
   console.log('[RAZORPAY_WEBHOOK]: Signal received.');
@@ -25,38 +26,50 @@ export async function POST(req: NextRequest) {
   const eventType = event.event;
   console.log(`[WEBHOOK_EVENT]: Verified ${eventType}`);
 
-  // Fulfillment triggers only on 'order.paid'
-  if (eventType !== 'order.paid') {
+  // Fulfillment triggers primarily on 'order.paid'
+  if (eventType !== 'order.paid' && eventType !== 'payment.captured') {
     return NextResponse.json({ received: true });
   }
 
-  const razorpayOrder = event.payload.order.entity;
-  const razorpayOrderId = razorpayOrder.id;
+  const razorpayEntity = event.payload.order ? event.payload.order.entity : event.payload.payment.entity;
+  const razorpayOrderId = event.payload.order ? razorpayEntity.id : razorpayEntity.order_id;
+  const razorpayPaymentId = event.payload.payment.entity.id;
+
+  if (!razorpayOrderId) return NextResponse.json({ received: true });
+
   const db = getAdminDb();
 
   try {
     const result = await db.runTransaction(async (transaction) => {
       const orderRef = db.collection('orders').doc(razorpayOrderId);
+      
+      // --- READS ---
       const orderSnap = await transaction.get(orderRef);
-
       if (!orderSnap.exists) return { status: 'skipped', reason: 'order_not_found' };
       const order = orderSnap.data()!;
 
       if (order.status === 'paid') return { status: 'already_paid' };
 
-      // Atomic Update logic
-      transaction.update(orderRef, {
-        status: 'paid',
-        paidAt: Timestamp.now(),
-        razorpayPaymentId: event.payload.payment.entity.id
-      });
-
+      // Fetch product data first
+      const productsData: Record<string, any> = {};
       for (const item of (order.items || [])) {
         const productRef = db.collection('products').doc(item.productId);
         const productSnap = await transaction.get(productRef);
-        
         if (productSnap.exists) {
-          const product = productSnap.data()!;
+          productsData[item.productId] = productSnap.data();
+        }
+      }
+
+      // --- WRITES ---
+      transaction.update(orderRef, {
+        status: 'paid',
+        paidAt: Timestamp.now(),
+        razorpayPaymentId: razorpayPaymentId
+      });
+
+      for (const item of (order.items || [])) {
+        const product = productsData[item.productId];
+        if (product) {
           const downloadRef = db.collection('downloads')
             .doc(order.userId)
             .collection('products')
@@ -78,22 +91,23 @@ export async function POST(req: NextRequest) {
             downloadCount: 0,
             purchasedAt: Timestamp.now(),
             isActive: true,
+            downloadAllowed: true
           }, { merge: true });
 
-          transaction.update(productRef, { salesCount: FieldValue.increment(1) });
+          transaction.update(db.collection('products').doc(item.productId), { salesCount: FieldValue.increment(1) });
         }
       }
 
       const userRef = db.collection('users').doc(order.userId);
       transaction.set(userRef, {
-        totalSpent: FieldValue.increment(order.totalAmount),
+        totalSpent: FieldValue.increment(order.totalAmount || order.total),
         orderCount: FieldValue.increment(1),
         lastPurchaseAt: Timestamp.now()
       }, { merge: true });
 
       const analyticsRef = db.collection('analytics').doc('global');
       transaction.set(analyticsRef, {
-        totalRevenue: FieldValue.increment(order.totalAmount),
+        totalRevenue: FieldValue.increment(order.totalAmount || order.total),
         totalOrders: FieldValue.increment(1)
       }, { merge: true });
 
@@ -101,10 +115,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (result.status === 'fulfilled') {
-      const pdfBase64 = await generateInvoicePdf(result.orderData);
-      await db.collection('orders').doc(razorpayOrderId).update({
-        invoicePdfBase64: pdfBase64
-      });
+      try {
+        const pdfBase64 = await generateInvoicePdf(result.orderData);
+        await db.collection('orders').doc(razorpayOrderId).update({
+          invoicePdfBase64: pdfBase64
+        });
+      } catch (pdfErr) {
+        console.error('[WEBHOOK_INVOICE_ERROR]:', pdfErr);
+      }
     }
 
     return NextResponse.json({ success: true });

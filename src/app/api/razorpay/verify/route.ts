@@ -7,6 +7,7 @@ import { generateInvoicePdf } from '@/lib/payment/invoice';
 /**
  * API: Client-side Verification handler
  * Triggers atomic fulfillment after Razorpay Checkout success.
+ * FIXED: Ensures all READS happen before WRITES in the transaction.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -29,14 +30,27 @@ export async function POST(req: NextRequest) {
     // 2. Atomic Fulfillment Transaction
     const result = await db.runTransaction(async (transaction) => {
       const orderRef = db.collection('orders').doc(razorpay_order_id);
+      
+      // --- READS ---
       const orderSnap = await transaction.get(orderRef);
-
       if (!orderSnap.exists) throw new Error('Order intent not found');
       const order = orderSnap.data()!;
 
       // Idempotency check
       if (order.status === 'paid') return { status: 'already_paid' };
 
+      // Fetch all products first (READS) before any writes
+      const productsData: Record<string, any> = {};
+      for (const item of order.items) {
+        const productRef = db.collection('products').doc(item.productId);
+        const productSnap = await transaction.get(productRef);
+        if (productSnap.exists) {
+          productsData[item.productId] = productSnap.data();
+        }
+      }
+
+      // --- WRITES ---
+      
       // A. Update Order Status
       transaction.update(orderRef, {
         status: 'paid',
@@ -46,11 +60,8 @@ export async function POST(req: NextRequest) {
 
       // B. Provision Digital Assets (Downloads)
       for (const item of order.items) {
-        const productRef = db.collection('products').doc(item.productId);
-        const productSnap = await transaction.get(productRef);
-        
-        if (productSnap.exists) {
-          const product = productSnap.data()!;
+        const product = productsData[item.productId];
+        if (product) {
           const downloadRef = db.collection('downloads')
             .doc(order.userId)
             .collection('products')
@@ -72,10 +83,11 @@ export async function POST(req: NextRequest) {
             downloadCount: 0,
             purchasedAt: Timestamp.now(),
             isActive: true,
+            downloadAllowed: true
           }, { merge: true });
 
           // Update product metrics
-          transaction.update(productRef, {
+          transaction.update(db.collection('products').doc(item.productId), {
             salesCount: FieldValue.increment(1),
             updatedAt: FieldValue.serverTimestamp()
           });
@@ -104,10 +116,14 @@ export async function POST(req: NextRequest) {
 
     if (result.status === 'fulfilled') {
       // Background: Generate Invoice PDF and update order
-      const pdfBase64 = await generateInvoicePdf(result.orderData);
-      await db.collection('orders').doc(razorpay_order_id).update({
-        invoicePdfBase64: pdfBase64
-      });
+      try {
+        const pdfBase64 = await generateInvoicePdf(result.orderData);
+        await db.collection('orders').doc(razorpay_order_id).update({
+          invoicePdfBase64: pdfBase64
+        });
+      } catch (pdfErr) {
+        console.error('[INVOICE_GEN_ERROR]:', pdfErr);
+      }
     }
 
     return NextResponse.json({ success: true });
