@@ -19,6 +19,7 @@ import Autoplay from "embla-carousel-autoplay";
 
 interface ProductCardProps {
   id: string;
+  slug?: string;
   title: string;
   price: string;
   priceRaw: number;
@@ -29,7 +30,7 @@ interface ProductCardProps {
   sales: string;
 }
 
-export function ProductCard({ id, title, price, priceRaw, compareAtPrice, category, images, rating, sales }: ProductCardProps) {
+export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, category, images, rating, sales }: ProductCardProps) {
   const { addItem } = useCart();
   const [mounted, setMounted] = useState(false);
 
@@ -45,10 +46,11 @@ export function ProductCard({ id, title, price, priceRaw, compareAtPrice, catego
   };
 
   const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/400'];
+  const productPath = `/products/${slug || id}`;
 
   return (
     <Card className="h-full border-none bg-white rounded-[6px] overflow-hidden shadow-sm hover:shadow-xl-2 transition-all duration-300 hover:-translate-y-1 relative group/card">
-      <Link href={`/products/${id}`} className="block h-full">
+      <Link href={productPath} className="block h-full">
         <div className="relative aspect-[4/5] bg-porcelain-white overflow-hidden rounded-[4px] m-1">
           {displayImages.length > 1 ? (
             <Carousel

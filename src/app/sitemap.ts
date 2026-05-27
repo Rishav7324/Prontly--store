@@ -3,7 +3,7 @@ import { firebaseConfig } from '@/firebase/config';
 
 /**
  * @fileOverview Automatic Sitemap Generator
- * Fetches all dynamic content from Firestore to ensure search engines are synced.
+ * Fetches all dynamic content from Firestore using SEO-friendly slugs.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
@@ -28,9 +28,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    // 1. Fetch Products
+    // 1. Fetch Products with SLUGS
     const productsRes = await fetch(
-      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products?pageSize=200`,
+      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products?pageSize=200&mask=slug`,
       { next: { revalidate: 3600 } }
     );
     let productRoutes: any[] = [];
@@ -38,8 +38,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const data = await productsRes.json();
       productRoutes = (data.documents || []).map((doc: any) => {
         const id = doc.name.split('/').pop();
+        const slug = doc.fields?.slug?.stringValue;
         return {
-          url: `${siteUrl}/products/${id}`,
+          url: `${siteUrl}/products/${slug || id}`,
           lastModified: new Date(doc.updateTime),
           changeFrequency: 'weekly' as const,
           priority: 0.9,

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useUser } from '@/firebase';
-import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, addDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +17,10 @@ import {
   Image as ImageIcon, 
   Sparkles, 
   CheckCircle2,
-  Zap
+  Zap,
+  Globe,
+  Lock,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFileAction } from '@/app/actions/r2-actions';
@@ -42,6 +45,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [isSlugLocked, setIsSlugLocked] = useState(!!id);
   
   const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
 
@@ -73,8 +77,13 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     setFormData(prev => ({
       ...prev,
       name,
-      slug: generateSlug(name)
+      slug: isSlugLocked ? prev.slug : generateSlug(name)
     }));
+  };
+
+  const regenerateSlug = () => {
+    setFormData(prev => ({ ...prev, slug: generateSlug(prev.name) }));
+    toast({ title: "Slug Regenerated" });
   };
 
   const handleAiGenerate = async () => {
@@ -107,9 +116,14 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file') => {
     const file = e.target.files?.[0];
-    if (!file || !formData.slug) return;
+    if (!file || !formData.name) {
+      toast({ variant: "destructive", title: "Missing Name", description: "Set a product name before uploading media." });
+      return;
+    }
 
+    const tempSlug = formData.slug || generateSlug(formData.name);
     const fileId = Math.random().toString(36).substring(7);
+    
     try {
       setUploadProgress(prev => ({ ...prev, [fileId]: 10 }));
       let uploadFile = file;
@@ -117,11 +131,11 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
       if (type === 'image') {
         const optimized = await optimizeImage(file);
-        uploadFile = new File([optimized.blob], `${formData.slug}-${Date.now()}.webp`, { type: 'image/webp' });
-        finalKey = `products/images/${formData.slug}/${uploadFile.name}`;
+        uploadFile = new File([optimized.blob], `${tempSlug}-${Date.now()}.webp`, { type: 'image/webp' });
+        finalKey = `products/images/${tempSlug}/${uploadFile.name}`;
       } else {
         const ext = file.name.split('.').pop();
-        finalKey = `products/files/${formData.slug}/${formData.slug}-source.${ext}`;
+        finalKey = `products/files/${tempSlug}/${tempSlug}-source.${ext}`;
       }
       
       const uploadFormData = new FormData();
@@ -159,9 +173,21 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     if (!db || !user) return;
     setIsSaving(true);
 
+    // 1. Final slug validation (Unique check)
+    const slugToSave = formData.slug || generateSlug(formData.name);
+    const slugQuery = query(collection(db, 'products'), where('slug', '==', slugToSave));
+    const slugSnap = await getDocs(slugQuery);
+    
+    let finalSlug = slugToSave;
+    if (!id && !slugSnap.empty) {
+      finalSlug = `${slugToSave}-${Math.floor(Math.random() * 1000)}`;
+      toast({ title: "Slug Collision", description: `Assigned unique suffix: ${finalSlug}` });
+    }
+
     const selectedCategory = categories?.find(c => c.id === formData.categoryId);
     const productData = {
       ...formData,
+      slug: finalSlug,
       price: Math.round(formData.price * 100),
       compareAtPrice: Math.round(formData.compareAtPrice * 100),
       categorySlug: selectedCategory?.slug || '',
@@ -182,12 +208,11 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       reviewCount: 0
     };
 
-    // Non-blocking write
     setDoc(docRef, finalPayload, { merge: true })
       .then(() => {
         logAdminAction({
           db, adminId: user.uid, adminEmail: user.email!,
-          action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: docRef.id, details: { name: formData.name }
+          action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: docRef.id, details: { name: formData.name, slug: finalSlug }
         });
         toast({ title: "Product Synchronized" });
         router.push('/admin/products');
@@ -210,7 +235,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Catalog Specification</CardTitle>
-              <CardDescription>Identifier: {formData.slug || '...'}</CardDescription>
+              <CardDescription>Structure your digital inventory for maximum SEO visibility.</CardDescription>
             </div>
             <Button 
               type="button" 
@@ -227,8 +252,37 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           <CardContent className="space-y-6">
             <div className="grid gap-2">
               <Label htmlFor="name">Asset Title</Label>
-              <Input id="name" value={formData.name} onChange={handleNameChange} required className="h-12 bg-background/50 rounded-xl" />
+              <Input id="name" value={formData.name} onChange={handleNameChange} required className="h-12 bg-background/50 rounded-xl" placeholder="e.g. ChatGPT Prompt Bundle" />
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="slug" className="flex items-center justify-between">
+                <span>URL Slug (SEO Identifier)</span>
+                <button type="button" onClick={() => setIsSlugLocked(!isSlugLocked)} className="text-[10px] uppercase font-bold text-primary flex items-center gap-1">
+                  {isSlugLocked ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
+                  {isSlugLocked ? 'Unlock for edit' : 'Lock Slug'}
+                </button>
+              </Label>
+              <div className="relative">
+                <Input 
+                  id="slug" 
+                  value={formData.slug} 
+                  onChange={(e) => setFormData({...formData, slug: generateSlug(e.target.value)})} 
+                  readOnly={isSlugLocked}
+                  className="h-12 bg-background/50 rounded-xl font-mono text-xs pr-10" 
+                  placeholder="chatgpt-prompt-bundle"
+                />
+                {!isSlugLocked && (
+                  <button type="button" onClick={regenerateSlug} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary">
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground pl-1">
+                Preview: <span className="text-primary font-bold">store.prontly.in/products/{formData.slug || '...'}</span>
+              </p>
+            </div>
+
             <div className="grid gap-2">
               <Label>Editorial Description</Label>
               <RichTextEditor 

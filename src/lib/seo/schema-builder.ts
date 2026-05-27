@@ -48,6 +48,7 @@ export function getGlobalSchema() {
 export function getProductSchema(product: any) {
   const price = (product.price / 100).toFixed(2);
   const imageUrl = product.images?.[0] || product.bannerImage || LOGO_URL;
+  const productUrl = `${SITE_URL}/products/${product.slug || product.id}`;
 
   return {
     '@context': 'https://schema.org',
@@ -62,7 +63,7 @@ export function getProductSchema(product: any) {
     },
     offers: {
       '@type': 'Offer',
-      url: `${SITE_URL}/products/${product.id}`,
+      url: productUrl,
       priceCurrency: 'INR',
       price: price,
       availability: 'https://schema.org/InStock',
@@ -71,6 +72,11 @@ export function getProductSchema(product: any) {
         name: BRAND_NAME,
       },
     },
+    aggregateRating: product.reviewCount > 0 ? {
+      '@type': 'AggregateRating',
+      ratingValue: product.averageRating || '5.0',
+      reviewCount: product.reviewCount,
+    } : undefined,
     category: product.categorySlug,
   };
 }
@@ -134,7 +140,7 @@ export function getCollectionSchema(categoryName: string, products: any[]) {
       itemListElement: products.map((p, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `${SITE_URL}/products/${p.id}`,
+        url: `${SITE_URL}/products/${p.slug || p.id}`,
       })),
     },
   };

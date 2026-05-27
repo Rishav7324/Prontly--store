@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.store.prontly.in';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
 interface GenerateMetaProps {
   title: string;
@@ -15,7 +15,7 @@ interface GenerateMetaProps {
 
 /**
  * Generates automated production SEO Metadata for any page.
- * Includes dynamic canonicals and automated OG Image redirection.
+ * Includes dynamic canonicals and automated OG Image generation via Edge route.
  */
 export function generateMeta({
   title,
@@ -28,7 +28,7 @@ export function generateMeta({
   type = 'website',
 }: GenerateMetaProps): Metadata {
   const fullTitle = `${title} | Prontly Store`.slice(0, 60);
-  const canonical = `${SITE_URL}${path}`;
+  const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`;
   
   // Generate automated OG image URL if no specific image is provided
   const ogUrl = new URL(`${SITE_URL}/api/og`);

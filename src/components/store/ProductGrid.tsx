@@ -32,6 +32,7 @@ export function ProductGrid({ products, loading }: ProductGridProps) {
         <ProductCard 
           key={product.id} 
           id={product.id}
+          slug={product.slug}
           title={product.name}
           price={`₹${(product.price / 100).toLocaleString('en-IN')}`}
           priceRaw={product.price}
