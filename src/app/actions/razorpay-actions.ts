@@ -23,7 +23,7 @@ function getRazorpayClient() {
 
 /**
  * STEP 1: Create Razorpay Order
- * Now includes GST breakdown calculations.
+ * Now includes breakdown calculations.
  */
 export async function createRazorpayOrder(amount: number) {
   try {
@@ -34,17 +34,17 @@ export async function createRazorpayOrder(amount: number) {
       throw new Error('Minimum transaction amount is ₹1 (100 paise).');
     }
 
-    // Calculate GST Breakdown for the order
-    const breakdown = calculatePriceBreakdown(amount);
+    // Calculate Breakdown for the order
+    const breakdown = calculatePriceBreakdown({ subtotal: amount, discountAmount: 0 });
 
     const options = {
-      amount: Math.round(breakdown.total), // Final amount including GST
+      amount: Math.round(breakdown.total),
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
       notes: {
         subtotal: breakdown.subtotal,
         gst: breakdown.gst,
-        isGstIncluded: "true"
+        isGstIncluded: "false"
       }
     };
 
@@ -70,7 +70,6 @@ export async function createRazorpayOrder(amount: number) {
 
 /**
  * STEP 3: Verify Payment Signature
- * Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
  */
 export async function verifyRazorpayPayment(orderId: string, paymentId: string, signature: string) {
   try {
