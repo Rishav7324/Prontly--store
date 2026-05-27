@@ -11,6 +11,10 @@ const bodySchema = z.object({
   productId: z.string().min(1).max(100),
 });
 
+/**
+ * @fileOverview Secure Digital Asset Download Terminal
+ * Cleans the fileKey to ensure R2 compatibility and handles rate limiting.
+ */
 export async function POST(
   req: NextRequest
 ): Promise<NextResponse<GenerateDownloadUrlResponse>> {
@@ -89,7 +93,16 @@ export async function POST(
   let signedUrl: string;
   let expiresAt: Date;
   try {
-    ({ url: signedUrl, expiresAt } = await generateSignedDownloadUrl(record.fileKey, record.fileName));
+    // CRITICAL FIX: Extract relative key from full URL if necessary
+    // Firestore might store "https://cdn.prontly.in/products/files/..."
+    // R2 needs only "products/files/..."
+    const cleanKey = record.fileKey.includes('https://') 
+      ? record.fileKey.split('/').slice(3).join('/') 
+      : record.fileKey;
+
+    console.log(`[GENERATE_URL]: Attempting sign for key: ${cleanKey}`);
+    
+    ({ url: signedUrl, expiresAt } = await generateSignedDownloadUrl(cleanKey, record.fileName));
   } catch (e: any) {
     console.error('[R2_SIGN_ERROR]:', e.message);
     await logDownloadAttempt({
