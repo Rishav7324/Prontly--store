@@ -8,6 +8,7 @@ import { sendEmail } from '@/services/email/service';
 import { welcomeTemplate, invoiceTemplate } from '@/services/email/templates';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { formatCurrency } from '@/lib/payment/gst';
 
 /**
  * Dispatched immediately after account creation.
@@ -34,7 +35,7 @@ export async function sendOrderConfirmationEmail(order: any) {
 }
 
 /**
- * Generates a professional, branded PDF invoice.
+ * Generates a professional, branded PDF invoice with GST breakdown.
  * Returns a base64 string for client-side download.
  */
 export async function generateInvoicePdf(order: any, settings: any) {
@@ -66,8 +67,8 @@ export async function generateInvoicePdf(order: any, settings: any) {
   const tableRows = order.items.map((item: any) => [
     item.productName,
     '1',
-    `INR ${(item.price / 100).toFixed(2)}`,
-    `INR ${(item.price / 100).toFixed(2)}`
+    formatCurrency(item.price),
+    formatCurrency(item.price)
   ]);
 
   (doc as any).autoTable({
@@ -80,27 +81,41 @@ export async function generateInvoicePdf(order: any, settings: any) {
 
   const finalY = (doc as any).lastAutoTable.finalY || 150;
 
-  // Totals
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`Subtotal:`, 140, finalY + 20);
-  doc.text(`INR ${(order.subtotal / 100).toFixed(2)}`, 190, finalY + 20, { align: 'right' });
+  // Totals Section
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  
+  let currentY = finalY + 15;
+
+  doc.text(`Subtotal:`, 140, currentY);
+  doc.text(formatCurrency(order.subtotal), 190, currentY, { align: 'right' });
   
   if (order.discount > 0) {
-    doc.setTextColor(220, 38, 38);
-    doc.text(`Discount:`, 140, finalY + 28);
-    doc.text(`- INR ${(order.discount / 100).toFixed(2)}`, 190, finalY + 28, { align: 'right' });
+    currentY += 8;
+    doc.setTextColor(34, 197, 94);
+    doc.text(`Discount:`, 140, currentY);
+    doc.text(`- ${formatCurrency(order.discount)}`, 190, currentY, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
   }
 
+  // GST Row
+  currentY += 8;
+  doc.text(`GST (18%):`, 140, currentY);
+  doc.text(formatCurrency(order.gst || 0), 190, currentY, { align: 'right' });
+
+  // Final Total
+  currentY += 12;
   doc.setTextColor(primaryColor);
   doc.setFontSize(16);
-  doc.text(`Total Paid:`, 140, finalY + 40);
-  doc.text(`INR ${(order.total / 100).toFixed(2)}`, 190, finalY + 40, { align: 'right' });
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total Paid:`, 140, currentY);
+  doc.text(formatCurrency(order.total), 190, currentY, { align: 'right' });
 
   // Footer
   doc.setTextColor(150, 150, 150);
   doc.setFontSize(8);
-  doc.text(settings?.invoiceSettings?.footerText || 'Thank you for your purchase. This is a computer generated document.', 105, 285, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(settings?.invoiceSettings?.footerText || 'Digital product. No physical shipping. This is a computer generated document.', 105, 285, { align: 'center' });
 
   return doc.output('datauristring').split(',')[1];
 }

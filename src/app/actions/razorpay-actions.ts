@@ -2,6 +2,7 @@
 
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { calculatePriceBreakdown } from '@/lib/payment/gst';
 
 /**
  * Initialized Razorpay client with secure environment variables.
@@ -22,7 +23,7 @@ function getRazorpayClient() {
 
 /**
  * STEP 1: Create Razorpay Order
- * @param amount Total amount in paise (e.g. 100 for ₹1)
+ * Now includes GST breakdown calculations.
  */
 export async function createRazorpayOrder(amount: number) {
   try {
@@ -33,10 +34,18 @@ export async function createRazorpayOrder(amount: number) {
       throw new Error('Minimum transaction amount is ₹1 (100 paise).');
     }
 
+    // Calculate GST Breakdown for the order
+    const breakdown = calculatePriceBreakdown(amount);
+
     const options = {
-      amount: Math.round(amount),
+      amount: Math.round(breakdown.total), // Final amount including GST
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
+      notes: {
+        subtotal: breakdown.subtotal,
+        gst: breakdown.gst,
+        isGstIncluded: "true"
+      }
     };
 
     const order = await razorpay.orders.create(options);
@@ -47,7 +56,8 @@ export async function createRazorpayOrder(amount: number) {
         id: order.id,
         amount: order.amount,
         currency: order.currency
-      } 
+      },
+      breakdown
     };
   } catch (error: any) {
     console.error('Razorpay Order Error:', error);

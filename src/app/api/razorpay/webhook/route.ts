@@ -3,13 +3,14 @@ import crypto from 'crypto';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { calculatePriceBreakdown } from '@/lib/payment/gst';
 
 /**
  * ─── PRODUCTION RAZORPAY WEBHOOK TERMINAL ───────────────────────────────────
  * Path: /api/razorpay/webhook
  * 
- * This route is the definitive source of truth for payment fulfillment.
- * Implements strict raw-body HMAC verification and atomic transactions.
+ * Atomic fulfillment engine for Prontly Store.
+ * Implements 18% GST processing and secure digital licensing.
  */
 
 export async function POST(req: NextRequest) {
@@ -18,90 +19,73 @@ export async function POST(req: NextRequest) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   const signature = req.headers.get('x-razorpay-signature');
 
-  if (!secret) {
-    console.error('[WEBHOOK_CONFIG_ERROR]: RAZORPAY_WEBHOOK_SECRET is missing.');
-    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+  if (!secret || !signature) {
+    console.error('[WEBHOOK_AUTH_ERROR]: Credentials or signature missing.');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!signature) {
-    console.error('[WEBHOOK_AUTH_ERROR]: Missing x-razorpay-signature header.');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 400 });
-  }
-
-  // 1. RAW BODY PARSING (CRITICAL: req.text() is required for HMAC accuracy)
+  // 1. RAW BODY PARSING (Crucial for HMAC verification)
   const body = await req.text();
 
-  // 2. HMAC-SHA256 SIGNATURE VERIFICATION
+  // 2. SIGNATURE VERIFICATION
   const expectedSignature = crypto
     .createHmac('sha256', secret)
     .update(body)
     .digest('hex');
 
   if (expectedSignature !== signature) {
-    console.warn('[WEBHOOK_SECURITY_ALERT]: Signature mismatch. Payload rejected.');
+    console.warn('[WEBHOOK_SECURITY_ALERT]: Signature mismatch rejected.');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  // 3. PARSE EVENT DATA
+  // 3. PARSE EVENT
   let event;
   try {
     event = JSON.parse(body);
   } catch (e) {
-    console.error('[WEBHOOK_PARSE_ERROR]: Failed to parse body as JSON.');
-    return NextResponse.json({ error: 'Malformed JSON' }, { status: 400 });
+    return NextResponse.json({ error: 'Malformed payload' }, { status: 400 });
   }
 
   const eventType = event.event;
   console.log(`[WEBHOOK_EVENT]: Verified ${eventType}`);
 
-  // 4. EVENT ROUTING
-  // Main fulfillment happens on 'order.paid' for Standard Checkout
+  // Fulfillment triggers only on 'order.paid'
   if (eventType !== 'order.paid') {
-    return NextResponse.json({ success: true, message: 'Event logged and acknowledged' });
+    return NextResponse.json({ success: true, message: 'Event acknowledged' });
   }
 
   const razorpayOrder = event.payload.order.entity;
   const razorpayOrderId = razorpayOrder.id;
 
-  console.log(`[FULFILLMENT_INIT]: OrderID: ${razorpayOrderId}`);
-
   const db = getAdminDb();
 
   try {
     const result = await db.runTransaction(async (transaction) => {
-      // A. Locate Order Intent in Firestore
+      // A. Locate Intent
       const ordersQuery = db.collection('orders').where('paymentId', '==', razorpayOrderId).limit(1);
       const orderSnap = await transaction.get(ordersQuery);
 
       if (orderSnap.empty) {
-        console.warn(`[FULFILLMENT_SKIP]: No pending intent found for ${razorpayOrderId}.`);
+        console.warn(`[FULFILLMENT_SKIP]: Intent not found for ${razorpayOrderId}`);
         return { status: 'intent_not_found' };
       }
 
       const orderDoc = orderSnap.docs[0];
       const orderData = orderDoc.data();
 
-      // B. Idempotency Check (Duplicate Protection)
-      if (orderData.status === 'paid') {
-        console.log('[FULFILLMENT_SKIP]: Transaction already processed.');
-        return { status: 'already_fulfilled' };
-      }
+      // B. Idempotency Check
+      if (orderData.status === 'paid') return { status: 'already_fulfilled' };
 
-      // C. Prepare Ledger References
-      const userRef = db.collection('users').doc(orderData.userId);
-      const analyticsRef = db.collection('analytics').doc('global');
-      const revenueMonth = new Date().toISOString().slice(0, 7);
-      const revenueRef = db.collection('revenue').doc(revenueMonth);
+      // C. Calculate Final Financials with GST
+      const breakdown = calculatePriceBreakdown(orderData.subtotal, orderData.discount || 0);
 
-      // D. PROVISION DIGITAL ASSETS (Atomic Entitlements)
+      // D. Provision Digital Assets
       for (const item of (orderData.items || [])) {
         const productRef = db.collection('products').doc(item.productId);
         const productSnap = await transaction.get(productRef);
         
         if (productSnap.exists) {
           const product = productSnap.data()!;
-          
-          // Create Secure Download License
           const downloadRef = db.collection('downloads')
             .doc(orderData.userId)
             .collection('products')
@@ -125,7 +109,6 @@ export async function POST(req: NextRequest) {
             isActive: true,
           }, { merge: true });
 
-          // Increment Product Sales Metrics
           transaction.update(productRef, {
             salesCount: FieldValue.increment(1),
             updatedAt: FieldValue.serverTimestamp()
@@ -133,56 +116,49 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // E. Update User Aggregates (Merge-Safe)
+      // E. Update User Profile (Merge-Safe)
+      const userRef = db.collection('users').doc(orderData.userId);
       transaction.set(userRef, {
-        totalSpent: FieldValue.increment(orderData.total),
+        totalSpent: FieldValue.increment(breakdown.total),
         orderCount: FieldValue.increment(1),
         lastPurchaseAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
 
-      // F. Global Analytics Ledger
+      // F. Update Global Analytics
+      const analyticsRef = db.collection('analytics').doc('global');
       transaction.set(analyticsRef, {
-        totalRevenue: FieldValue.increment(orderData.total),
+        totalRevenue: FieldValue.increment(breakdown.total),
         totalOrders: FieldValue.increment(1),
         lastUpdatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
 
-      // G. Monthly Revenue Distribution
-      transaction.set(revenueRef, {
-        revenue: FieldValue.increment(orderData.total),
-        orderCount: FieldValue.increment(1),
-        month: revenueMonth
-      }, { merge: true });
-
-      // H. Finalize Order Record
+      // G. Update Order Record
       transaction.update(orderDoc.ref, {
         status: 'paid',
         paidAt: FieldValue.serverTimestamp(),
-        razorpayEventId: event.id,
+        subtotal: breakdown.subtotal,
+        gst: breakdown.gst,
+        total: breakdown.total,
+        razorpayPaymentId: event.payload.payment.entity.id,
         verificationMethod: 'hmac_sha256_webhook'
       });
 
       return { status: 'fulfilled', orderId: orderDoc.id };
     });
 
-    console.log(`[FULFILLMENT_SUCCESS]: Atomic sync completed for ${razorpayOrderId} | Status: ${result.status}`);
-
-    // I. Dispatch Confirmation Email in background
     if (result.status === 'fulfilled') {
-      const finalOrderSnap = await db.collection('orders').where('paymentId', '==', razorpayOrderId).limit(1).get();
-      if (!finalOrderSnap.empty) {
-        const doc = finalOrderSnap.docs[0];
-        sendOrderConfirmationEmail({ ...doc.data(), id: doc.id })
-          .catch(err => console.warn('[WEBHOOK_EMAIL_ERROR]:', err.message));
-      }
+      // Re-fetch full doc for email context
+      const finalDoc = await db.collection('orders').doc(result.orderId!).get();
+      await sendOrderConfirmationEmail({ ...finalDoc.data(), id: finalDoc.id })
+        .catch(e => console.warn('[WEBHOOK_EMAIL_ERROR]:', e.message));
     }
 
     return NextResponse.json({ success: true, status: result.status });
 
   } catch (error: any) {
-    console.error('[FULFILLMENT_CRITICAL_FAILURE]:', error.message);
-    return NextResponse.json({ error: 'Internal synchronization failure', details: error.message }, { status: 500 });
+    console.error('[WEBHOOK_CRITICAL_FAILURE]:', error.message);
+    return NextResponse.json({ error: 'Fulfillment error' }, { status: 500 });
   }
 }
 
