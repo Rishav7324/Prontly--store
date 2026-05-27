@@ -1,4 +1,3 @@
-
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ProductDetailClient } from "@/components/store/ProductDetailClient";
@@ -12,7 +11,7 @@ interface ProductPageProps {
 
 /**
  * Smart Resolver: 
- * 1. Attempt lookup by Slug.
+ * 1. Attempt lookup by Slug field.
  * 2. Fallback to Document ID lookup.
  * 3. Redirect to Slug URL if ID was used but Slug exists.
  */

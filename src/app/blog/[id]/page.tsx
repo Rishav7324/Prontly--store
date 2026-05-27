@@ -1,4 +1,3 @@
-
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { firebaseConfig } from "@/firebase/config";
@@ -11,12 +10,13 @@ interface BlogPageProps {
 }
 
 /**
- * Smart Blog Resolver: Resolves slug to document.
+ * Smart Blog Resolver: Resolves identifier (slug or id) to document.
  */
 async function getPostData(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
+  // 1. Attempt query by slug field
   const res = await fetch(
     `${baseUrl}:runQuery`,
     { 
@@ -54,6 +54,21 @@ async function getPostData(identifier: string) {
       };
     }
   }
+
+  // 2. Fallback to direct ID lookup
+  const idRes = await fetch(`${baseUrl}/blog_posts/${identifier}`, { next: { revalidate: 3600 } });
+  if (idRes.ok) {
+    const doc = await idRes.json();
+    const fields = doc.fields || {};
+    return {
+      id: doc.name.split('/').pop(),
+      title: fields.title?.stringValue || "",
+      slug: fields.slug?.stringValue || "",
+      excerpt: fields.excerpt?.stringValue || "",
+      featuredImage: fields.featuredImage?.stringValue || "",
+      publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
+    };
+  }
   
   return null;
 }
@@ -62,7 +77,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   const { id } = await params;
   const post = await getPostData(id);
   
-  if (!post) return generateMeta({ title: "Article Not Found", description: "The requested article is missing.", path: `/blog/${id}` });
+  if (!post) return generateMeta({ title: "Article", description: "Blog update", path: `/blog/${id}` });
 
   return generateMeta({
     title: post.title,
@@ -92,7 +107,7 @@ export default async function BlogPostPage({ params }: BlogPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
       />
-      <BlogPostDetailClient slug={id} />
+      <BlogPostDetailClient slug={post.slug || id} />
     </>
   );
 }

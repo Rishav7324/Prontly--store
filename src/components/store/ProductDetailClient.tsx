@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -133,11 +132,9 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
   const [mounted, setMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>(hydratedProduct.images?.[0] || '');
 
-  // Real-time data binding using the true Firestore ID
   const productRef = useMemoFirebase(() => (db ? doc(db, 'products', hydratedProduct.id) : null), [db, hydratedProduct.id]);
   const { data: liveProduct, loading: liveLoading } = useDoc(productRef);
 
-  // Use live data if available, otherwise fallback to hydrated data from the server
   const product = liveProduct || hydratedProduct;
 
   useEffect(() => { 
@@ -234,7 +231,6 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                       ₹{(product.price / 100).toLocaleString('en-IN')}
                     </span>
                   </div>
-
                   <p className="text-slate-blue text-sm leading-relaxed">
                     {product.shortDescription || "Unlock professional-grade assets with a perpetual license. Lifetime updates included."}
                   </p>

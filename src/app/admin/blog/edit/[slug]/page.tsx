@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, Loader2, Save, Upload, ImageIcon, Trash2 } from 'lucide-react';
+import { ChevronLeft, Loader2, Save, ImageIcon, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
@@ -64,7 +64,6 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ id: str
 
     try {
       setUploadProgress(30);
-      // 1. Optimize image to WebP
       const optimized = await optimizeImage(file);
       const optimizedFile = new File([optimized.blob], `${formData.slug}-cover.webp`, { type: 'image/webp' });
       
