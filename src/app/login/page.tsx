@@ -114,7 +114,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="flex items-center gap-3 mb-6 group">
-            <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-white/5 shadow-2xl transition-transform group-hover:scale-110">
+            <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white/5 shadow-2xl transition-transform group-hover:scale-110">
               <Image 
                 src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
                 alt="Prontly Logo" 
@@ -122,7 +122,7 @@ export default function LoginPage() {
                 className="object-cover"
               />
             </div>
-            <span className="font-script text-3xl font-bold tracking-tight text-midnight-ink">Prontly Store</span>
+            <span className="font-script text-2xl font-bold tracking-tight text-midnight-ink">Prontly Store</span>
           </Link>
           <h1 className="text-3xl font-bold font-headline text-midnight-ink">Secure Access</h1>
           <p className="text-muted-foreground mt-2">Manage your digital assets and library</p>
@@ -131,10 +131,10 @@ export default function LoginPage() {
         <Card className="border-stone-gray/10 bg-white/50 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">
-              <ShieldCheck className="h-3.5 w-3.5" /> Identity Terminal
+              <ShieldCheck className="h-3.5 w-3.5" /> Identity 
             </div>
             <CardTitle className="text-xl font-bold">Sign In</CardTitle>
-            <CardDescription>Enter your registered electronic address</CardDescription>
+            <CardDescription>Enter your registered email </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleEmailLogin} className="space-y-4">

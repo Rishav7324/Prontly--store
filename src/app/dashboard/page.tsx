@@ -157,10 +157,11 @@ export default function Dashboard() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-2">
                 <Badge variant="outline" className="border-primary/50 text-primary uppercase tracking-widest px-3 py-1 font-black text-[9px] bg-primary/5">Customer Engine v2.0</Badge>
-                <h1 className="text-4xl md:text-5xl font-bold font-headline leading-tight">Workspace.</h1>
-                <p className="text-lg text-muted-foreground">Manage your digital inventory and transaction ledger.</p>
+                <h1 className="text-2xl md:text-4xl font-bold font-headline leading-tight">Workspace.</h1>
+                <p className="text-sm text-muted-foreground">Manage your digital inventory and transaction ledger.</p>
               </div>
-              <Button asChild size="lg" className="rounded-2xl h-14 px-8 shadow-xl shadow-primary/20 group font-bold">
+              <Button 
+              asChild size="lg" className="rounded-2xl h-10  px-6 shadow-xl shadow-primary/20 group font-bold">
                 <Link href="/dashboard/downloads">
                   Access Digital Vault 
                   <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -175,7 +176,7 @@ export default function Dashboard() {
                   <ShoppingBag className="h-24 w-24 text-primary" />
                 </div>
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2">Order Density</p>
-                <h3 className="text-5xl font-bold font-headline">{stats.count} <span className="text-xl text-muted-foreground font-normal">Transactions</span></h3>
+                <h3 className="text-5xl font-sm text-midnight-ink">{stats.count} <span className="text-xl text-muted-foreground font-normal">Transactions</span></h3>
               </Card>
               <Card className="rounded-[2.5rem] border-white/5 bg-card/30 p-8 shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-10 transition-opacity">
@@ -192,9 +193,9 @@ export default function Dashboard() {
                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                     <History className="h-5 w-5" />
                   </div>
-                  <h2 className="text-2xl font-bold font-headline">Recent Purchase History</h2>
+                  <h2 className="text-1xl font-bold ">Recent Purchase History</h2>
                 </div>
-                <Link href="/products" className="text-xs font-bold text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+                <Link href="/products" className="text-xs font-sm text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
                   Expand Inventory <ArrowUpRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -204,11 +205,11 @@ export default function Dashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-muted/30 border-b border-white/5">
                       <tr>
-                        <th className="px-8 py-5 text-left font-black uppercase tracking-widest text-[9px] text-muted-foreground">Reference</th>
-                        <th className="px-8 py-5 text-left font-black uppercase tracking-widest text-[9px] text-muted-foreground">Execution Date</th>
-                        <th className="px-8 py-5 text-left font-black uppercase tracking-widest text-[9px] text-muted-foreground">Status</th>
-                        <th className="px-8 py-5 text-right font-black uppercase tracking-widest text-[9px] text-muted-foreground">Net Value</th>
-                        <th className="px-8 py-5"></th>
+                        <th className="px-6 py-5 text-left font-black uppercase tracking-widest text-[8px] text-muted-foreground">Reference</th>
+                        <th className="px-6 py-5 text-left font-black uppercase tracking-widest text-[8px] text-muted-foreground">Execution Date</th>
+                        <th className="px-6 py-5 text-left font-black uppercase tracking-widest text-[8px] text-muted-foreground">Status</th>
+                        <th className="px-6 py-5 text-right font-black uppercase tracking-widest text-[8px] text-muted-foreground">Net Value</th>
+                        <th className="px-6 py-5"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -225,7 +226,7 @@ export default function Dashboard() {
                               {order.status}
                             </Badge>
                           </td>
-                          <td className="px-8 py-6 text-right font-headline font-bold text-xl">₹{(order.total / 100).toLocaleString('en-IN')}</td>
+                          <td className="px-8 py-6 text-right font-headline font-bold text-xl">₹{(order.subtotal / 100).toLocaleString('en-IN')}</td>
                           <td className="px-8 py-6 text-right">
                             <Button variant="ghost" size="sm" className="rounded-xl gap-2 text-[10px] uppercase font-bold border border-white/10 hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
                               <Link href={`/dashboard/orders/${order.id}`}>

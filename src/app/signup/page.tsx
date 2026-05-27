@@ -140,7 +140,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="flex items-center gap-3 mb-6 group">
-            <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-white/5 shadow-2xl transition-transform group-hover:scale-110">
+            <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white/5 shadow-2xl transition-transform group-hover:scale-110">
               <Image 
                 src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
                 alt="Prontly Logo" 
@@ -150,14 +150,14 @@ export default function SignupPage() {
             </div>
             <span className="font-script text-3xl font-bold tracking-tight text-midnight-ink">Prontly Store</span>
           </Link>
-          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Join the Marketplace</h1>
+          <h1 className="text-2xl font-bold font-headline text-midnight-ink">Join the Marketplace</h1>
           <p className="text-muted-foreground mt-2">Initialize your creative architecture</p>
         </div>
 
         <Card className="border-stone-gray/10 bg-white/50 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">
-              <Zap className="h-3.5 w-3.5" /> Registration Protocol
+              <Zap className="h-3.5 w-3.5" /> Registration 
             </div>
             <CardTitle className="text-xl font-bold">New Account</CardTitle>
             <CardDescription>Enter your identity details below</CardDescription>

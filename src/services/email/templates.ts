@@ -149,7 +149,7 @@ export function invoiceTemplate(data: any) {
       </tr>` : ''}
       <tr>
         <td align="right" style="font-size:20px;font-weight:800;color:${TEXT_COLOR};border-top:2px solid ${BRAND_COLOR};padding-top:16px;">Net Total Paid</td>
-        <td align="right" style="font-size:20px;font-weight:800;color:${BRAND_COLOR};border-top:2px solid ${BRAND_COLOR};padding-top:16px;">₹${(data.total / 100).toLocaleString('en-IN')}</td>
+        <td align="right" style="font-size:20px;font-weight:800;color:${BRAND_COLOR};border-top:2px solid ${BRAND_COLOR};padding-top:16px;">₹${(data.subtotal / 100).toLocaleString('en-IN')}</td>
       </tr>
     </table>
     <div align="center">

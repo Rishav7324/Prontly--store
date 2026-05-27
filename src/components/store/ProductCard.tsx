@@ -99,11 +99,11 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
           <div className="flex items-center justify-between text-[10px] font-bold text-slate-blue uppercase tracking-wider">
             <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-porcelain-white rounded-[3px] border border-stone-gray/10">
               <Star className="h-2.5 w-2.5 fill-deep-violet text-deep-violet" />
-              <span className="text-midnight-ink">{rating}</span>
+              <span className="text-midnight-ink font-headline">{rating}</span>
             </div>
             <div className="flex items-center gap-1 opacity-70">
                <Layers className="h-2.5 w-2.5" />
-               <span>{sales} Installs</span>
+               <span className="font-mono">{sales} Installs</span>
             </div>
           </div>
 
@@ -113,9 +113,9 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
 
           <div className="flex items-center justify-between pt-3 border-t border-stone-gray/10">
             <div className="flex flex-col">
-              <p className="text-base font-bold text-midnight-ink tracking-tight">{price}</p>
+              <p className="text-base font-bold text-midnight-ink font-headline tabular-nums tracking-tight">{price}</p>
               {compareAtPrice && compareAtPrice > priceRaw && (
-                <span className="text-[9px] text-ghost-gray line-through decoration-deep-violet/30">₹{(compareAtPrice / 100).toLocaleString()}</span>
+                <span className="text-[9px] text-ghost-gray font-headline line-through decoration-deep-violet/30">₹{(compareAtPrice / 100).toLocaleString()}</span>
               )}
             </div>
             <Button 

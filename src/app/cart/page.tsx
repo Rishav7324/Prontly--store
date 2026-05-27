@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -109,7 +108,7 @@ export default function CartPage() {
                           >
                             <Minus className="h-3 w-3" />
                           </button>
-                          <span className="w-10 text-center text-sm font-bold">{item.quantity}</span>
+                          <span className="w-10 text-center text-sm font-bold font-mono">{item.quantity}</span>
                           <button 
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="h-8 w-8 flex items-center justify-center hover:bg-white rounded-md transition-colors"
@@ -117,7 +116,7 @@ export default function CartPage() {
                             <Plus className="h-3 w-3" />
                           </button>
                         </div>
-                        <span className="font-headline font-bold text-xl text-midnight-ink">
+                        <span className="font-headline font-bold text-xl text-midnight-ink tabular-nums">
                           ₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}
                         </span>
                       </div>
@@ -134,16 +133,16 @@ export default function CartPage() {
               <div className="space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Subtotal</span>
-                  <span className="font-bold">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+                  <span className="font-bold font-headline">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Processing Fee</span>
-                  <span className="font-bold text-green-600">₹0.00</span>
+                  <span className="font-bold text-green-600 font-headline">₹0.00</span>
                 </div>
                 <div className="pt-6 border-t border-stone-gray/10 flex justify-between items-baseline">
-                  <span className="font-bold text-lg text-midnight-ink">Net Value</span>
+                  <span className="font-bold text-lg text-midnight-ink uppercase text-[10px] tracking-widest">Net Value</span>
                   <div className="text-right">
-                    <span className="text-4xl font-bold text-primary tracking-tighter">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+                    <span className="text-4xl font-bold text-primary tracking-tighter font-headline">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>

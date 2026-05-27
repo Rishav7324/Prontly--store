@@ -214,20 +214,20 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                 <div className="flex items-center gap-6 py-4 border-y border-stone-gray/10">
                   <div className="flex items-center gap-1.5 text-yellow-500">
                     <Star className="h-4 w-4 fill-current" />
-                    <span className="font-bold text-midnight-ink text-sm">{product.averageRating || '5.0'}</span>
+                    <span className="font-bold text-midnight-ink text-sm font-headline">{product.averageRating || '5.0'}</span>
                     <span className="text-ghost-gray text-xs ml-1">({product.reviewCount || 0})</span>
                   </div>
                   <div className="h-4 w-[1px] bg-stone-gray/20" />
                   <div className="flex items-center gap-1.5 text-slate-blue">
                     <Layers className="h-4 w-4" />
-                    <span className="font-bold text-midnight-ink text-sm">{product.salesCount || 0}</span>
+                    <span className="font-bold text-midnight-ink text-sm font-mono">{product.salesCount || 0}</span>
                     <span className="text-ghost-gray text-xs ml-1">Installs</span>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-baseline gap-3">
-                    <span className="text-4xl font-bold text-midnight-ink tracking-tighter">
+                    <span className="text-4xl font-bold text-midnight-ink font-headline tracking-tighter">
                       ₹{(product.price / 100).toLocaleString('en-IN')}
                     </span>
                   </div>

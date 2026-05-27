@@ -84,7 +84,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setFontSize(14);
   doc.setTextColor(primaryColor);
   doc.text('Total Paid:', startX, y);
-  doc.text(formatPrice(order.totalAmount || order.total || 0), 185, y, { align: 'right' });
+  doc.text(formatPrice(order.subtotal || order.subtotal || 0), 185, y, { align: 'right' });
 
   // Footer
   doc.setTextColor(150, 150, 150);

@@ -132,7 +132,7 @@ export default function AdminAnalytics() {
             </div>
             <CardContent className="pt-8">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{item.label}</p>
-              <h3 className="text-4xl font-bold font-headline mb-3">
+              <h3 className="text-4xl font-bold font-headline tabular-nums mb-3">
                 {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : item.value}
               </h3>
               <p className="flex items-center text-[10px] font-bold text-green-500">
@@ -170,7 +170,7 @@ export default function AdminAnalytics() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: 'var(--font-mono)'}} />
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#111115', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
                       cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2 }}

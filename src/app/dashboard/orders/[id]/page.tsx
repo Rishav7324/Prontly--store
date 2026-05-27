@@ -105,8 +105,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <Link href="/dashboard"><ChevronLeft className="h-6 w-6" /></Link>
             </Button>
             <div>
-              <h1 className="text-4xl font-bold font-headline">Order Overview</h1>
-              <p className="text-muted-foreground text-sm uppercase tracking-widest font-mono font-bold mt-1">Transaction ID: {id.toUpperCase()}</p>
+              <h1 className="text-2xl font-bold font-headline">Order Overview</h1>
+              <p className="text-muted-foreground text-1xl text-sm tracking-widest font-mono  mt-1">Transaction ID: {id.toUpperCase()}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -140,12 +140,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   {order.items?.map((item: any) => (
                     <div key={item.productId} className="p-8 flex items-center justify-between gap-6 hover:bg-white/5 transition-colors">
                       <div className="flex items-center gap-6">
-                        <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center border border-white/10 shrink-0">
+                        <div className="h-8 w-8 rounded-2xl bg-muted flex items-center justify-center border border-white/10 shrink-0">
                           <Receipt className="h-8 w-8 text-muted-foreground opacity-50" />
                         </div>
                         <div>
-                          <p className="font-bold text-lg">{item.productName}</p>
-                          <p className="text-xs text-muted-foreground uppercase font-bold tracking-tighter">Lifetime License • Perpetual Usage</p>
+                          <p className="font-bold text-sm">{item.productName}</p>
+                          <p className="text-xs text-muted-foreground gap-6 uppercase font-sm tracking-tighter">Lifetime License • Perpetual Usage</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -219,7 +219,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               </CardContent>
             </Card>
 
-            <Button className="w-full h-16 rounded-2xl gap-3 text-lg font-bold shadow-xl shadow-primary/20" asChild>
+            <Button className="w-full h-10 flex  rounded-2xl gap-3 text-lg font-bold shadow-xl shadow-primary/20" asChild>
               <Link href="/dashboard">
                 <Download className="h-5 w-5" />
                 Access Files Now
