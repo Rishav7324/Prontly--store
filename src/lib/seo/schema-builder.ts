@@ -45,12 +45,12 @@ export function getGlobalSchema() {
 /**
  * Product-specific Schema
  */
-export function getProductSchema(product: any) {
+export function getProductSchema(product: any, reviews: any[] = []) {
   const price = (product.price / 100).toFixed(2);
   const imageUrl = product.images?.[0] || product.bannerImage || LOGO_URL;
   const productUrl = `${SITE_URL}/products/${product.slug || product.id}`;
 
-  return {
+  const schema: any = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
@@ -66,19 +66,46 @@ export function getProductSchema(product: any) {
       url: productUrl,
       priceCurrency: 'INR',
       price: price,
-      availability: 'https://schema.org/InStock',
+      availability: product.isActive !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
         name: BRAND_NAME,
       },
     },
-    aggregateRating: product.reviewCount > 0 ? {
+    category: product.categorySlug,
+  };
+
+  // Add Aggregate Rating if data exists
+  if (product.reviewCount > 0) {
+    schema.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: product.averageRating || '5.0',
       reviewCount: product.reviewCount,
-    } : undefined,
-    category: product.categorySlug,
-  };
+      bestRating: '5',
+      worstRating: '1',
+    };
+  }
+
+  // Add individual reviews if provided
+  if (reviews && reviews.length > 0) {
+    schema.review = reviews.map((r: any) => ({
+      '@type': 'Review',
+      author: {
+        '@type': 'Person',
+        name: r.userName || 'Verified Buyer',
+      },
+      datePublished: r.createdAt,
+      reviewBody: r.comment,
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: r.rating || 5,
+        bestRating: '5',
+        worstRating: '1',
+      },
+    }));
+  }
+
+  return schema;
 }
 
 /**

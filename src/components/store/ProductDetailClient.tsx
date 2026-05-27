@@ -331,8 +331,8 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
 
         <div className="flex justify-center py-20 border-t border-stone-gray/10 mt-20">
           <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary rounded-full px-6">
-            <Link href="/blog" className="flex items-center">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog
+            <Link href="/products" className="flex items-center">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to product
             </Link>
           </Button>
         </div>
