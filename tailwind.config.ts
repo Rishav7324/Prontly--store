@@ -13,6 +13,7 @@ export default {
         body: ['Inter', 'sans-serif'],
         headline: ['Cormorant Garamond', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        script: ['"Story Script"', 'cursive'],
       },
       colors: {
         background: 'hsl(var(--background))',

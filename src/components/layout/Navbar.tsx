@@ -65,7 +65,7 @@ export function Navbar() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-xl tracking-tight text-midnight-ink uppercase">Prontly</span>
+              <span className="font-bold text-xl tracking-tight text-midnight-ink ">Prontly Store </span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
               <Link href="/products" className="text-sm font-semibold text-slate-blue hover:text-deep-violet transition-colors">Marketplace</Link>
