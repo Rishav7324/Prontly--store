@@ -13,7 +13,7 @@ interface ProductPageProps {
 
 /**
  * High-reliability Product Resolver.
- * Resolves slugs or IDs using the Firestore REST API to ensure SEO metadata is generated.
+ * Unifies 'id' and 'slug' lookup logic to prevent Next.js routing naming conflicts.
  */
 async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;

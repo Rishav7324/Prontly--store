@@ -22,7 +22,8 @@ import {
   Layers,
   ExternalLink,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Zap
 } from "lucide-react";
 import Image from "next/image";
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
