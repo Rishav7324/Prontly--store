@@ -172,7 +172,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
           <Badge className="bg-deep-violet/5 text-deep-violet border-none px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-widest mb-2">
             {product.categorySlug}
           </Badge>
-          <h1 className="text-3xl font-bold text-midnight-ink leading-tight tracking-tight">
+          <h1 className="text-2xl font-bold text-midnight-ink leading-tight tracking-tight">
             {product.name}
             {liveLoading && <Loader2 className="inline ml-3 h-4 w-4 animate-spin opacity-20" />}
           </h1>
