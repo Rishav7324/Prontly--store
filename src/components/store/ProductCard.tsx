@@ -46,7 +46,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
 
   const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/400'];
   // CRITICAL: Always use slug for SEO URLs
-  const productPath = `/products/${slug || id}`;
+  const productPath = `/products/${slug}`;
 
   return (
     <Card className="h-full border-none bg-white rounded-[6px] overflow-hidden shadow-sm hover:shadow-xl-2 transition-all duration-300 hover:-translate-y-1 relative group/card">
