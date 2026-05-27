@@ -63,9 +63,6 @@ async function getProduct(identifier: string) {
           fileVersion: fields.fileVersion?.stringValue || "1.0"
         };
       }
-    } else {
-      const errorData = await queryRes.json();
-      console.error('[REST_QUERY_FAILED]:', errorData);
     }
 
     // 2. Fallback: Attempt lookup by Document ID (Legacy URL support)
@@ -112,8 +109,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product || product.needsRedirect) {
     return generateMeta({ 
-      title: "Asset Catalog", 
-      description: "Browsing the Prontly digital asset collection.", 
+      title: "Asset Detail", 
+      description: "Browsing premium digital assets.", 
       path: `/products/${slug}`,
       noIndex: true
     });
