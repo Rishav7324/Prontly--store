@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingCart, Heart, ShieldCheck, LayoutDashboard, Settings, LogOut, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -55,11 +56,16 @@ export function Navbar() {
       <header className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
         <nav className="w-full max-w-5xl h-16 flex items-center justify-between px-6 bg-white/70 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] pointer-events-auto">
           <div className="flex items-center gap-10">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:rotate-12 transition-all">
-                <Zap className="h-5 w-5 text-white" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-white/5 shadow-lg transition-all group-hover:scale-110">
+                <Image 
+                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                  alt="Prontly Logo" 
+                  fill 
+                  className="object-cover"
+                />
               </div>
-              <span className="font-bold text-lg tracking-tight text-midnight-ink uppercase">Prontly</span>
+              <span className="font-bold text-xl tracking-tight text-midnight-ink uppercase">Prontly</span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
               <Link href="/products" className="text-sm font-semibold text-slate-blue hover:text-deep-violet transition-colors">Marketplace</Link>

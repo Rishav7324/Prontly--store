@@ -11,11 +11,16 @@ export function Footer() {
       <div className="container mx-auto px-4 max-w-[1200px]">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16 lg:gap-24">
           <div className="md:col-span-4 space-y-8">
-            <Link href="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-                <ShieldCheck className="h-4 w-4 text-white" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white/5 shadow-lg transition-all group-hover:scale-110">
+                <Image 
+                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
+                  alt="Prontly Logo" 
+                  fill 
+                  className="object-cover"
+                />
               </div>
-              <span className="font-bold text-lg tracking-tight text-foreground">Prontly</span>
+              <span className="font-bold text-xl tracking-tight text-foreground uppercase">Prontly</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs font-body">
               Specialized digital infrastructure for modern creators and enterprises. Precision tools for high-performance development.
@@ -60,7 +65,6 @@ export function Footer() {
 
         <div className="mt-15 pt-20 border-t flex flex-col md:flex-row items-center justify-between gap-6 text-[11px] text-muted-foreground font-bold uppercase tracking-[0.1em]">
           <p>© {new Date().getFullYear()} Prontly Store — Built for Creators</p>
-          
         </div>
       </div>
     </footer>
