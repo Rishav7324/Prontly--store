@@ -16,14 +16,17 @@ export interface PriceBreakdown {
 /**
  * Calculates the full price breakdown including 18% GST.
  */
-export function calculatePriceBreakdown(subtotal: number, discount: number = 0): PriceBreakdown {
-  const taxableAmount = Math.max(0, subtotal - discount);
+export function calculateGST(params: {
+  subtotal: number;
+  discountAmount: number;
+}): PriceBreakdown {
+  const taxableAmount = Math.max(0, params.subtotal - params.discountAmount);
   const gst = Math.round(taxableAmount * GST_RATE);
   const total = taxableAmount + gst;
 
   return {
-    subtotal,
-    discount,
+    subtotal: params.subtotal,
+    discount: params.discountAmount,
     taxableAmount,
     gst,
     total
@@ -33,7 +36,7 @@ export function calculatePriceBreakdown(subtotal: number, discount: number = 0):
 /**
  * Formats paise into a localized INR string.
  */
-export function formatCurrency(paise: number): string {
+export function formatPrice(paise: number): string {
   return (paise / 100).toLocaleString('en-IN', {
     style: 'currency',
     currency: 'INR',
