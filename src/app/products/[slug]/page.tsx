@@ -1,3 +1,4 @@
+
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ProductDetailClient } from "@/components/store/ProductDetailClient";
@@ -6,18 +7,15 @@ import { firebaseConfig } from "@/firebase/config";
 import { getProductSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
 
 interface ProductPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }
 
-/**
- * Unified resolver for the [slug] path.
- * We await 'slug' as the parameter name to resolve conflicts.
- */
 async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
   try {
+    // 1. Attempt lookup by SLUG first
     const queryRes = await fetch(`${baseUrl}:runQuery`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,14 +60,18 @@ async function getProduct(identifier: string) {
       }
     }
 
+    // 2. Fallback to direct ID lookup for legacy compatibility
     const idRes = await fetch(`${baseUrl}/products/${identifier}`, { next: { revalidate: 3600 } });
     if (idRes.ok) {
       const doc = await idRes.json();
       const fields = doc.fields || {};
       const actualSlug = fields.slug?.stringValue;
+      
+      // If product has a slug, redirect to the SEO-friendly URL
       if (actualSlug && actualSlug !== identifier) {
         return { needsRedirect: true, targetSlug: actualSlug };
       }
+
       return {
         id: doc.name.split('/').pop(),
         name: fields.name?.stringValue || "",
@@ -90,15 +92,16 @@ async function getProduct(identifier: string) {
     }
     return null;
   } catch (error) {
+    console.error("[PRODUCT_RESOLVER_ERROR]:", error);
     return null;
   }
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const product: any = await getProduct(slug);
+  const { id } = await params;
+  const product: any = await getProduct(id);
   if (!product || product.needsRedirect) {
-    return generateMeta({ title: "Product", description: "Marketplace asset", path: `/products/${slug}`, noIndex: true });
+    return generateMeta({ title: "Product", description: "Marketplace asset", path: `/products/${id}`, noIndex: true });
   }
   return generateMeta({
     title: product.name,
@@ -112,8 +115,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug } = await params;
-  const product: any = await getProduct(slug);
+  const { id } = await params;
+  const product: any = await getProduct(id);
   if (!product) notFound();
   if (product.needsRedirect) redirect(`/products/${product.targetSlug}`);
 
