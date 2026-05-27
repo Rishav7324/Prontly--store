@@ -8,7 +8,7 @@ import { sendEmail } from '@/services/email/service';
 import { welcomeTemplate, invoiceTemplate } from '@/services/email/templates';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { formatCurrency } from '@/lib/payment/gst';
+import { formatPrice } from '@/lib/payment/gst';
 
 /**
  * Dispatched immediately after account creation.
@@ -67,8 +67,8 @@ export async function generateInvoicePdf(order: any, settings: any) {
   const tableRows = order.items.map((item: any) => [
     item.productName,
     '1',
-    formatCurrency(item.price),
-    formatCurrency(item.price)
+    formatPrice(item.price),
+    formatPrice(item.price)
   ]);
 
   (doc as any).autoTable({
@@ -88,20 +88,20 @@ export async function generateInvoicePdf(order: any, settings: any) {
   let currentY = finalY + 15;
 
   doc.text(`Subtotal:`, 140, currentY);
-  doc.text(formatCurrency(order.subtotal), 190, currentY, { align: 'right' });
+  doc.text(formatPrice(order.subtotal), 190, currentY, { align: 'right' });
   
   if (order.discount > 0) {
     currentY += 8;
     doc.setTextColor(34, 197, 94);
     doc.text(`Discount:`, 140, currentY);
-    doc.text(`- ${formatCurrency(order.discount)}`, 190, currentY, { align: 'right' });
+    doc.text(`- ${formatPrice(order.discount)}`, 190, currentY, { align: 'right' });
     doc.setTextColor(0, 0, 0);
   }
 
   // GST Row
   currentY += 8;
   doc.text(`GST (18%):`, 140, currentY);
-  doc.text(formatCurrency(order.gst || 0), 190, currentY, { align: 'right' });
+  doc.text(formatPrice(order.gst || 0), 190, currentY, { align: 'right' });
 
   // Final Total
   currentY += 12;
@@ -109,7 +109,7 @@ export async function generateInvoicePdf(order: any, settings: any) {
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(`Total Paid:`, 140, currentY);
-  doc.text(formatCurrency(order.total), 190, currentY, { align: 'right' });
+  doc.text(formatPrice(order.total), 190, currentY, { align: 'right' });
 
   // Footer
   doc.setTextColor(150, 150, 150);
