@@ -65,7 +65,7 @@ export function Navbar() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-xl tracking-tight text-midnight-ink ">Prontly Store </span>
+              <span className="font-bold text-xl tracking-tight text-foreground font-script">Prontly Store</span>
             </Link>
             <div className="hidden md:flex items-center gap-8">
               <Link href="/products" className="text-sm font-semibold text-slate-blue hover:text-deep-violet transition-colors">Marketplace</Link>
@@ -77,12 +77,12 @@ export function Navbar() {
             <div className="flex items-center gap-1 border-r border-stone-gray/20 pr-3 mr-1">
               <Button variant="ghost" size="icon" className="text-slate-blue hover:text-deep-violet rounded-full transition-colors h-9 w-9" asChild title="Wishlist">
                 <Link href="/wishlist">
-                  <Heart className="h-[18px] w-[18px]" />
+                  <Heart className="h-[14px] w-[14px]" />
                 </Link>
               </Button>
 
               <Button variant="ghost" size="icon" className="relative text-slate-blue hover:text-deep-violet rounded-full transition-colors h-9 w-9" onClick={() => setIsCartOpen(true)} title="Cart">
-                <ShoppingCart className="h-[18px] w-[18px]" />
+                <ShoppingCart className="h-[14px] w-[14px]" />
                 {cartItemCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-deep-violet border-2 border-white" />
                 )}

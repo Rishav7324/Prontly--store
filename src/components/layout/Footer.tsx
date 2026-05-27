@@ -20,7 +20,7 @@ export function Footer() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-1xl tracking-tight text-foreground font-script">Prontly Store</span>
+              <span className="font-bold text-xl tracking-tight text-foreground font-script">Prontly Store</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs font-body">
               Specialized digital infrastructure for modern creators and enterprises. Precision tools for high-performance development.
