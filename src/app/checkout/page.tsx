@@ -118,7 +118,7 @@ export default function CheckoutPage() {
                 {isProcessing ? 'Synchronizing...' : `Authorize ${formatPrice(breakdown.total)}`}
               </Button>
               <p className="text-[10px] text-center text-ghost-gray uppercase font-black tracking-[0.2em]">
-                Instant Fulfillment • SSL Encrypted • GST Compliant
+                Instant Fulfillment • SSL Encrypted • Direct Delivery
               </p>
             </div>
           </div>
@@ -139,12 +139,8 @@ export default function CheckoutPage() {
                 
                 <div className="pt-4 space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Gross Subtotal</span>
+                    <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">{formatPrice(breakdown.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">GST (18%)</span>
-                    <span className="font-medium">{formatPrice(breakdown.gst)}</span>
                   </div>
                   <div className="pt-4 border-t border-stone-gray/10 flex justify-between items-baseline">
                     <span className="font-bold text-midnight-ink uppercase text-xs tracking-widest">Net Value</span>
@@ -160,7 +156,7 @@ export default function CheckoutPage() {
               <div className="mt-8 p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-3">
                 <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <p className="text-[10px] text-slate-blue leading-relaxed font-medium">
-                  By completing this purchase, you authorize an 18% GST collection as per GOI regulations. Perpetual digital license will be issued instantly.
+                  By completing this purchase, you authorize direct electronic fulfillment. Perpetual digital license will be issued instantly to your digital library.
                 </p>
               </div>
             </Card>

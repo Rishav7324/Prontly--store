@@ -8,7 +8,7 @@ import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
 /**
  * API: Client-side Verification handler
  * Triggers atomic fulfillment after Razorpay Checkout success.
- * FIXED: Ensures all READS happen before WRITES in the transaction.
+ * GST logic removed.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (result.status === 'fulfilled') {
-      // Background: Generate Invoice PDF and update order
+      // Background: Generate Receipt PDF and update order
       try {
         const pdfBase64 = await generateInvoicePdf(result.orderData);
         await db.collection('orders').doc(razorpay_order_id).update({

@@ -7,7 +7,7 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 /**
  * API: Initialize Payment Process
  * Creates a Razorpay order and logs a pending intent in Firestore.
- * Returns the keyId to ensure client-side alignment.
+ * GST removed from calculation.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Calculate Final Financials
+    // 4. Calculate Final Financials (GST = 0)
     const breakdown = calculateGST({ subtotal, discountAmount: discount });
 
     // 5. Create Razorpay Order
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       items: cartItems,
       subtotal: breakdown.subtotal,
       discountAmount: breakdown.discount,
-      gstAmount: breakdown.gst,
+      gstAmount: 0,
       totalAmount: breakdown.total,
       couponCode: appliedCoupon,
       status: 'pending',
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       orderId: razorpayOrder.id,
-      razorpayKeyId: process.env.RAZORPAY_KEY_ID, // Pass keyId to client
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       breakdown

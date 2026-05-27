@@ -9,7 +9,7 @@ import { sendOrderConfirmationEmail } from '@/app/actions/email-actions';
  * ─── PRODUCTION RAZORPAY WEBHOOK TERMINAL ───────────────────────────────────
  * Fallback fulfillment for missed client-side verifications.
  * Uses raw text body for cryptographic integrity.
- * FIXED: Ensures all READS happen before WRITES in the transaction.
+ * GST features removed from data sync.
  */
 export async function POST(req: NextRequest) {
   console.log('[RAZORPAY_WEBHOOK]: Signal received.');

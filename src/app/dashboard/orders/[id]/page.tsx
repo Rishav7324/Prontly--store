@@ -60,9 +60,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       
       const link = document.createElement('a');
       link.href = `data:application/pdf;base64,${pdfBase64}`;
-      link.download = `invoice-${id.slice(-8)}.pdf`;
+      link.download = `receipt-${id.slice(-8)}.pdf`;
       link.click();
-      toast({ title: "Invoice Downloaded" });
+      toast({ title: "Receipt Downloaded" });
     } catch (e) {
       toast({ variant: "destructive", title: "Download Failed" });
     } finally {
@@ -98,7 +98,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-16 max-w-5xl">
+      <main className="flex-1 container mx-auto px-4 py-16 max-5xl">
         <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/5 h-14 w-14">
@@ -117,7 +117,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               disabled={isDownloading}
             >
               {isDownloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileDown className="h-5 w-5" />}
-              PDF Invoice
+              PDF Receipt
             </Button>
             <Button variant="ghost" className="h-14 px-8 rounded-2xl gap-3 border-white/10 font-bold bg-white/5 md:flex hidden" onClick={() => window.print()}>
               <Printer className="h-5 w-5" />
@@ -194,7 +194,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <div className="lg:col-span-4 space-y-8">
             <Card className="bg-primary/5 border-primary/20 rounded-[2.5rem] overflow-hidden shadow-2xl">
               <CardHeader className="bg-primary/10 border-b border-primary/10 p-8">
-                <CardTitle className="text-xl font-headline">Pricing Audit</CardTitle>
+                <CardTitle className="text-xl font-headline">Pricing Recap</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-4">
@@ -202,19 +202,19 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     <span className="text-muted-foreground font-medium">Subtotal</span>
                     <span className="font-bold">₹{(order.subtotal / 100).toLocaleString('en-IN')}</span>
                   </div>
-                  {order.discount > 0 && (
+                  {order.discountAmount > 0 && (
                     <div className="flex justify-between items-center text-sm font-bold text-green-500">
                       <span>Discount ({order.couponCode})</span>
-                      <span>-₹{(order.discount / 100).toLocaleString('en-IN')}</span>
+                      <span>-₹{(order.discountAmount / 100).toLocaleString('en-IN')}</span>
                     </div>
                   )}
                   <div className="pt-6 border-t border-white/10 flex justify-between items-baseline">
                     <span className="font-bold text-lg">Net Total</span>
-                    <span className="text-3xl font-bold text-primary">₹{(order.total / 100).toLocaleString('en-IN')}</span>
+                    <span className="text-3xl font-bold text-primary">₹{((order.totalAmount || order.total) / 100).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest font-bold opacity-60">
-                  Zero Tax Applied • Digital Export
+                  Zero Indirect Tax • Digital Asset Export
                 </p>
               </CardContent>
             </Card>

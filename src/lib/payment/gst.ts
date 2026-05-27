@@ -1,35 +1,31 @@
 /**
- * @fileOverview GST Calculation Engine for Prontly Store.
- * Implements standard 18% GST for digital goods.
+ * @fileOverview Price Calculation Engine for Prontly Store.
+ * Direct pricing model without indirect taxes.
  */
-
-export const GST_RATE = 0.18;
 
 export interface PriceBreakdown {
   subtotal: number;      // in paise
   discount: number;      // in paise
   taxableAmount: number; // subtotal - discount
-  gst: number;           // 18% of taxableAmount
-  total: number;         // taxableAmount + gst
+  gst: number;           // Always 0
+  total: number;         // taxableAmount
 }
 
 /**
- * Calculates the full price breakdown including 18% GST.
+ * Calculates the full price breakdown. GST is now removed.
  */
 export function calculateGST(params: {
   subtotal: number;
   discountAmount: number;
 }): PriceBreakdown {
   const taxableAmount = Math.max(0, params.subtotal - params.discountAmount);
-  const gst = Math.round(taxableAmount * GST_RATE);
-  const total = taxableAmount + gst;
-
+  
   return {
     subtotal: params.subtotal,
     discount: params.discountAmount,
     taxableAmount,
-    gst,
-    total
+    gst: 0,
+    total: taxableAmount
   };
 }
 

@@ -17,7 +17,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('TAX INVOICE', 20, 25);
+  doc.text('RECEIPT', 20, 25);
   
   doc.setFontSize(10);
   doc.text('PRONTLY DIGITAL STORE', 190, 25, { align: 'right' });
@@ -31,7 +31,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   y = 55;
-  doc.text(`Invoice No: INV-${order.id.slice(-8).toUpperCase()}`, 20, y);
+  doc.text(`Reference No: REF-${order.id.slice(-8).toUpperCase()}`, 20, y);
   y += 7;
   doc.text(`Date: ${orderDate.toLocaleDateString('en-IN')}`, 20, y);
   y += 7;
@@ -77,10 +77,6 @@ export async function generateInvoicePdf(order: any): Promise<string> {
     doc.setTextColor(0, 0, 0);
   }
 
-  y += 8;
-  doc.text('GST (18%):', startX, y);
-  doc.text(formatPrice(order.gstAmount || 0), 185, y, { align: 'right' });
-
   y += 12;
   doc.setLineWidth(0.5);
   doc.line(startX, y - 5, 190, y - 5);
@@ -88,7 +84,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setFontSize(14);
   doc.setTextColor(primaryColor);
   doc.text('Total Paid:', startX, y);
-  doc.text(formatPrice(order.totalAmount || 0), 185, y, { align: 'right' });
+  doc.text(formatPrice(order.totalAmount || order.total || 0), 185, y, { align: 'right' });
 
   // Footer
   doc.setTextColor(150, 150, 150);

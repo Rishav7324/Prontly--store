@@ -175,17 +175,17 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                   <span className="text-muted-foreground">Gross Subtotal</span>
                   <span>₹{(order.subtotal / 100).toLocaleString('en-IN')}</span>
                 </div>
-                {order.discount > 0 && (
+                {order.discountAmount > 0 && (
                   <div className="flex justify-between items-center text-sm font-bold text-green-500">
                     <span>Discount Incentive</span>
-                    <span>-₹{(order.discount / 100).toLocaleString('en-IN')}</span>
+                    <span>-₹{(order.discountAmount / 100).toLocaleString('en-IN')}</span>
                   </div>
                 )}
                 <div className="pt-8 mt-4 border-t border-white/10 flex justify-between items-baseline">
                   <span className="font-bold text-xl">Net Value</span>
-                  <span className="text-4xl font-bold text-primary">₹{(order.total / 100).toLocaleString('en-IN')}</span>
+                  <span className="text-4xl font-bold text-primary">₹{((order.totalAmount || order.total) / 100).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="text-[10px] text-center uppercase tracking-widest font-black opacity-30 pt-4">No Indirect Taxes Applied</div>
+                <div className="text-[10px] text-center uppercase tracking-widest font-black opacity-30 pt-4">Direct Digital fulfillment</div>
               </div>
             </CardContent>
           </Card>
