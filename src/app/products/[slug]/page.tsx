@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ProductDetailClient } from "@/components/store/ProductDetailClient";
 import { generateMeta } from "@/lib/seo/generate-meta";
-import { firebaseConfig } from "@/firebase/config";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { getProductSchema, getBreadcrumbSchema } from "@/lib/seo/schema-builder";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -12,92 +12,65 @@ interface ProductPageProps {
 }
 
 /**
- * Server-side data fetcher using Firestore REST API.
- * Supports Slug lookup and fallback ID lookup for redirects.
+ * Server-side data fetcher using Firebase Admin SDK.
+ * Optimized for Next.js 15 App Router.
  */
-async function getProductData(slug: string) {
-  const projectId = firebaseConfig.projectId;
+async function getProductBySlug(slug: string) {
+  console.log(`[ROUTING_AUDIT]: Resolving product for slug: "${slug}"`);
+  const db = getAdminDb();
   
-  // 1. Try finding by SLUG using structured query
-  const queryBody = {
-    structuredQuery: {
-      from: [{ collectionId: 'products' }],
-      where: {
-        fieldFilter: {
-          field: { fieldPath: 'slug' },
-          op: 'EQUAL',
-          value: { stringValue: slug }
-        }
-      },
-      limit: 1
+  try {
+    // 1. Primary Lookup: Query by SLUG
+    const snapshot = await db.collection('products')
+      .where('slug', '==', slug)
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      console.log(`[ROUTING_SUCCESS]: Match found via slug index for ID: ${doc.id}`);
+      return { id: doc.id, ...doc.data() };
     }
-  };
 
-  const res = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`,
-    { 
-      method: 'POST',
-      body: JSON.stringify(queryBody),
-      next: { revalidate: 3600 } 
+    // 2. Fallback: Lookup by ID (Legacy URL support)
+    const idDoc = await db.collection('products').doc(slug).get();
+    if (idDoc.exists) {
+      const data = idDoc.data();
+      console.log(`[ROUTING_FALLBACK]: Match found via Legacy ID. Slug exists: ${!!data?.slug}`);
+      
+      // If product has a slug, redirect to the SEO-friendly URL
+      if (data?.slug) {
+        return { id: idDoc.id, ...data, needsRedirect: true, targetSlug: data.slug };
+      }
+      return { id: idDoc.id, ...data };
     }
-  );
 
-  if (res.ok) {
-    const results = await res.json();
-    const doc = results[0]?.document;
-    if (doc) return transformDoc(doc);
+    console.warn(`[ROUTING_FAILURE]: No product matched slug or ID: "${slug}"`);
+    return null;
+  } catch (error: any) {
+    console.error(`[ROUTING_ERROR]: Firestore lookup failed:`, error.message);
+    return null;
   }
-
-  // 2. FALLBACK: If slug query fails, check if slug is actually an ID (Legacy support)
-  const idRes = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/products/${slug}`,
-    { next: { revalidate: 3600 } }
-  );
-
-  if (idRes.ok) {
-    const doc = await idRes.json();
-    return transformDoc(doc);
-  }
-
-  return null;
-}
-
-function transformDoc(doc: any) {
-  const fields = doc.fields || {};
-  return {
-    id: doc.name.split('/').pop(),
-    name: fields.name?.stringValue || "Digital Asset",
-    slug: fields.slug?.stringValue || "",
-    shortDescription: fields.shortDescription?.stringValue || "",
-    description: fields.description?.stringValue || "",
-    price: parseInt(fields.price?.integerValue || "0"),
-    compareAtPrice: parseInt(fields.compareAtPrice?.integerValue || "0"),
-    categorySlug: fields.categorySlug?.stringValue || "Asset",
-    images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
-    bannerImage: fields.bannerImage?.stringValue || "",
-    averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
-    reviewCount: parseInt(fields.reviewCount?.integerValue || "0"),
-    salesCount: parseInt(fields.salesCount?.integerValue || "0"),
-  };
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductData(slug);
+  const product: any = await getProductBySlug(slug);
 
   if (!product) {
     return generateMeta({ 
       title: "Asset Not Found", 
       description: "This digital asset is unavailable.", 
-      path: `/products/${slug}` 
+      path: `/products/${slug}`,
+      noIndex: true
     });
   }
 
   return generateMeta({
     title: product.name,
-    description: product.shortDescription || product.description.replace(/<[^>]*>?/gm, '').slice(0, 150),
+    description: product.shortDescription || product.description?.replace(/<[^>]*>?/gm, '').slice(0, 150) || "",
     path: `/products/${product.slug || product.id}`,
-    image: product.bannerImage || product.images[0],
+    image: product.bannerImage || product.images?.[0],
     price: product.price,
     category: product.categorySlug,
     type: 'product'
@@ -106,31 +79,22 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProductData(slug);
+  const product: any = await getProductBySlug(slug);
 
   if (!product) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex flex-col items-center justify-center p-4">
-          <h1 className="text-4xl font-bold font-headline mb-4">Asset not found.</h1>
-          <p className="text-muted-foreground mb-8">The digital product you are looking for has moved or is no longer available.</p>
-          <a href="/products" className="text-primary font-bold hover:underline">Browse Marketplace →</a>
-        </main>
-        <Footer />
-      </div>
-    );
+    notFound();
   }
 
-  // REDIRECT LOGIC: If the URL param was an ID but we have a slug, redirect to SEO URL
-  if (product.slug && slug === product.id) {
-    redirect(`/products/${product.slug}`);
+  // Handle Legacy ID Redirect
+  if (product.needsRedirect && product.targetSlug) {
+    console.log(`[ROUTING_REDIRECT]: Moving legacy ID to slug: /products/${product.targetSlug}`);
+    redirect(`/products/${product.targetSlug}`);
   }
 
   const productSchema = getProductSchema(product);
   const breadcrumbSchema = getBreadcrumbSchema([
     { name: 'Marketplace', path: '/products' },
-    { name: product.categorySlug, path: `/products?category=${product.categorySlug}` },
+    { name: product.categorySlug || 'Assets', path: `/products?category=${product.categorySlug}` },
     { name: product.name, path: `/products/${product.slug || product.id}` },
   ]);
 
@@ -140,7 +104,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify([productSchema, breadcrumbSchema]) }}
       />
-      <ProductDetailClient id={product.id} />
+      <div className="min-h-screen bg-white flex flex-col">
+        <Navbar />
+        <ProductDetailClient id={product.id} />
+        <Footer />
+      </div>
     </>
   );
 }
