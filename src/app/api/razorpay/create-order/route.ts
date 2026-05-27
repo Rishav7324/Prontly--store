@@ -7,6 +7,7 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 /**
  * API: Initialize Payment Process
  * Creates a Razorpay order and logs a pending intent in Firestore.
+ * Returns the keyId to ensure client-side alignment.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
       if (!productSnap.exists) continue;
       
       const product = productSnap.data()!;
-      const price = product.price;
+      const price = product.price; // Expected in paise
       subtotal += price * item.quantity;
       
       cartItems.push({
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
       if (!couponSnap.empty) {
         const coupon = couponSnap.docs[0].data();
         discount = coupon.type === 'percentage' 
-          ? (subtotal * coupon.value) / 100 
+          ? Math.round((subtotal * coupon.value) / 100) 
           : coupon.value;
         appliedCoupon = couponCode.toUpperCase();
       }
@@ -89,12 +90,13 @@ export async function POST(req: NextRequest) {
       couponCode: appliedCoupon,
       status: 'pending',
       createdAt: Timestamp.now(),
-      paymentId: razorpayOrder.id // Mapping RP Order ID
+      paymentId: razorpayOrder.id
     });
 
     return NextResponse.json({
       success: true,
       orderId: razorpayOrder.id,
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID, // Pass keyId to client
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       breakdown

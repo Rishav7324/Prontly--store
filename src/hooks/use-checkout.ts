@@ -8,6 +8,7 @@ import { toast } from './use-toast';
 
 /**
  * Unified hook for handling the high-security Razorpay checkout flow.
+ * Uses keyId from backend to ensure environment parity.
  */
 export function useCheckout() {
   const auth = useAuth();
@@ -52,7 +53,7 @@ export function useCheckout() {
       }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: data.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: data.amount,
         currency: "INR",
         name: "Prontly Store",
@@ -71,7 +72,12 @@ export function useCheckout() {
             toast({ title: "Purchase Complete", description: "Your assets are now available in the library." });
             router.push("/dashboard/downloads");
           } else {
-            toast({ variant: "destructive", title: "Fulfillment Sync Failed", description: "Payment was successful but delivery is being processed via backup. Please check your dashboard in a moment." });
+            toast({ 
+              variant: "destructive", 
+              title: "Fulfillment Sync Failed", 
+              description: "Payment was successful but delivery is being processed via backup. Please check your dashboard in a moment." 
+            });
+            router.push("/dashboard");
           }
         },
         prefill: {

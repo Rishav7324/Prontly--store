@@ -27,6 +27,7 @@ export async function createRazorpayOrder(params: {
 
 /**
  * Verifies the payment signature sent by the frontend handler.
+ * This MUST use the KEY_SECRET.
  */
 export function verifyPaymentSignature(params: {
   razorpay_order_id: string;
@@ -47,10 +48,14 @@ export function verifyPaymentSignature(params: {
 
 /**
  * Verifies the signature sent by Razorpay Webhooks.
+ * This MUST use the WEBHOOK_SECRET.
  */
 export function verifyWebhookSignature(body: string, signature: string): boolean {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  if (!secret) return false;
+  if (!secret) {
+    console.error('RAZORPAY_WEBHOOK_SECRET missing on server.');
+    return false;
+  }
 
   const expectedSignature = crypto
     .createHmac('sha256', secret)

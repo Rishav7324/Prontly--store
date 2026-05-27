@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/request';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { verifyPaymentSignature } from '@/lib/razorpay/client';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
 
-    // 1. Verify cryptographic signature
+    // 1. Verify cryptographic signature using Key Secret
     const isValid = verifyPaymentSignature({
       razorpay_order_id,
       razorpay_payment_id,
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!isValid) {
+      console.warn('[VERIFY_FAIL]: Signature mismatch', { razorpay_order_id });
       return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
     }
 
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (result.status === 'fulfilled') {
-      // Background: Generate Invoice PDF
+      // Background: Generate Invoice PDF and update order
       const pdfBase64 = await generateInvoicePdf(result.orderData);
       await db.collection('orders').doc(razorpay_order_id).update({
         invoicePdfBase64: pdfBase64

@@ -7,6 +7,7 @@ import { generateInvoicePdf } from '@/lib/payment/invoice';
 /**
  * ─── PRODUCTION RAZORPAY WEBHOOK TERMINAL ───────────────────────────────────
  * Fallback fulfillment for missed client-side verifications.
+ * Uses raw text body for cryptographic integrity.
  */
 export async function POST(req: NextRequest) {
   console.log('[RAZORPAY_WEBHOOK]: Signal received.');
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
 
       if (order.status === 'paid') return { status: 'already_paid' };
 
-      // Atomic Update logic same as verify route
+      // Atomic Update logic
       transaction.update(orderRef, {
         status: 'paid',
         paidAt: Timestamp.now(),
