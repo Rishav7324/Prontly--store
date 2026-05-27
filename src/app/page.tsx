@@ -39,6 +39,8 @@ export default function Home() {
   const heroHeadline = settings?.homepageHeroCopy?.headline || "Expert Digital Assets for Modern Creators.";
   const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.";
 
+  
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
