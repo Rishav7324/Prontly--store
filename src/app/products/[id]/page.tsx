@@ -10,17 +10,15 @@ interface ProductPageProps {
 }
 
 /**
- * Smart Resolver: 
- * 1. Attempt lookup by Slug field.
- * 2. Fallback to Document ID lookup.
- * 3. Redirect to Slug URL if ID was used but Slug exists.
+ * Unified resolver for product pages using slugs.
+ * Parameter name is unified to 'id' to prevent Next.js path conflicts.
  */
 async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
 
   try {
-    // 1. First Attempt: Run Query by Slug
+    // 1. Try slug lookup first
     const queryRes = await fetch(`${baseUrl}:runQuery`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -65,18 +63,15 @@ async function getProduct(identifier: string) {
       }
     }
 
-    // 2. Second Attempt: Direct Document ID lookup (Legacy Fallback)
+    // 2. Fallback to direct ID lookup for legacy URLs
     const idRes = await fetch(`${baseUrl}/products/${identifier}`, { next: { revalidate: 3600 } });
     if (idRes.ok) {
       const doc = await idRes.json();
       const fields = doc.fields || {};
       const actualSlug = fields.slug?.stringValue;
-      
-      // If found by ID but a Slug exists, signal a redirect
       if (actualSlug && actualSlug !== identifier) {
         return { needsRedirect: true, targetSlug: actualSlug };
       }
-
       return {
         id: doc.name.split('/').pop(),
         name: fields.name?.stringValue || "",
@@ -95,10 +90,8 @@ async function getProduct(identifier: string) {
         fileVersion: fields.fileVersion?.stringValue || "1.0"
       };
     }
-
     return null;
   } catch (error) {
-    console.error(`[RESOLVER_EXCEPTION]:`, error);
     return null;
   }
 }
@@ -106,19 +99,12 @@ async function getProduct(identifier: string) {
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
   const product: any = await getProduct(id);
-
   if (!product || product.needsRedirect) {
-    return generateMeta({ 
-      title: "Digital Asset", 
-      description: "Browsing premium digital assets.", 
-      path: `/products/${id}`,
-      noIndex: true
-    });
+    return generateMeta({ title: "Product", description: "Marketplace asset", path: `/products/${id}`, noIndex: true });
   }
-
   return generateMeta({
     title: product.name,
-    description: product.shortDescription || product.description?.replace(/<[^>]*>?/gm, '').slice(0, 150) || "",
+    description: product.shortDescription || "",
     path: `/products/${product.slug || product.id}`,
     image: product.images?.[0],
     price: product.price,
@@ -130,13 +116,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
   const product: any = await getProduct(id);
-
   if (!product) notFound();
-  
-  // SEO Fix: Permanent redirect legacy numeric ID URLs to hyphenated Slugs
-  if (product.needsRedirect) {
-    redirect(`/products/${product.targetSlug}`);
-  }
+  if (product.needsRedirect) redirect(`/products/${product.targetSlug}`);
 
   const productSchema = getProductSchema(product);
   const breadcrumbSchema = getBreadcrumbSchema([
@@ -147,10 +128,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([productSchema, breadcrumbSchema]) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([productSchema, breadcrumbSchema]) }} />
       <div className="min-h-screen bg-white flex flex-col">
         <ProductDetailClient product={product} />
       </div>

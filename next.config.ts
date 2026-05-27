@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    // Adding allowed origins for Firebase Studio dev environment
+    allowedDevOrigins: [
+      '6000-firebase-studio-1779459977448.cluster-wurh6gchdjcjmwrw2tqtufvhss.cloudworkstations.dev',
+      'localhost:9002'
+    ],
   },
   images: {
     remotePatterns: [

@@ -119,7 +119,7 @@ export default function Home() {
                  </div>
                  
                  {/* Floating Badge */}
-                 <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl-2 border border-stone-gray/10 animate-bounce duration-[3000ms]">
+                 <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl-2 border border-stone-gray/10 animate-bounce [animation-duration:3000ms]">
                     <div className="flex items-center gap-3">
                        <div className="h-10 w-10 rounded-lg bg-accent-green/10 flex items-center justify-center text-accent-green">
                           <ShieldCheck className="h-6 w-6" />
