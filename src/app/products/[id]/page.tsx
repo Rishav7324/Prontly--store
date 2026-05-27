@@ -1,3 +1,4 @@
+
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ProductDetailClient } from "@/components/store/ProductDetailClient";
@@ -13,7 +14,8 @@ interface ProductPageProps {
 
 /**
  * High-reliability Product Resolver.
- * Unifies 'id' and 'slug' lookup logic to prevent Next.js routing naming conflicts.
+ * Resolves slugs or IDs using the Firestore REST API.
+ * Uses 'id' as the folder param to avoid Next.js routing conflicts.
  */
 async function getProduct(identifier: string) {
   const projectId = firebaseConfig.projectId;
@@ -119,7 +121,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return generateMeta({
     title: product.name,
     description: product.shortDescription || product.description?.replace(/<[^>]*>?/gm, '').slice(0, 150) || "",
-    path: `/products/${product.slug}`,
+    path: `/products/${product.slug || product.id}`,
     image: product.images?.[0],
     price: product.price,
     category: product.categorySlug,
@@ -138,7 +140,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const breadcrumbSchema = getBreadcrumbSchema([
     { name: 'Marketplace', path: '/products' },
     { name: product.categorySlug || 'Assets', path: `/products?category=${product.categorySlug}` },
-    { name: product.name, path: `/products/${product.slug}` },
+    { name: product.name, path: `/products/${product.slug || product.id}` },
   ]);
 
   return (
