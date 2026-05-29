@@ -15,7 +15,7 @@ import {
   Trash2, 
   ExternalLink,
   Package,
-  ShoppingBag as OrderIcon
+  Zap
 } from 'lucide-react';
 import {
   Table,
@@ -56,16 +56,16 @@ export default function AdminProducts() {
   );
 
   const deleteProduct = async (id: string, name: string) => {
-    if (!db || !user || !confirm('Are you sure you want to delete this product?')) return;
+    if (!db || !user || !confirm('Permanently remove this asset?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
       await logAdminAction({
         db, adminId: user.uid, adminEmail: user.email || 'unknown',
         action: 'DELETE', resourceType: 'PRODUCT', resourceId: id, details: { name }
       });
-      toast({ title: "Product Removed" });
+      toast({ title: "Asset Purged" });
     } catch (e) {
-      toast({ variant: "destructive", title: "Delete Failed" });
+      toast({ variant: "destructive", title: "Operation Failed" });
     }
   };
 
@@ -73,13 +73,13 @@ export default function AdminProducts() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Product Registry</h1>
-          <p className="text-muted-foreground">Manage your digital inventory and SEO configurations.</p>
+          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Inventory Protocol</h1>
+          <p className="text-muted-foreground">Managing verified digital architecture and portfolio index.</p>
         </div>
         <Button asChild className="rounded-xl shadow-lg shadow-primary/20">
           <Link href="/admin/products/new">
             <Plus className="mr-2 h-4 w-4" />
-            New Product
+            Add Asset
           </Link>
         </Button>
       </header>
@@ -107,11 +107,11 @@ export default function AdminProducts() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-white/5">
-                  <TableHead className="w-20 pl-8">Visual</TableHead>
-                  <TableHead>Product Name</TableHead>
-                  <TableHead>Catalog Slug</TableHead>
-                  <TableHead>Pricing</TableHead>
-                  <TableHead className="text-right pr-8">Audit</TableHead>
+                  <TableHead className="w-20 pl-8">Preview</TableHead>
+                  <TableHead>Asset Title</TableHead>
+                  <TableHead>SEO Slug</TableHead>
+                  <TableHead>Value (INR)</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -140,7 +140,7 @@ export default function AdminProducts() {
                         /{product.slug}
                       </code>
                     </TableCell>
-                    <TableCell className="font-headline font-bold text-lg">
+                    <TableCell className="font-headline font-bold text-lg tabular-nums">
                       ₹{(product.price / 100).toLocaleString('en-IN')}
                     </TableCell>
                     <TableCell className="text-right pr-8">
@@ -151,15 +151,15 @@ export default function AdminProducts() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 bg-card border-white/10 rounded-2xl p-2 shadow-2xl">
-                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Intelligence</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Audit Terminal</DropdownMenuLabel>
                           <DropdownMenuItem asChild className="rounded-xl focus:bg-primary/10 focus:text-primary p-3 cursor-pointer">
                             <Link href={`/admin/products/edit/${product.slug}`} className="flex items-center">
-                              <Edit className="mr-3 h-4 w-4" /> Edit Parameters
+                              <Edit className="mr-3 h-4 w-4" /> Modify Artifact
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="rounded-xl focus:bg-primary/10 focus:text-primary p-3 cursor-pointer">
                             <Link href={`/products/${product.slug}`} target="_blank" className="flex items-center">
-                              <ExternalLink className="mr-3 h-4 w-4" /> View Live
+                              <ExternalLink className="mr-3 h-4 w-4" /> Live Preview
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-white/5" />
@@ -167,7 +167,7 @@ export default function AdminProducts() {
                             className="rounded-xl focus:bg-destructive/10 focus:text-destructive p-3 cursor-pointer text-destructive"
                             onClick={() => deleteProduct(product.id, product.name)}
                           >
-                            <Trash2 className="mr-3 h-4 w-4" /> Purge Asset
+                            <Trash2 className="mr-3 h-4 w-4" /> Purge Record
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -179,8 +179,8 @@ export default function AdminProducts() {
           ) : (
             <div className="flex h-60 flex-col items-center justify-center text-center p-8">
               <Package className="h-12 w-12 text-muted-foreground mb-4 opacity-10" />
-              <h3 className="text-xl font-bold font-headline">No matching assets</h3>
-              <p className="text-muted-foreground text-sm max-w-xs mx-auto">Start building your catalog or adjust your search parameters.</p>
+              <h3 className="text-xl font-bold font-headline">Vault Empty</h3>
+              <p className="text-muted-foreground text-sm max-w-xs mx-auto">Start defining your digital inventory to begin the marketplace cycle.</p>
             </div>
           )}
         </CardContent>

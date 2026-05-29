@@ -13,13 +13,18 @@ export const metadata: Metadata = {
     default: 'Prontly Store | Premium Digital Marketplace',
     template: '%s | Prontly Store'
   },
-  description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets.',
+  description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets. Professional tools for modern creators.',
   metadataBase: new URL(SITE_URL),
+  icons: {
+    icon: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
+    apple: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: SITE_URL,
     siteName: 'Prontly Store',
+    description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets.',
     images: [
       {
         url: '/og-default.webp',
@@ -62,7 +67,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&family=Story+Script&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Story+Script&display=swap" rel="stylesheet" />
         
         <script
           type="application/ld+json"

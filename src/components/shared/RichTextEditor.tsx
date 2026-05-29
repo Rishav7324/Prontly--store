@@ -47,13 +47,15 @@ import {
   Youtube as YoutubeIcon,
   Sparkles,
   Zap,
-  Terminal
+  Terminal,
+  Layers,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 // --- Sub-component: Toolbar ---
 interface EditorToolbarProps {
@@ -421,7 +423,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
   if (!editor) return null;
 
   return (
-    <div className="relative flex flex-col h-[calc(100dvh-180px)] md:h-[600px] w-full max-w-full bg-white rounded-2xl md:rounded-[2rem] border border-slate-100 shadow-2xl overflow-hidden group box-border">
+    <div className="relative flex flex-col h-[calc(100dvh-200px)] md:h-[600px] w-full max-w-full bg-white rounded-2xl md:rounded-[2rem] border border-slate-100 shadow-2xl overflow-hidden group box-border">
       {/* 1. FIXED STICKY TOOLBAR */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-50 w-full overflow-hidden shrink-0">
         <EditorToolbar editor={editor} onOpenBlockMenu={() => setIsBlockMenuOpen(true)} />
