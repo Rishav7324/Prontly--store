@@ -59,7 +59,7 @@ export default function Home() {
       
       <main className="flex-1">
         {/* PLATINUM HERO SECTION */}
-        <section className="relative pt-20 pb-20 lg:pt-32 lg:pb-48 overflow-hidden dreamy-gradient">
+        <section className="relative pt-10 pb-10 lg:pt-32 lg:pb-48 overflow-hidden dreamy-gradient">
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-center">
               <div className="lg:col-span-7 space-y-10">
@@ -67,7 +67,7 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="bg-white/80 backdrop-blur-md border-primary/20 text-primary px-4 py-1.5 font-bold uppercase tracking-[0.2em] text-[10px] rounded-full shadow-sm">
                       <Sparkles className="h-3 w-3 mr-2 inline" />
-                      Production V2.4 Active
+                      
                     </Badge>
                   </div>
                   <h1 className="text-5xl md:text-7xl lg:text-8xl font-headline leading-[1.05] text-midnight-ink tracking-tight">

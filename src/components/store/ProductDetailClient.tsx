@@ -165,7 +165,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="container mx-auto px-4 py-12 flex-1 max-w-7xl">
+      <main className="container mx-auto px-4 pt-32 pb-12 flex-1 max-w-7xl">
         <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
 
         <div className="mb-8">

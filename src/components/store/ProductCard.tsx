@@ -49,10 +49,10 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
   const productPath = `/products/${slug || id}`;
 
   return (
-    <Card className="h-full w-full border border-stone-gray/5 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/10 transition-all duration-500 group/card relative flex flex-col">
+    <Card className="h-full w-full border border-stone-gray/5 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/10 transition-all duration-500 group/card relative flex flex-col">
       <Link href={productPath} className="flex flex-col h-full">
         {/* MEDIA CONTAINER */}
-        <div className="relative aspect-[4/5] bg-porcelain-white overflow-hidden m-2 rounded-[2rem]">
+        <div className="relative aspect-[4/5] bg-porcelain-white overflow-hidden m-2 rounded-[1rem]">
           {displayImages.length > 1 ? (
             <Carousel
               opts={{ align: "start", loop: true }}
@@ -83,8 +83,8 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
             />
           )}
           
-          <div className="absolute top-4 left-4 z-10">
-            <Badge className="bg-white/90 backdrop-blur-xl text-midnight-ink border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+          <div className="absolute top-1 left-3 z-10">
+            <Badge className="bg-white/90 backdrop-blur-xl text-midnight-ink border-none font-black text-[5px] uppercase tracking-widest px-3 py- rounded-full shadow-sm">
               {category}
             </Badge>
           </div>
@@ -110,7 +110,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
                 <span className="text-midnight-ink font-headline">{rating.toFixed(1)}</span>
               </div>
               <div className="flex items-center gap-1.5 opacity-60">
-                 <Layers className="h-2.5 w-2.5" />
+                 <Layers className="h-2 w-2" />
                  <span className="font-mono">{sales} Installs</span>
               </div>
             </div>
@@ -132,7 +132,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
             <Button 
               size="icon" 
               variant="default"
-              className="h-12 w-12 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all shadow-xl shadow-primary/10 relative z-30 active:scale-90"
+              className="h-10 w-10 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all shadow-xl shadow-primary/10 relative z-30 active:scale-90"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="h-5 w-5" />

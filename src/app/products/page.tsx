@@ -92,7 +92,7 @@ export default async function ProductListingPage({ searchParams }: MarketplacePa
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
       />
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main className="flex-1 container mx-auto px-4 pt-32 pb-12">
         <MarketplaceClient 
           initialProducts={products} 
           initialCategories={categories} 

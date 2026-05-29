@@ -94,7 +94,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-16 flex-1 max-w-7xl">
+      <div className="container mx-auto px-4 pt-32 pb-16 flex-1 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-12">
           
           {/* Dashboard Sidebar Navigation */}

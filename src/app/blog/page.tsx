@@ -50,7 +50,7 @@ export default async function BlogListingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-20">
+      <main className="flex-1 container mx-auto px-4 pt-40 pb-20">
         <header className="max-w-2xl mb-16">
           <Badge variant="outline" className="mb-4 border-primary/50 text-primary">Insights & Updates</Badge>
           <h1 className="text-4xl md:text-6xl font-bold font-headline mb-6">The Prontly Blog</h1>

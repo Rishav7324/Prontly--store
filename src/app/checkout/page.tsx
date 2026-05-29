@@ -51,7 +51,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 pt-32 pb-12 max-w-6xl">
         <header className="mb-12 flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50 h-10 w-10">
             <Link href="/cart"><ChevronLeft className="h-5 w-5" /></Link>

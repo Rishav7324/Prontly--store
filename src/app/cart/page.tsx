@@ -41,7 +41,7 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="flex-1 container mx-auto px-4 py-32 text-center">
+        <main className="flex-1 container mx-auto px-4 pt-40 pb-32 text-center">
           <div className="max-w-md mx-auto space-y-8">
             <div className="h-24 w-24 rounded-[2rem] bg-muted/50 flex items-center justify-center mx-auto border border-stone-gray/10 shadow-inner">
               <ShoppingBag className="h-10 w-10 text-muted-foreground opacity-30" />
@@ -63,7 +63,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-16 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 pt-32 pb-16 max-w-6xl">
         <header className="mb-12 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50 h-10 w-10">
