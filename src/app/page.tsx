@@ -11,6 +11,7 @@ import { ArrowRight, Sparkles, ShieldCheck, ChevronRight, Zap } from 'lucide-rea
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const db = useFirestore();
@@ -46,19 +47,11 @@ export default function Home() {
       <main className="flex-1">
         {/* Architectural Hero Section */}
         <section className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-48 bg-midnight-ink min-h-[600px] flex items-center">
-          {/* High-Performance Background Video */}
+          {/* Static High-Performance Background */}
           <div className="absolute inset-0 z-0">
-            <video 
-              src="https://cdn.prontly.in/Hero%20video/342475.mp4"
-              autoPlay 
-              muted 
-              loop 
-              playsInline
-              preload="auto"
-              className="w-full h-full object-cover opacity-40 scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-midnight-ink/60 via-midnight-ink/20 to-background" />
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay" />
+            <div className="absolute inset-0 bg-gradient-to-b from-midnight-ink/90 via-midnight-ink/40 to-background" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] -mr-64 -mt-64" />
           </div>
 
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
@@ -93,16 +86,14 @@ export default function Home() {
               <div className="lg:col-span-5 relative hidden lg:block">
                  <div className="relative aspect-square w-full rounded-2xl shadow-[0_0_50px_rgba(83,58,253,0.3)] overflow-hidden bg-midnight-ink border border-white/10 group group-hover:border-primary/50 transition-all duration-500">
                     <div className="absolute inset-0 bg-primary/5 group-hover:bg-transparent transition-colors z-10" />
-                    <video 
-                      src="https://cdn.prontly.in/Hero%20video/342475.mp4"
-                      autoPlay 
-                      muted 
-                      loop 
-                      playsInline
-                      preload="auto"
-                      className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-110"
+                    <Image 
+                      src="https://picsum.photos/seed/prontly-ui/800/800" 
+                      alt="Marketplace Interface" 
+                      fill 
+                      className="object-cover opacity-60 transition-transform duration-1000 group-hover:scale-110"
+                      data-ai-hint="digital dashboard"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/40 via-transparent to-primary/20 mix-blend-overlay z-20" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/80 via-transparent to-primary/20 mix-blend-overlay z-20" />
                  </div>
                  
                  {/* Floating Badge */}
