@@ -39,8 +39,6 @@ export default function Home() {
   const heroHeadline = settings?.homepageHeroCopy?.headline || "Expert Digital Assets for Modern Creators.";
   const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.";
 
-  
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -86,52 +84,34 @@ export default function Home() {
               </div>
 
               <div className="lg:col-span-5 relative hidden lg:block">
-                 <div className="relative aspect-square w-full rounded-2xl shadow-xl-3 overflow-hidden bg-white border border-stone-gray/10 group">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.05),transparent)]" />
-                    
-                    {/* Architectural Dashboard Mockup */}
-                    <div className="p-8 space-y-8">
-                       <div className="flex items-center justify-between">
-                          <div className="h-6 w-32 bg-powder-blue rounded-sm animate-pulse" />
-                          <div className="h-6 w-6 bg-powder-blue rounded-full" />
-                       </div>
-                       
-                       <div className="grid grid-cols-2 gap-4">
-                          <div className="h-24 bg-porcelain-white rounded-md border border-stone-gray/10 p-4 space-y-3">
-                             <div className="h-2 w-1/2 bg-stone-gray/20 rounded" />
-                             <div className="h-4 w-3/4 bg-deep-violet/10 rounded" />
-                          </div>
-                          <div className="h-24 bg-porcelain-white rounded-md border border-stone-gray/10 p-4 space-y-3">
-                             <div className="h-2 w-1/2 bg-stone-gray/20 rounded" />
-                             <div className="h-4 w-3/4 bg-accent-green/10 rounded" />
-                          </div>
-                       </div>
-
-                       <div className="space-y-4 pt-4">
-                          {[1, 2, 3].map(i => (
-                            <div key={i} className="h-4 w-full bg-porcelain-white rounded-sm flex items-center px-4">
-                               <div className="h-1.5 w-1/2 bg-stone-gray/10 rounded" />
-                            </div>
-                          ))}
-                       </div>
-
-                       {/* Abstract Visual Elements */}
-                       <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-deep-violet/5 rounded-full blur-3xl" />
-                    </div>
+                 <div className="relative aspect-square w-full rounded-2xl shadow-2xl overflow-hidden bg-midnight-ink border border-white/5 group">
+                    <video 
+                      src="https://cdn.prontly.in/Hero%20video/342475.mp4"
+                      autoPlay 
+                      muted 
+                      loop 
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/20 via-transparent to-primary/10 mix-blend-overlay" />
+                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" />
                  </div>
                  
                  {/* Floating Badge */}
-                 <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl-2 border border-stone-gray/10 animate-bounce [animation-duration:3000ms]">
+                 <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl border border-stone-gray/10 animate-bounce [animation-duration:3000ms] z-20">
                     <div className="flex items-center gap-3">
-                       <div className="h-10 w-10 rounded-lg bg-accent-green/10 flex items-center justify-center text-accent-green">
+                       <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-600">
                           <ShieldCheck className="h-6 w-6" />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black uppercase text-ghost-gray">Verified Source</p>
+                          <p className="text-[10px] font-black uppercase text-ghost-gray tracking-widest">Verified Source</p>
                           <p className="text-sm font-bold text-midnight-ink">100% Secure Delivery</p>
                        </div>
                     </div>
                  </div>
+
+                 {/* Decorative element */}
+                 <div className="absolute -top-12 -right-12 w-64 h-64 bg-deep-violet/5 rounded-full blur-3xl -z-10" />
               </div>
             </div>
           </div>
@@ -147,21 +127,23 @@ export default function Home() {
                 </Badge>
                 <h2 className="text-3xl md:text-4xl font-headline font-light text-midnight-ink tracking-tight">Specialized infrastructure.</h2>
               </div>
-              <Button variant="ghost" className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
-                Full catalog overview <ArrowRight className="h-4 w-4" />
+              <Button variant="ghost" asChild className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
+                <Link href="/products">
+                  Full catalog overview <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </header>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {categories?.map((cat: any) => (
                 <Link key={cat.id} href={`/products?category=${cat.slug}`}>
-                  <Card className="group h-full bg-white border-none shadow-sm hover:shadow-xl-2 transition-all duration-500 rounded-md overflow-hidden relative">
+                  <Card className="group h-full bg-white border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-md overflow-hidden relative">
                     <CardContent className="p-8 space-y-6">
                       <div className="h-12 w-12 rounded-lg bg-powder-blue/50 flex items-center justify-center group-hover:bg-deep-violet/10 transition-colors">
-                        <span className="text-2xl items-flex">{cat.iconEmoji}</span>
+                        <span className="text-2xl">{cat.iconEmoji}</span>
                       </div>
                       <div>
-                        <h4 className="text-xl font-bold mb-2  text-midnight-ink">{cat.name}</h4>
+                        <h4 className="text-xl font-bold mb-2 text-midnight-ink">{cat.name}</h4>
                         <p className="text-sm text-slate-blue leading-relaxed line-clamp-3">{cat.description}</p>
                       </div>
                       <div className="pt-4 flex items-center text-xs font-black uppercase text-ghost-gray tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
@@ -176,9 +158,9 @@ export default function Home() {
         </section>
 
         {/* Featured Section */}
-        <section className="container mx-auto px-4 py-10 max-w-7xl">
+        <section className="container mx-auto px-4 py-24 max-w-7xl">
           <div className="mb-12 space-y-4 border-b border-stone-gray/10 pb-12">
-            <Badge variant="outline" className="text-accent-green border-accent-green/20 bg-accent-green/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
+            <Badge variant="outline" className="text-green-600 border-green-500/20 bg-green-500/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
               Top Tier Assets
             </Badge>
             <h2 className="text-3xl md:text-4xl font-headline font-light text-midnight-ink tracking-tight">Professional standards.</h2>
@@ -188,8 +170,8 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto px-4 py-4">
-          <div className="max-w-7xl mx-auto rounded-xl bg-midnight-ink text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden shadow-xl-3">
+        <section className="container mx-auto px-4 py-24">
+          <div className="max-w-7xl mx-auto rounded-xl bg-midnight-ink text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.2),transparent)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(247,45,243,0.1),transparent)]" />
             
