@@ -26,7 +26,7 @@ import { uploadFileAction } from '@/app/actions/r2-actions';
 import { logAdminAction } from '@/lib/admin-logs';
 import { generateProductCopy } from '@/ai/flows/generate-product-copy';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
-import { generateSlug } from '@/lib/utils';
+import { cn, generateSlug } from '@/lib/utils';
 import { optimizeImage } from '@/lib/image-optimizer';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -168,7 +168,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     };
 
     // If id is provided, we are UPDATING the document at that ID.
-    // If not, we create a new document.
     const docRef = id ? doc(db, 'products', id) : doc(collection(db, 'products'));
     const operation = id ? 'update' : 'create';
 
