@@ -4,29 +4,29 @@
 
 @layer base {
   :root {
-    /* Stripe Color Tokens */
-    --background: 0 0% 100%; /* Platinum White #ffffff */
-    --foreground: 211 78% 11%; /* Midnight Ink #061b31 */
-    --card: 210 44% 97%; /* Porcelain White #f8fafd */
+    /* Platinum White Theme Colors */
+    --background: 0 0% 100%;
+    --foreground: 211 78% 11%;
+    --card: 210 44% 97%;
     --card-foreground: 211 78% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 211 78% 11%;
-    --primary: 248 98% 61%; /* Deep Violet #533afd */
+    --primary: 248 98% 61%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 216 67% 98%; /* Porcelain White #f8fafd */
-    --secondary-foreground: 216 21% 39%; /* Slate Blue #50617a */
+    --secondary: 216 67% 98%;
+    --secondary-foreground: 216 21% 39%;
     --muted: 216 67% 98%;
-    --muted-foreground: 211 15% 48%; /* Ghost Gray #64748d */
+    --muted-foreground: 211 15% 48%;
     --accent: 248 98% 61%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 20% 98%;
-    --border: 210 44% 93%; /* Powder Blue #e5edf5 */
+    --border: 210 44% 93%;
     --input: 210 44% 93%;
     --ring: 248 98% 61%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Brand Colors */
+    /* Brand Color Tokens */
     --color-midnight-ink: #061b31;
     --color-slate-blue: #50617a;
     --color-ghost-gray: #64748d;
@@ -46,75 +46,57 @@
     @apply bg-background text-foreground font-body antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline font-light tracking-tight;
+    @apply font-headline font-semibold tracking-tight;
   }
 }
 
-/* Premium Shadows */
+/* Elite Shadows */
 .platinum-shadow {
-  box-shadow: 0 50px 100px -20px rgba(50, 50, 93, 0.15), 0 30px 60px -30px rgba(0, 0, 0, 0.2), inset 0 -2px 6px 0 rgba(10, 37, 64, 0.1);
+  box-shadow: 0 20px 40px -10px rgba(50, 50, 93, 0.12), 0 10px 20px -15px rgba(0, 0, 0, 0.15);
 }
 
-.stripe-shadow {
-  box-shadow: 0 7px 14px 0 rgba(60, 66, 87, 0.1), 0 3px 6px 0 rgba(0, 0, 0, 0.07);
-}
-
-.stripe-shadow-hover:hover {
-  box-shadow: 0 13px 27px -5px rgba(50, 50, 93, 0.25), 0 8px 16px -8px rgba(0, 0, 0, 0.3), 0 -6px 16px -6px rgba(0, 0, 0, 0.025);
+.stripe-shadow-sm {
+  box-shadow: 0 2px 5px 0 rgba(60, 66, 87, 0.08), 0 1px 1px 0 rgba(0, 0, 0, 0.05);
 }
 
 .dreamy-gradient {
-  background: radial-gradient(circle at 70% 30%, rgba(83, 58, 253, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 10% 80%, rgba(244, 75, 204, 0.05) 0%, transparent 50%);
+  background: radial-gradient(circle at 70% 30%, rgba(83, 58, 253, 0.08) 0%, transparent 40%),
+              radial-gradient(circle at 10% 80%, rgba(244, 75, 204, 0.04) 0%, transparent 40%);
 }
 
-/* High-Performance Content Rendering */
+/* Denser Prose Rendering */
 .prose-content {
   @apply text-slate-blue leading-relaxed;
 }
 
 .prose-content h2 {
-  @apply text-midnight-ink text-3xl font-bold mt-12 mb-6 tracking-tight font-headline;
+  @apply text-midnight-ink text-2xl font-bold mt-10 mb-4 tracking-tight font-headline;
 }
 
 .prose-content h3 {
-  @apply text-midnight-ink text-xl font-bold mt-10 mb-4 tracking-tight;
+  @apply text-midnight-ink text-lg font-bold mt-8 mb-3 tracking-tight;
 }
 
 .prose-content p {
-  @apply mb-6 text-[15px] md:text-base;
+  @apply mb-4 text-[14px];
 }
 
 .prose-content ul {
-  @apply space-y-3 mb-8 mt-6 list-none pl-0;
+  @apply space-y-2 mb-6 mt-4 list-none pl-0;
 }
 
 .prose-content li {
-  @apply flex items-start gap-3 before:content-['→'] before:text-deep-violet before:font-bold;
+  @apply flex items-start gap-2 text-[14px] before:content-['→'] before:text-deep-violet before:font-bold;
 }
 
-.prose-content blockquote {
-  @apply border-l-4 border-deep-violet/20 pl-8 italic text-slate-blue/80 my-10 bg-porcelain-white py-6 pr-6 rounded-r-2xl;
-}
-
-/* Scrollbar Refinement */
+/* Utility Refinements */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-stone-gray/50 rounded-full hover:bg-ghost-gray/50 transition-colors;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  @apply bg-stone-gray/30 rounded-full hover:bg-ghost-gray/40;
 }

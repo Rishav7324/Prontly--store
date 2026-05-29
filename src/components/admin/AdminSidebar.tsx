@@ -15,7 +15,6 @@ import {
   Search, 
   Database, 
   Settings,
-  Zap,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -45,7 +44,7 @@ const menuItems = [
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
   ]},
   { group: 'Marketing', items: [
-    { name: 'Email Templates', href: '/admin/emails', icon: Mail },
+    { name: 'Templates', href: '/admin/emails', icon: Mail },
     { name: 'Newsletter', href: '/admin/newsletter', icon: SendHorizontal },
     { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
     { name: 'Blog', href: '/admin/blog', icon: FileText },
@@ -75,36 +74,34 @@ export function AdminSidebar({ onMobileSelect }: AdminSidebarProps) {
   return (
     <aside 
       className={cn(
-        "h-full border-r bg-card/30 backdrop-blur-sm transition-all duration-500 ease-in-out flex flex-col relative",
-        isCollapsed ? "w-20" : "w-64"
+        "h-full border-r bg-card/50 backdrop-blur-xl transition-all duration-300 ease-in-out flex flex-col relative",
+        isCollapsed ? "w-16" : "w-56"
       )}
     >
-      {/* Brand Logo Section */}
-      <div className="flex h-16 items-center justify-between px-6 border-b border-white/5">
-        <Link href="/admin" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
-          <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-white/5 shadow-lg">
+      <div className="flex h-14 items-center justify-between px-4 border-b border-white/5">
+        <Link href="/admin" className={cn("flex items-center gap-2", isCollapsed && "justify-center w-full")}>
+          <div className="relative h-7 w-7 overflow-hidden rounded-lg bg-white/5 shadow-sm">
             <Image 
               src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
-              alt="Prontly Logo" 
+              alt="Logo" 
               fill 
               className="object-cover"
             />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="font-headline text-lg font-bold tracking-tight leading-none">PRONTLY</span>
-              <span className="text-[10px] text-primary font-bold tracking-[0.2em] mt-1">ADMIN CONTROL</span>
+              <span className="font-headline text-sm font-bold tracking-tight leading-none">PRONTLY</span>
+              <span className="text-[8px] text-primary font-black tracking-widest mt-0.5">ADMIN</span>
             </div>
           )}
         </Link>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 space-y-6 p-4 overflow-y-auto custom-scrollbar scrollbar-hide">
+      <nav className="flex-1 space-y-5 p-3 overflow-y-auto custom-scrollbar">
         {menuItems.map((group) => (
           <div key={group.group} className="space-y-1">
             {!isCollapsed && (
-              <h3 className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">
+              <h3 className="px-2 text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1.5">
                 {group.group}
               </h3>
             )}
@@ -114,60 +111,55 @@ export function AdminSidebar({ onMobileSelect }: AdminSidebarProps) {
                 href={item.href}
                 onClick={() => onMobileSelect?.()}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group relative",
+                  "flex items-center gap-3 rounded-lg px-2 py-2 text-[11px] font-bold transition-all group relative",
                   pathname === item.href 
-                    ? "bg-primary text-white shadow-xl shadow-primary/20" 
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                    ? "bg-primary text-white shadow-lg" 
+                    : "text-slate-blue hover:bg-white/5 hover:text-foreground",
                   isCollapsed && "justify-center px-0"
                 )}
                 title={item.name}
               >
                 <item.icon className={cn(
-                  "h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110",
-                  pathname === item.href ? "text-white" : "text-primary/70"
+                  "h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110",
+                  pathname === item.href ? "text-white" : "text-primary/60"
                 )} />
                 {!isCollapsed && <span>{item.name}</span>}
-                {pathname === item.href && !isCollapsed && (
-                  <div className="absolute right-3 h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                )}
               </Link>
             ))}
           </div>
         ))}
 
-        <div className="pt-6 border-t border-white/5">
+        <div className="pt-4 border-t border-white/5">
           <Link 
             href="/" 
             target="_blank"
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all",
+              "flex items-center gap-3 rounded-lg px-2 py-2 text-[11px] font-bold text-slate-blue hover:bg-primary/5 hover:text-primary transition-all",
               isCollapsed && "justify-center px-0"
             )}
           >
-            <ExternalLink className="h-5 w-5 text-accent" />
-            {!isCollapsed && <span>View Storefront</span>}
+            <ExternalLink className="h-4 w-4 text-accent" />
+            {!isCollapsed && <span>Storefront</span>}
           </Link>
         </div>
       </nav>
 
-      {/* Footer / Toggle Section */}
-      <div className="p-4 border-t border-white/5 bg-black/10 backdrop-blur-md">
+      <div className="p-3 border-t border-white/5 bg-black/5">
         <Button 
           variant="ghost" 
           className={cn(
-            "w-full gap-3 justify-start rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all", 
+            "w-full gap-3 justify-start rounded-lg text-slate-blue hover:bg-destructive/5 hover:text-destructive h-9", 
             isCollapsed && "justify-center px-0"
           )}
           onClick={handleSignOut}
         >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
-          {!isCollapsed && <span>Sign Out</span>}
+          <LogOut className="h-4 w-4 flex-shrink-0" />
+          {!isCollapsed && <span className="text-[11px] font-bold">Sign Out</span>}
         </Button>
         
-        {/* Collapse Toggle - Only visible on Desktop */}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden lg:flex absolute -right-3 top-20 h-6 w-6 items-center justify-center rounded-full bg-primary text-white border-2 border-background shadow-lg transition-transform hover:scale-110 active:scale-95"
+          className="hidden lg:flex absolute -right-3 top-16 h-6 w-6 items-center justify-center rounded-full bg-primary text-white border-2 border-background shadow-lg hover:scale-110 active:scale-95 transition-all"
         >
           {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </button>
