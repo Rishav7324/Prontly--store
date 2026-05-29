@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   Lock,
   RefreshCw,
-  Globe
+  Globe,
+  Zap
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFileAction } from '@/app/actions/r2-actions';
