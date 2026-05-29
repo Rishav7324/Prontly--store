@@ -229,15 +229,23 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     immediatelyRender: false
   });
 
-  // Handle external content updates (crucial for initial load and AI generation)
+  // Robust content synchronization for initial loads and AI generation
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      // Only set content if the editor is NOT focused to prevent cursor jumping
-      // or if it's the initial empty state.
-      if (!editor.isFocused || editor.isEmpty) {
-        editor.commands.setContent(content, false);
+    if (!editor) return;
+
+    // Small delay to ensure Tiptap has finished its internal initialization
+    const timeout = setTimeout(() => {
+      const currentHTML = editor.getHTML();
+      if (content !== currentHTML) {
+        // Overwrite content if the editor is empty (initial load) OR if the editor isn't focused
+        // (prevents cursor jumps while user is typing, but allows AI generation results to appear)
+        if (editor.isEmpty || !editor.isFocused) {
+          editor.commands.setContent(content, false);
+        }
       }
-    }
+    }, 50);
+
+    return () => clearTimeout(timeout);
   }, [content, editor]);
 
   return (

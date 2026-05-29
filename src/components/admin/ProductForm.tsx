@@ -70,6 +70,34 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     }
   });
 
+  // Important: Keep local state synchronized if initialData changes (e.g. from async fetch)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || '',
+        slug: initialData.slug || '',
+        description: initialData.description || '',
+        shortDescription: initialData.shortDescription || '',
+        categoryId: initialData.categoryId || '',
+        categorySlug: initialData.categorySlug || '',
+        price: initialData.price ? initialData.price / 100 : 0,
+        compareAtPrice: initialData.compareAtPrice ? initialData.compareAtPrice / 100 : 0,
+        images: initialData.images || [],
+        fileKey: initialData.fileKey || '',
+        isFeatured: initialData.isFeatured ?? false,
+        tags: initialData.tags?.join(', ') || '',
+        fileFormat: initialData.fileFormat || 'SOURCE',
+        fileVersion: initialData.fileVersion || '1.0',
+        seo: {
+          title: initialData.seo?.title || '',
+          description: initialData.seo?.description || '',
+          keywords: initialData.seo?.keywords || '',
+        }
+      });
+      setIsSlugLocked(true);
+    }
+  }, [initialData]);
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     setFormData(prev => ({
@@ -168,7 +196,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       bannerImage: formData.images[0] || '',
     };
 
-    // If id is provided, we are UPDATING the document at that ID.
     const docRef = id ? doc(db, 'products', id) : doc(collection(db, 'products'));
     const operation = id ? 'update' : 'create';
 
