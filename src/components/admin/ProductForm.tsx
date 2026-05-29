@@ -193,6 +193,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       categorySlug: selectedCategory?.slug || '',
       tags: formData.tags.split(',').map((t: string) => t.trim()).filter((t: any) => t),
       updatedAt: serverTimestamp(),
+      ...(id ? {} : { createdAt: serverTimestamp() }), // CRITICAL: Save createdAt for new products
       bannerImage: formData.images[0] || '',
     };
 

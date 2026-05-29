@@ -22,20 +22,33 @@ export default function Home() {
   const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
   const { data: categories } = useCollection(categoriesQuery);
 
+  // Resilient Collection Fetch:
+  // We fetch without server-side ordering to ensure documents without createdAt fields aren't excluded.
   const productsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(20));
+    return db ? collection(db, 'products') : null;
   }, [db]);
 
-  const { data: allProducts, loading } = useCollection(productsQuery);
+  const { data: rawProducts, loading } = useCollection(productsQuery);
 
   const featuredProducts = useMemo(() => {
-    if (!allProducts) return [];
+    if (!rawProducts) return [];
+    
+    // 1. Sort all products by date in-memory
+    const allProductsSorted = [...rawProducts].sort((a: any, b: any) => {
+      const dateA = a.createdAt?.toMillis?.() || a.updatedAt?.toMillis?.() || 0;
+      const dateB = b.createdAt?.toMillis?.() || b.updatedAt?.toMillis?.() || 0;
+      return dateB - dateA;
+    });
+
+    // 2. Filter for specifically featured items if defined in settings
     if (settings?.featuredProductIds && settings.featuredProductIds.length > 0) {
-      return allProducts.filter(p => settings.featuredProductIds.includes(p.id));
+      const featured = allProductsSorted.filter(p => settings.featuredProductIds.includes(p.id));
+      if (featured.length > 0) return featured;
     }
-    return allProducts.slice(0, 8);
-  }, [allProducts, settings]);
+    
+    // 3. Fallback to latest 8 products
+    return allProductsSorted.slice(0, 8);
+  }, [rawProducts, settings]);
 
   const heroHeadline = settings?.homepageHeroCopy?.headline || "Elite Infrastructure for Modern Creators.";
   const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Professional-grade AI prompts, modular UI systems, and high-performance technical documentation. Engineered for creators who scale.";
@@ -178,7 +191,7 @@ export default function Home() {
           
           <div className="mt-20 flex justify-center">
              <Button asChild variant="outline" size="lg" className="h-14 px-12 rounded-xl border-stone-gray/20 font-bold text-midnight-ink hover:bg-midnight-ink hover:text-white transition-all shadow-sm">
-                <Link href="/products">View All {allProducts?.length || 0} Products</Link>
+                <Link href="/products">View All {rawProducts?.length || 0} Products</Link>
              </Button>
           </div>
         </section>

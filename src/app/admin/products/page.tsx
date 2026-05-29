@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -43,17 +43,29 @@ export default function AdminProducts() {
   const { user } = useUser();
   const db = useFirestore();
   
+  // CRITICAL: We remove the server-side orderBy to prevent document exclusion due to missing fields.
+  // We handle sorting on the client-side for maximum resilience.
   const productsQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'products'), orderBy('createdAt', 'desc')) : null;
+    return db ? collection(db, 'products') : null;
   }, [db]);
 
-  const { data: products, loading } = useCollection(productsQuery);
+  const { data: allProducts, loading } = useCollection(productsQuery);
 
-  const filteredProducts = products?.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.categorySlug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.slug?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const processedProducts = useMemo(() => {
+    if (!allProducts) return [];
+    
+    return [...allProducts]
+      .filter(p => 
+        (p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.categorySlug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.slug?.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+      .sort((a: any, b: any) => {
+        const dateA = a.createdAt?.toMillis?.() || a.updatedAt?.toMillis?.() || 0;
+        const dateB = b.createdAt?.toMillis?.() || b.updatedAt?.toMillis?.() || 0;
+        return dateB - dateA;
+      });
+  }, [allProducts, searchTerm]);
 
   const deleteProduct = async (id: string, name: string) => {
     if (!db || !user || !confirm('Permanently remove this asset?')) return;
@@ -103,7 +115,7 @@ export default function AdminProducts() {
                 <div key={i} className="h-16 w-full animate-pulse bg-muted rounded-2xl" />
               ))}
             </div>
-          ) : filteredProducts && filteredProducts.length > 0 ? (
+          ) : processedProducts.length > 0 ? (
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-white/5">
@@ -115,7 +127,7 @@ export default function AdminProducts() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product: any) => (
+                {processedProducts.map((product: any) => (
                   <TableRow key={product.id} className="border-white/5 hover:bg-white/5 transition-colors group">
                     <TableCell className="pl-8">
                       <div className="relative h-12 w-12 rounded-xl bg-muted overflow-hidden border border-white/5">

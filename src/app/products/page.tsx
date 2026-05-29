@@ -34,15 +34,17 @@ async function getInitialData() {
     const prodData = await prodRes.json();
     const products = (prodData.documents || []).map((doc: any) => {
       const fields = doc.fields || {};
+      
+      // SAFETY: Robust mapping for potentially missing or differently typed Firestore fields
       return {
         id: doc.name.split('/').pop(),
         slug: fields.slug?.stringValue || "",
-        name: fields.name?.stringValue || "",
-        price: parseInt(fields.price?.integerValue || "0"),
+        name: fields.name?.stringValue || "Untitled Asset",
+        price: parseInt(fields.price?.integerValue || fields.price?.doubleValue?.toString() || "0"),
         categorySlug: fields.categorySlug?.stringValue || "",
         images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
         averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
-        salesCount: parseInt(fields.salesCount?.integerValue || "0"),
+        salesCount: parseInt(fields.salesCount?.integerValue || fields.salesCount?.doubleValue?.toString() || "0"),
         shortDescription: fields.shortDescription?.stringValue || ""
       };
     });

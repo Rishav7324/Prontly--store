@@ -49,7 +49,7 @@ export function ProductCard({ id, slug, title, price, priceRaw, compareAtPrice, 
   const productPath = `/products/${slug || id}`;
 
   return (
-    <Card className="h-full border border-stone-gray/5 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/10 transition-all duration-500 group/card relative flex flex-col">
+    <Card className="h-full w-full border border-stone-gray/5 bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/10 transition-all duration-500 group/card relative flex flex-col">
       <Link href={productPath} className="flex flex-col h-full">
         {/* MEDIA CONTAINER */}
         <div className="relative aspect-[4/5] bg-porcelain-white overflow-hidden m-2 rounded-[2rem]">
