@@ -6,7 +6,6 @@ import { generateMeta } from '@/lib/seo/generate-meta';
 
 /**
  * PRODUCTION PRODUCT RESOLVER
- * Fetches product data via SEO slug and hydrates the detail client.
  */
 async function getProductBySlug(slug: string) {
   const projectId = firebaseConfig.projectId;
@@ -56,7 +55,7 @@ async function getProductBySlug(slug: string) {
       }
     }
     
-    // Fallback lookup by ID if slug not found
+    // Fallback lookup by ID
     const idRes = await fetch(`${baseUrl}/products/${slug}`, { next: { revalidate: 60 } });
     if (idRes.ok) {
       const doc = await idRes.json();
@@ -78,7 +77,7 @@ async function getProductBySlug(slug: string) {
       };
     }
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('[RESOLVER_FAULT]:', error);
   }
 
   return null;
