@@ -80,7 +80,6 @@ const Toolbar = ({ editor }: { editor: any }) => {
     <div className="shrink-0 z-30 w-full glass-morphism border-b border-white/10">
       <div className="flex items-center gap-1 p-1.5 overflow-x-auto hide-scrollbar">
         
-        {/* Undo/Redo */}
         <div className="flex items-center gap-0.5 px-1 border-r border-white/5">
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
             <Undo className="h-4 w-4" />
@@ -90,7 +89,6 @@ const Toolbar = ({ editor }: { editor: any }) => {
           </Button>
         </div>
 
-        {/* Text Styles */}
         <div className="flex items-center gap-0.5 px-1 border-r border-white/5">
           <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('bold') && "bg-primary/20 text-primary")} onClick={() => editor.chain().focus().toggleBold().run()}>
             <Bold className="h-4 w-4" />
@@ -101,15 +99,11 @@ const Toolbar = ({ editor }: { editor: any }) => {
           <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('underline') && "bg-primary/20 text-primary")} onClick={() => editor.chain().focus().toggleUnderline().run()}>
             <UnderlineIcon className="h-4 w-4" />
           </Button>
-          <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('strike') && "bg-primary/20 text-primary")} onClick={() => editor.chain().focus().toggleStrike().run()}>
-            <Strikethrough className="h-4 w-4" />
-          </Button>
           <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('highlight') && "bg-yellow-500/20 text-yellow-500")} onClick={() => editor.chain().focus().toggleHighlight().run()}>
             <Type className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Headings */}
         <div className="flex items-center gap-0.5 px-1 border-r border-white/5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -125,18 +119,13 @@ const Toolbar = ({ editor }: { editor: any }) => {
               <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="text-xl font-bold">H1 Headline</DropdownMenuItem>
               <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="text-lg font-bold">H2 Subtitle</DropdownMenuItem>
               <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="text-base font-bold">H3 Section</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} className="text-sm font-bold">H4 Minor</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        {/* Lists & Alignment */}
         <div className="flex items-center gap-0.5 px-1 border-r border-white/5">
           <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('bulletList') && "bg-primary/20 text-primary")} onClick={() => editor.chain().focus().toggleBulletList().run()}>
             <List className="h-4 w-4" />
-          </Button>
-          <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('orderedList') && "bg-primary/20 text-primary")} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-            <ListOrdered className="h-4 w-4" />
           </Button>
           <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('taskList') && "bg-primary/20 text-primary")} onClick={() => editor.chain().focus().toggleTaskList().run()}>
             <CheckSquare className="h-4 w-4" />
@@ -146,7 +135,6 @@ const Toolbar = ({ editor }: { editor: any }) => {
           </Button>
         </div>
 
-        {/* Media & Objects */}
         <div className="flex items-center gap-0.5 px-1 border-r border-white/5">
           <Button type="button" variant="ghost" size="sm" className={cn("h-8 w-8 p-0", editor.isActive('link') && "bg-primary/20 text-primary")} onClick={setLink}>
             <LinkIcon className="h-4 w-4" />
@@ -157,12 +145,8 @@ const Toolbar = ({ editor }: { editor: any }) => {
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={insertTable}>
             <TableIcon className="h-4 w-4" />
           </Button>
-          <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => editor.chain().focus().toggleBlockquote().run()}>
-            <Quote className="h-4 w-4" />
-          </Button>
         </div>
 
-        {/* Advanced Ecommerce Blocks */}
         <div className="flex items-center gap-0.5 px-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -185,9 +169,6 @@ const Toolbar = ({ editor }: { editor: any }) => {
                 <AlertTriangle className="h-4 w-4 text-destructive" /> Warning/Policy
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
-              <DropdownMenuItem onClick={() => editor.chain().focus().setHorizontalRule().run()} className="gap-2">
-                <Minus className="h-4 w-4" /> Horizontal Divider
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} className="gap-2 text-destructive">
                 <Eraser className="h-4 w-4" /> Clear Formatting
               </DropdownMenuItem>
@@ -203,7 +184,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [1, 2, 3, 4] },
+        heading: { levels: [1, 2, 3] },
       }),
       Underline,
       Highlight.configure({ multicolor: true }),
@@ -243,7 +224,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     editorProps: {
       attributes: {
         class: cn(
-          'prose-editor focus:outline-none',
+          'prose-editor focus:outline-none h-full min-h-[300px] p-6',
           className
         ),
       },
@@ -259,7 +240,6 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
         <EditorContent editor={editor} className="h-full" />
       </div>
       
-      {/* Bottom status bar */}
       <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold bg-black/20">
         <div className="flex items-center gap-4">
           <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>

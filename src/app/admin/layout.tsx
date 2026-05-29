@@ -34,7 +34,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const { data: profile, loading: profileLoading } = useDoc(userProfileQuery);
 
-  // Command palette shortcut
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -62,8 +61,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="mb-6 rounded-full bg-destructive/10 p-4">
           <ShieldAlert className="h-12 w-12 text-destructive" />
         </div>
-        <h1 className="mb-2 text-3xl font-bold font-headline">Access Denied</h1>
-        <p className="mb-8 max-w-md text-muted-foreground">
+        <h1 className="mb-2 text-3xl font-bold font-headline text-midnight-ink">Access Denied</h1>
+        <p className="mb-8 max-w-md text-slate-blue">
           You do not have the required permissions to access the admin dashboard. 
         </p>
         <div className="flex gap-4">
@@ -157,7 +156,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Advanced Command Palette */}
       <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>

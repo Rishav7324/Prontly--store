@@ -45,7 +45,6 @@ import { cn } from "@/lib/utils";
 export default function AdminDashboard() {
   const db = useFirestore();
   
-  // Optimized fetches - avoid complex orderBy if not absolutely needed for MVP to prevent index errors
   const ordersQuery = useMemoFirebase(() => db ? collection(db, 'orders') : null, [db]);
   const { data: allOrders, loading: ordersLoading } = useCollection(ordersQuery);
 
@@ -56,16 +55,13 @@ export default function AdminDashboard() {
   const { data: users } = useCollection(usersQuery);
 
   const logsQuery = useMemoFirebase(() => {
-    // Audit logs often need ordering; we limit to a safe amount
     return db ? query(collection(db, 'admin_logs'), limit(5)) : null;
   }, [db]);
   const { data: adminLogs, loading: logsLoading } = useCollection(logsQuery);
 
-  // High-performance data sorting and processing
   const processedData = useMemo(() => {
     if (!allOrders) return { revenue: 0, ordersCount: 0, recent: [], chart: [] };
 
-    // 1. Sort orders by creation date (descending)
     const sorted = [...allOrders].sort((a: any, b: any) => {
       const dateA = a.createdAt?.toMillis?.() || 0;
       const dateB = b.createdAt?.toMillis?.() || 0;
@@ -75,7 +71,6 @@ export default function AdminDashboard() {
     const paidOrders = sorted.filter(o => o.status === 'paid');
     const totalRev = paidOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0) / 100;
 
-    // 2. Chart Data (Last 7 Days)
     const last7Days = Array.from({ length: 7 }).map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);

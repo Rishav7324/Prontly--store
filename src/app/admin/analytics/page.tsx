@@ -104,8 +104,8 @@ export default function AdminAnalytics() {
     <div className="space-y-12">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-4xl font-bold font-headline">Intelligence Terminal</h1>
-          <p className="text-muted-foreground text-lg mt-1">Direct analysis of the digital store economy.</p>
+          <h1 className="text-4xl font-bold font-headline text-midnight-ink">Intelligence Terminal</h1>
+          <p className="text-slate-blue text-lg mt-1">Direct analysis of the digital store economy.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" className="gap-2 h-12 rounded-xl border-white/10 px-6 font-bold">
@@ -131,13 +131,13 @@ export default function AdminAnalytics() {
               <item.icon className="h-16 w-16" />
             </div>
             <CardContent className="pt-8">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{item.label}</p>
-              <h3 className="text-4xl font-bold font-headline tabular-nums mb-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-ghost-gray mb-1">{item.label}</p>
+              <h3 className="text-4xl font-bold font-headline tabular-nums mb-3 text-midnight-ink">
                 {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : item.value}
               </h3>
               <p className="flex items-center text-[10px] font-bold text-green-500">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
-                Live Feed <span className="text-muted-foreground ml-1 font-normal italic opacity-60">updating...</span>
+                Live Feed <span className="text-slate-blue ml-1 font-normal italic opacity-60">updating...</span>
               </p>
             </CardContent>
           </Card>
@@ -149,7 +149,7 @@ export default function AdminAnalytics() {
           <CardHeader className="p-8">
             <div className="flex items-center gap-3 mb-2">
               <Activity className="h-5 w-5 text-primary" />
-              <CardTitle className="text-2xl font-headline">Capital Influx</CardTitle>
+              <CardTitle className="text-2xl font-headline text-midnight-ink">Capital Influx</CardTitle>
             </div>
             <CardDescription>Monthly correlation between revenue volume and fulfillment density.</CardDescription>
           </CardHeader>
@@ -168,11 +168,11 @@ export default function AdminAnalytics() {
                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.4)', fontSize: 12, fontFamily: 'var(--font-mono)'}} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'rgba(0,0,0,0.4)', fontSize: 12}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(0,0,0,0.4)', fontSize: 12, fontFamily: 'var(--font-mono)'}} />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#111115', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
+                      contentStyle={{ backgroundColor: '#ffffff', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                       cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 2 }}
                     />
                     <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" name="Revenue (INR)" />
@@ -186,7 +186,7 @@ export default function AdminAnalytics() {
 
         <Card className="rounded-[2.5rem] border-white/5 bg-card/30 p-4">
           <CardHeader className="p-8">
-            <CardTitle className="text-2xl font-headline">Category Affinity</CardTitle>
+            <CardTitle className="text-2xl font-headline text-midnight-ink">Category Affinity</CardTitle>
             <CardDescription>Sales distribution across primary asset classes.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
@@ -210,12 +210,12 @@ export default function AdminAnalytics() {
             </div>
             <div className="grid grid-cols-1 gap-4 w-full mt-6 px-4">
               {categoryMix.map((cat, index) => (
-                <div key={cat.name} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                <div key={cat.name} className="flex items-center justify-between p-3 rounded-2xl bg-white border border-stone-gray/10 shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className={`h-3 w-3 rounded-full ${index === 0 ? 'bg-primary' : index === 1 ? 'bg-accent' : 'bg-green-500'}`} />
-                    <span className="text-sm font-bold">{cat.name}</span>
+                    <span className="text-sm font-bold text-midnight-ink">{cat.name}</span>
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">{cat.value}% mix</span>
+                  <span className="text-[10px] font-mono text-slate-blue font-bold">{cat.value}% mix</span>
                 </div>
               ))}
             </div>

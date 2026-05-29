@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useUser } from '@/firebase';
-import { doc, setDoc, addDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -173,21 +173,12 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     if (!db || !user) return;
     setIsSaving(true);
 
-    // 1. Final slug validation (Unique check)
     const slugToSave = formData.slug || generateSlug(formData.name);
-    const slugQuery = query(collection(db, 'products'), where('slug', '==', slugToSave));
-    const slugSnap = await getDocs(slugQuery);
-    
-    let finalSlug = slugToSave;
-    if (!id && !slugSnap.empty) {
-      finalSlug = `${slugToSave}-${Math.floor(Math.random() * 1000)}`;
-      toast({ title: "Slug Collision", description: `Assigned unique suffix: ${finalSlug}` });
-    }
-
     const selectedCategory = categories?.find(c => c.id === formData.categoryId);
+    
     const productData = {
       ...formData,
-      slug: finalSlug,
+      slug: slugToSave,
       price: Math.round(formData.price * 100),
       compareAtPrice: Math.round(formData.compareAtPrice * 100),
       categorySlug: selectedCategory?.slug || '',
@@ -212,7 +203,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       .then(() => {
         logAdminAction({
           db, adminId: user.uid, adminEmail: user.email!,
-          action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: docRef.id, details: { name: formData.name, slug: finalSlug }
+          action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: docRef.id, details: { name: formData.name, slug: slugToSave }
         });
         toast({ title: "Product Synchronized" });
         router.push('/admin/products');
