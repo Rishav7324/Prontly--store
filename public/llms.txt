@@ -1,0 +1,34 @@
+# Prontly Store
+
+> Premium digital marketplace for AI prompts, templates, and assets.
+
+Prontly Store is a premium digital marketplace offering a curated selection of high-quality AI prompts, templates, and digital assets. It caters to modern creators, developers, and businesses looking to leverage AI for enhanced productivity and creativity. Users can discover, preview, and purchase expertly crafted digital products designed to streamline workflows and generate innovative content.
+
+The core value proposition lies in providing ready-to-use, sophisticated AI tools and assets that save users time and effort. Key use cases include generating viral video scripts, creating Claude skills, and accessing novel AI prompts for various applications. The platform aims to be a one-stop shop for individuals and organizations seeking to integrate cutting-edge AI solutions into their projects without extensive development or prompt engineering expertise.
+
+## Core
+
+- [Prontly Store | Premium Digital Marketplace](https://store.prontly.in/): Discover and purchase premium AI prompts, templates, and digital assets.
+- [Products](https://store.prontly.in/products): Browse and buy a wide range of AI-powered digital products and assets.
+- [New Prompts](https://store.prontly.in/products?category=new-prompt): Explore the latest AI prompts added to the marketplace.
+- [Claude Skills](https://store.prontly.in/products?category=claude-skill): Find and purchase specialized skills for Claude AI.
+- [AI Powered Viral Video Reel Shorts Script Generation System](https://store.prontly.in/products/ai-powered-viral-video-reel-shorts-script-generation-system): Purchase a system to generate scripts for viral video content.
+
+## Content & Community
+
+- [Blog](https://store.prontly.in/blog): Read articles and insights on AI, digital assets, and creator tools.
+- [Testimonials](https://store.prontly.in/testimonials): See what satisfied customers say about Prontly Store products.
+
+## User Account
+
+- [Wishlist](https://store.prontly.in/wishlist): View and manage your saved items for future purchase.
+- [Login](https://store.prontly.in/login): Access your Prontly Store account.
+- [Sign Up](https://store.prontly.in/signup): Create a new account for Prontly Store.
+
+## Legal & Policies
+
+- [Privacy Policy](https://store.prontly.in/privacy): Understand how Prontly Store handles your personal data.
+- [Terms of Service](https://store.prontly.in/terms): Review the terms and conditions for using Prontly Store.
+- [Refund Policy](https://store.prontly.in/refund-policy): Learn about the conditions for requesting refunds.
+- [Delivery Policy](https://store.prontly.in/delivery-policy): Understand the policies regarding the delivery of digital assets.
+
