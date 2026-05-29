@@ -18,12 +18,12 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 
 import { 
-  Bold, Italic, Underline as UnderlineIcon, Strikethrough,
-  List, ListOrdered, Link as LinkIcon, Heading1, Heading2, Heading3, Heading4,
-  Undo, Redo, Unlink, Table as TableIcon, Image as ImageIcon,
-  AlignLeft, AlignCenter, AlignRight, Quote, Type, Sparkles,
-  CheckSquare, FileCode, Eraser, Minus, GripVertical, ChevronDown,
-  Info, AlertTriangle, CheckCircle2, HelpCircle, Layout
+  Bold, Italic, Underline as UnderlineIcon,
+  List, Link as LinkIcon,
+  Undo, Redo, Table as TableIcon, Image as ImageIcon,
+  AlignCenter, Type, Sparkles,
+  CheckSquare, Eraser, ChevronDown,
+  AlertTriangle, CheckCircle2, HelpCircle, Layout
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
   DropdownMenuTrigger, DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -77,9 +77,8 @@ const Toolbar = ({ editor }: { editor: any }) => {
   };
 
   return (
-    <div className="shrink-0 z-30 w-full glass-morphism border-b border-white/10">
+    <div className="shrink-0 z-30 w-full bg-background border-b border-white/10 sticky top-0">
       <div className="flex items-center gap-1 p-1.5 overflow-x-auto hide-scrollbar">
-        
         <div className="flex items-center gap-0.5 px-1 border-r border-white/5">
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
             <Undo className="h-4 w-4" />
@@ -108,17 +107,15 @@ const Toolbar = ({ editor }: { editor: any }) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="ghost" size="sm" className="h-8 gap-2 px-2 text-xs font-bold">
-                Heading <ChevronDown className="h-3 w-3" />
+                Style <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48 bg-card border-white/10">
-              <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()} className="gap-2">
-                <Layout className="h-4 w-4" /> Paragraph
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().setParagraph().run()}>Paragraph</DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="text-xl font-bold">H1 Headline</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="text-lg font-bold">H2 Subtitle</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="text-base font-bold">H3 Section</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className="text-xl font-bold">Heading 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="text-lg font-bold">Heading 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className="text-base font-bold">Heading 3</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -152,21 +149,21 @@ const Toolbar = ({ editor }: { editor: any }) => {
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="secondary" size="sm" className="h-8 gap-2 px-3 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20">
                 <Sparkles className="h-3 w-3" />
-                CMS Blocks
+                Templates
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-card border-white/10">
               <DropdownMenuItem onClick={() => insertBlock('feature')} className="gap-2">
-                <Layout className="h-4 w-4 text-primary" /> Feature Highlight
+                <Layout className="h-4 w-4 text-primary" /> Feature Block
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => insertBlock('success')} className="gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" /> What's Included
+                <CheckCircle2 className="h-4 w-4 text-green-500" /> Success Block
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => insertBlock('faq')} className="gap-2">
-                <HelpCircle className="h-4 w-4 text-accent" /> FAQ Accordion
+                <HelpCircle className="h-4 w-4 text-accent" /> FAQ Block
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => insertBlock('warning')} className="gap-2">
-                <AlertTriangle className="h-4 w-4 text-destructive" /> Warning/Policy
+                <AlertTriangle className="h-4 w-4 text-destructive" /> Warning Block
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
               <DropdownMenuItem onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} className="gap-2 text-destructive">
@@ -195,7 +192,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
         },
       }),
       Placeholder.configure({
-        placeholder: placeholder || 'Write something spectacular...',
+        placeholder: placeholder || 'Start documenting your asset...',
       }),
       Table.configure({ resizable: true }),
       TableRow,
@@ -204,7 +201,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
       Image.configure({
         allowBase64: true,
         HTMLAttributes: {
-          class: 'rounded-2xl border border-white/5 shadow-2xl mx-auto',
+          class: 'rounded-xl border border-white/5 shadow-lg mx-auto my-4',
         },
       }),
       TextAlign.configure({
@@ -224,7 +221,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     editorProps: {
       attributes: {
         class: cn(
-          'prose-editor focus:outline-none h-full min-h-[300px] p-6',
+          'prose-content focus:outline-none min-h-[400px] p-8 bg-white/50 dark:bg-black/20',
           className
         ),
       },
@@ -232,22 +229,30 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     immediatelyRender: false
   });
 
+  // Handle external content updates (crucial for initial load and AI generation)
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      // Only set content if the editor is NOT focused to prevent cursor jumping
+      // or if it's the initial empty state.
+      if (!editor.isFocused || editor.isEmpty) {
+        editor.commands.setContent(content, false);
+      }
+    }
+  }, [content, editor]);
+
   return (
-    <div className="flex flex-col w-full rounded-2xl border border-white/10 bg-card/20 overflow-hidden shadow-sm h-[600px] max-h-[80vh]">
+    <div className="flex flex-col w-full rounded-2xl border border-white/10 bg-card/20 overflow-hidden shadow-sm min-h-[500px]">
       <Toolbar editor={editor} />
-      
-      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-black/5 relative">
-        <EditorContent editor={editor} className="h-full" />
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <EditorContent editor={editor} />
       </div>
-      
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-muted-foreground uppercase tracking-widest font-bold bg-black/20">
+      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-white/5 text-[9px] text-muted-foreground uppercase tracking-widest font-black bg-black/5">
         <div className="flex items-center gap-4">
           <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>
-          <span>Chars: {editor?.getText().length || 0}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-          <span>Editor Live</span>
+          <div className="h-1 w-1 rounded-full bg-green-500" />
+          <span>Editor Active</span>
         </div>
       </div>
     </div>

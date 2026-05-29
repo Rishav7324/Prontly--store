@@ -104,6 +104,39 @@
   @apply border-l-4 border-powder-blue pl-6 italic text-slate-blue my-8 bg-porcelain-white/50 py-4 pr-4 rounded-r-md;
 }
 
+/* CMS Blocks Styling */
+.prose-content .product-block {
+  @apply p-6 my-6 rounded-2xl border transition-all;
+}
+
+.prose-content .block-feature {
+  @apply bg-primary/5 border-primary/20;
+}
+
+.prose-content .block-warning {
+  @apply bg-destructive/5 border-destructive/20;
+}
+
+.prose-content .block-success {
+  @apply bg-green-500/5 border-green-500/20;
+}
+
+.prose-content .block-faq {
+  @apply bg-accent/5 border-accent/20;
+}
+
+.prose-content table {
+  @apply w-full border-collapse my-6;
+}
+
+.prose-content th, .prose-content td {
+  @apply border border-stone-gray/20 p-3 text-sm;
+}
+
+.prose-content th {
+  @apply bg-muted/50 font-bold text-midnight-ink;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
