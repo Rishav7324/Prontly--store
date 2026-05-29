@@ -1,16 +1,19 @@
 import { MetadataRoute } from 'next';
 import { getAdminDb } from '@/lib/firebase-admin';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour
+
 /**
  * @fileOverview Automatic Sitemap Generator
  * Fetches all dynamic content from Firestore using Admin SDK for reliability.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
-  const db = getAdminDb();
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+  // Remove trailing slash if present to prevent double slashes in URLs
+  const siteUrl = rawSiteUrl.endsWith('/') ? rawSiteUrl.slice(0, -1) : rawSiteUrl;
   
-  // Base static routes
-  const staticRoutes = [
+  const staticRoutes: MetadataRoute.Sitemap = [
     '',
     '/products',
     '/blog',
@@ -23,11 +26,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified: new Date(),
-    changeFrequency: 'daily' as const,
+    changeFrequency: 'daily',
     priority: route === '' ? 1.0 : 0.8,
   }));
 
   try {
+    // Database initialization inside try block to catch potential auth/env errors
+    const db = getAdminDb();
+    
     // 1. Fetch Products with SLUGS
     const productsSnap = await db.collection('products').select('slug', 'updatedAt').get();
     const productRoutes = productsSnap.docs.map((doc) => {
@@ -71,6 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [...staticRoutes, ...productRoutes, ...blogRoutes, ...catRoutes];
   } catch (error) {
     console.error('[SITEMAP_ERROR]: Generation failed:', error);
+    // Fallback to static routes to avoid 500 error during crawler fetch
     return staticRoutes;
   }
 }
