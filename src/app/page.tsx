@@ -7,7 +7,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Sparkles, ShieldCheck, ChevronRight, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, ChevronRight, Zap, Globe, Layers, Cpu } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
 import Link from 'next/link';
@@ -37,74 +37,83 @@ export default function Home() {
     return allProducts.slice(0, 8);
   }, [allProducts, settings]);
 
-  const heroHeadline = settings?.homepageHeroCopy?.headline || "Expert Digital Assets for Modern Creators.";
-  const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Unlock high-performance AI prompts, UI kits, and professional guides. Built for creators who demand precision.";
+  const heroHeadline = settings?.homepageHeroCopy?.headline || "Elite Infrastructure for Modern Creators.";
+  const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Professional-grade AI prompts, modular UI systems, and high-performance technical documentation. Engineered for creators who scale.";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col selection:bg-primary selection:text-white">
       <Navbar />
       
       <main className="flex-1">
-        {/* Architectural Hero Section */}
-        <section className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-48 bg-midnight-ink min-h-[600px] flex items-center">
-          {/* Static High-Performance Background */}
-          <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-midnight-ink/90 via-midnight-ink/40 to-background" />
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] -mr-64 -mt-64" />
-          </div>
-
+        {/* PLATINUM HERO SECTION */}
+        <section className="relative pt-20 pb-20 lg:pt-32 lg:pb-48 overflow-hidden dreamy-gradient">
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-              <div className="lg:col-span-7 space-y-8">
-                <div className="space-y-4">
-                  <Badge variant="outline" className="bg-primary/10 backdrop-blur-md border-primary/30 text-primary px-4 py-1.5 font-bold uppercase tracking-widest text-[10px] rounded-full shadow-lg">
-                    <Sparkles className="h-3 w-3 mr-2 inline animate-pulse" />
-                    Market Intelligence Platform
-                  </Badge>
-                  <h1 className="text-4xl md:text-5xl lg:text-7xl font-headline font-light text-white leading-[1.1] tracking-tight">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-center">
+              <div className="lg:col-span-7 space-y-10">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white/80 backdrop-blur-md border-primary/20 text-primary px-4 py-1.5 font-bold uppercase tracking-[0.2em] text-[10px] rounded-full shadow-sm">
+                      <Sparkles className="h-3 w-3 mr-2 inline" />
+                      Production V2.4 Active
+                    </Badge>
+                  </div>
+                  <h1 className="text-5xl md:text-7xl lg:text-8xl font-headline leading-[1.05] text-midnight-ink tracking-tight">
                     {heroHeadline}
                   </h1>
+                  <p className="text-lg md:text-xl text-slate-blue max-w-2xl leading-relaxed font-medium">
+                    {heroSubheadline}
+                  </p>
                 </div>
-                
-                <p className="text-base md:text-lg text-white/70 max-w-xl leading-relaxed font-light">
-                  {heroSubheadline}
-                </p>
 
-                <div className="flex flex-wrap items-center gap-4 pt-4">
-                  <Button asChild size="lg" className="h-12 px-10 rounded-md bg-deep-violet hover:bg-deep-violet/90 text-white font-bold shadow-2xl shadow-primary/40 transition-all hover:scale-105">
-                    <Link href="/products">Explore Inventory</Link>
+                <div className="flex flex-wrap items-center gap-6 pt-6">
+                  <Button asChild size="lg" className="h-14 px-10 rounded-xl bg-deep-violet hover:bg-deep-violet/90 text-white font-bold platinum-shadow transition-all hover:-translate-y-1 active:scale-95 text-lg">
+                    <Link href="/products">Browse Inventory</Link>
                   </Button>
-                  <Button asChild variant="ghost" size="lg" className="h-12 px-6 text-white hover:text-primary font-bold hover:bg-white/10">
-                    <Link href="/signup" className="flex items-center gap-2">
-                      Get started <ArrowRight className="h-4 w-4" />
+                  <Button asChild variant="ghost" size="lg" className="h-14 px-8 text-midnight-ink hover:text-primary font-bold hover:bg-primary/5 transition-colors group">
+                    <Link href="/signup" className="flex items-center gap-3">
+                      Start building <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-10 pt-12 border-t border-stone-gray/10">
+                  <div className="flex items-center gap-3 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-default">
+                    <ShieldCheck className="h-5 w-5 text-green-600" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-midnight-ink">Audit Verified</span>
+                  </div>
+                  <div className="flex items-center gap-3 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-default">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-midnight-ink">Global Edge Delivery</span>
+                  </div>
+                  <div className="flex items-center gap-3 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-default">
+                    <Cpu className="h-5 w-5 text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-midnight-ink">High-Performance Core</span>
+                  </div>
                 </div>
               </div>
 
               <div className="lg:col-span-5 relative hidden lg:block">
-                 <div className="relative aspect-square w-full rounded-2xl shadow-[0_0_50px_rgba(83,58,253,0.3)] overflow-hidden bg-midnight-ink border border-white/10 group group-hover:border-primary/50 transition-all duration-500">
-                    <div className="absolute inset-0 bg-primary/5 group-hover:bg-transparent transition-colors z-10" />
+                 <div className="relative aspect-[4/5] w-full rounded-[2.5rem] platinum-shadow overflow-hidden bg-white border border-white/50 group">
                     <Image 
-                      src="https://picsum.photos/seed/prontly-ui/800/800" 
-                      alt="Marketplace Interface" 
+                      src="https://picsum.photos/seed/prontly-platinum/1000/1250" 
+                      alt="Premium Marketplace Interface" 
                       fill 
-                      className="object-cover opacity-60 transition-transform duration-1000 group-hover:scale-110"
-                      data-ai-hint="digital dashboard"
+                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                      data-ai-hint="luxury interface"
+                      priority
                     />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/80 via-transparent to-primary/20 mix-blend-overlay z-20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-midnight-ink/20 to-transparent" />
                  </div>
                  
-                 {/* Floating Badge */}
-                 <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl shadow-2xl border border-stone-gray/10 animate-bounce [animation-duration:4000ms] z-30">
-                    <div className="flex items-center gap-4">
-                       <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 shadow-inner">
-                          <ShieldCheck className="h-7 w-7" />
+                 {/* FLOATING PERFORMANCE INDICATOR */}
+                 <div className="absolute -bottom-8 -left-12 bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/50 transition-transform hover:-translate-y-2 group cursor-default">
+                    <div className="flex items-center gap-6">
+                       <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                          <Zap className="h-8 w-8" />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black uppercase text-ghost-gray tracking-widest">Verified Source</p>
-                          <p className="text-sm font-bold text-midnight-ink">Secure Delivery</p>
+                          <p className="text-[10px] font-black uppercase text-ghost-gray tracking-[0.2em] mb-1">Execution Speed</p>
+                          <p className="text-2xl font-bold text-midnight-ink font-headline">99.9% Sla Uptime</p>
                        </div>
                     </div>
                  </div>
@@ -113,37 +122,37 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Categories Section */}
-        <section className="bg-porcelain-white/50 py-24 border-y border-stone-gray/20">
+        {/* CLASSIFICATION GRID */}
+        <section className="bg-white py-32 border-y border-stone-gray/10">
           <div className="container mx-auto px-4 max-w-7xl">
-            <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <header className="mb-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
               <div className="space-y-4">
-                <Badge variant="outline" className="text-deep-violet border-deep-violet/20 bg-deep-violet/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
-                  Asset Classification
+                <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 font-bold uppercase text-[10px] tracking-[0.3em] px-4 py-1.5 rounded-full">
+                  Operational Blocks
                 </Badge>
-                <h2 className="text-3xl md:text-4xl font-headline font-light text-midnight-ink tracking-tight">Specialized infrastructure.</h2>
+                <h2 className="text-4xl md:text-5xl font-headline text-midnight-ink tracking-tight">Specialized categories.</h2>
               </div>
-              <Button variant="ghost" asChild className="text-deep-violet font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
-                <Link href="/products">
-                  Full catalog overview <ArrowRight className="h-4 w-4" />
+              <Button variant="ghost" asChild className="text-primary font-bold h-auto p-0 flex items-center gap-2 hover:bg-transparent hover:translate-x-1 transition-all">
+                <Link href="/products" className="text-base">
+                  Explore full documentation <ArrowRight className="h-5 w-5" />
                 </Link>
               </Button>
             </header>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {categories?.map((cat: any) => (
-                <Link key={cat.id} href={`/products?category=${cat.slug}`}>
-                  <Card className="group h-full bg-white border-none shadow-sm hover:shadow-xl transition-all duration-500 rounded-md overflow-hidden relative">
-                    <CardContent className="p-8 space-y-6">
-                      <div className="h-12 w-12 rounded-lg bg-powder-blue/50 flex items-center justify-center group-hover:bg-deep-violet/10 transition-colors">
-                        <span className="text-2xl">{cat.iconEmoji}</span>
+                <Link key={cat.id} href={`/products?category=${cat.slug}`} className="group">
+                  <Card className="h-full bg-porcelain-white/50 border border-stone-gray/10 shadow-sm group-hover:bg-white group-hover:border-primary/20 group-hover:shadow-2xl transition-all duration-500 rounded-[2rem] overflow-hidden">
+                    <CardContent className="p-10 space-y-8">
+                      <div className="h-16 w-16 rounded-2xl bg-white shadow-sm flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all group-hover:-rotate-6">
+                        <span className="text-3xl">{cat.iconEmoji}</span>
                       </div>
                       <div>
-                        <h4 className="text-xl font-bold mb-2 text-midnight-ink">{cat.name}</h4>
+                        <h4 className="text-2xl font-bold mb-3 text-midnight-ink font-headline">{cat.name}</h4>
                         <p className="text-sm text-slate-blue leading-relaxed line-clamp-3">{cat.description}</p>
                       </div>
-                      <div className="pt-4 flex items-center text-xs font-black uppercase text-ghost-gray tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                        Explore track <ChevronRight className="h-3 w-3 ml-1" />
+                      <div className="pt-4 flex items-center text-[10px] font-black uppercase text-ghost-gray tracking-[0.2em] group-hover:text-primary transition-colors">
+                        View assets <ChevronRight className="h-3 w-3 ml-2" />
                       </div>
                     </CardContent>
                   </Card>
@@ -153,32 +162,43 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Featured Section */}
-        <section className="container mx-auto px-4 py-24 max-w-7xl">
-          <div className="mb-12 space-y-4 border-b border-stone-gray/10 pb-12">
-            <Badge variant="outline" className="text-green-600 border-green-500/20 bg-green-500/5 font-bold uppercase text-[10px] tracking-[0.2em] px-3 py-1">
-              Top Tier Assets
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-headline font-light text-midnight-ink tracking-tight">Professional standards.</h2>
+        {/* CURATED INVENTORY */}
+        <section className="container mx-auto px-4 py-32 max-w-7xl">
+          <div className="mb-20 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="h-[2px] w-12 bg-primary/20" />
+              <Badge variant="outline" className="text-green-600 border-green-500/20 bg-green-500/5 font-bold uppercase text-[10px] tracking-[0.3em] px-4 py-1.5 rounded-full">
+                Technical Highlights
+              </Badge>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-headline text-midnight-ink tracking-tight">Curated high-performance assets.</h2>
           </div>
 
           <ProductGrid products={featuredProducts} loading={loading} />
+          
+          <div className="mt-20 flex justify-center">
+             <Button asChild variant="outline" size="lg" className="h-14 px-12 rounded-xl border-stone-gray/20 font-bold text-midnight-ink hover:bg-midnight-ink hover:text-white transition-all shadow-sm">
+                <Link href="/products">View All {allProducts?.length || 0} Products</Link>
+             </Button>
+          </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="container mx-auto px-4 py-24">
-          <div className="max-w-7xl mx-auto rounded-xl bg-midnight-ink text-white p-12 md:p-24 text-center space-y-10 relative overflow-hidden shadow-2xl">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.2),transparent)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(247,45,243,0.1),transparent)]" />
+        {/* ACTION TERMINAL */}
+        <section className="container mx-auto px-4 py-24 max-w-7xl">
+          <div className="rounded-[3rem] bg-midnight-ink text-white p-12 md:p-32 text-center space-y-12 relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.3),transparent)]" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-primary/10 to-transparent" />
             
-            <div className="relative z-10 space-y-8">
-              <h2 className="text-3xl md:text-5xl font-headline font-light max-w-4xl mx-auto tracking-tight">Accelerate your workflow with precision.</h2>
-              <p className="text-base md:text-lg text-white/60 max-w-2xl mx-auto font-light">Join thousands of verified creators scaling their business with Prontly assets.</p>
-              <div className="flex flex-wrap justify-center gap-6 pt-10">
-                <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-porcelain-white h-12 px-10 text-sm font-bold shadow-xl">
-                  <Link href="/signup">Get started now</Link>
+            <div className="relative z-10 space-y-10 max-w-4xl mx-auto">
+              <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-[0.4em] font-black py-1.5 px-6 rounded-full text-[10px]">Initialize Protocol</Badge>
+              <h2 className="text-4xl md:text-6xl lg:text-7xl font-headline leading-tight tracking-tight">Accelerate your creative infrastructure.</h2>
+              <p className="text-lg md:text-xl text-white/60 font-light leading-relaxed max-w-2xl mx-auto">Join a verified network of developers and designers using Prontly to scale their output.</p>
+              
+              <div className="flex flex-col sm:flex-row justify-center gap-6 pt-10">
+                <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-porcelain-white h-16 px-12 text-lg font-bold rounded-2xl shadow-2xl transition-all hover:scale-105 active:scale-95">
+                  <Link href="/signup">Get Started Now</Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-12 px-10 text-sm font-bold">
+                <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-16 px-12 text-lg font-bold rounded-2xl">
                   <Link href="/products">Browse full catalog</Link>
                 </Button>
               </div>

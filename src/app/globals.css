@@ -24,9 +24,9 @@
     --border: 210 44% 93%; /* Powder Blue #e5edf5 */
     --input: 210 44% 93%;
     --ring: 248 98% 61%;
-    --radius: 0.25rem; /* 4px for buttons/inputs */
+    --radius: 0.5rem;
 
-    /* Stripe Specific Colors */
+    /* Brand Colors */
     --color-midnight-ink: #061b31;
     --color-slate-blue: #50617a;
     --color-ghost-gray: #64748d;
@@ -46,100 +46,61 @@
     @apply bg-background text-foreground font-body antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline font-light tracking-[-0.02em];
+    @apply font-headline font-light tracking-tight;
   }
 }
 
-/* Stripe Specific Utilities */
+/* Premium Shadows */
+.platinum-shadow {
+  box-shadow: 0 50px 100px -20px rgba(50, 50, 93, 0.15), 0 30px 60px -30px rgba(0, 0, 0, 0.2), inset 0 -2px 6px 0 rgba(10, 37, 64, 0.1);
+}
+
 .stripe-shadow {
-  box-shadow: rgba(50, 50, 93, 0.12) 0px 16px 32px 0px, rgba(0, 0, 0, 0.04) 0px 4px 8px 0px;
+  box-shadow: 0 7px 14px 0 rgba(60, 66, 87, 0.1), 0 3px 6px 0 rgba(0, 0, 0, 0.07);
 }
 
-.stripe-shadow-sm {
-  box-shadow: rgba(23, 23, 23, 0.06) 0px 3px 6px 0px;
-}
-
-.stripe-shadow-xl {
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 32px 8px;
+.stripe-shadow-hover:hover {
+  box-shadow: 0 13px 27px -5px rgba(50, 50, 93, 0.25), 0 8px 16px -8px rgba(0, 0, 0, 0.3), 0 -6px 16px -6px rgba(0, 0, 0, 0.025);
 }
 
 .dreamy-gradient {
-  background: radial-gradient(circle at top right, rgb(127, 125, 252), rgb(244, 75, 204) 33%, rgb(229, 237, 245) 66%);
+  background: radial-gradient(circle at 70% 30%, rgba(83, 58, 253, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 10% 80%, rgba(244, 75, 204, 0.05) 0%, transparent 50%);
 }
 
-.sunburst-gradient {
-  background: linear-gradient(90deg, rgb(114, 50, 241) 3.13%, rgb(251, 118, 250) 50%, rgb(255, 207, 94));
-}
-
-/* High-Performance HTML Rendering (Technical Editorial) */
+/* High-Performance Content Rendering */
 .prose-content {
-  @apply text-slate-blue leading-[1.6] text-[15px];
+  @apply text-slate-blue leading-relaxed;
 }
 
 .prose-content h2 {
-  @apply text-midnight-ink text-2xl font-bold mt-10 mb-4 tracking-tight;
+  @apply text-midnight-ink text-3xl font-bold mt-12 mb-6 tracking-tight font-headline;
 }
 
 .prose-content h3 {
-  @apply text-midnight-ink text-lg font-bold mt-8 mb-3 tracking-tight;
+  @apply text-midnight-ink text-xl font-bold mt-10 mb-4 tracking-tight;
 }
 
 .prose-content p {
-  @apply mb-4;
-}
-
-.prose-content strong {
-  @apply text-midnight-ink font-semibold;
+  @apply mb-6 text-[15px] md:text-base;
 }
 
 .prose-content ul {
-  @apply space-y-2 mb-6 mt-4 list-none pl-0;
+  @apply space-y-3 mb-8 mt-6 list-none pl-0;
 }
 
 .prose-content li {
-  @apply flex items-start gap-3 before:content-['•'] before:text-deep-violet before:font-bold;
+  @apply flex items-start gap-3 before:content-['→'] before:text-deep-violet before:font-bold;
 }
 
 .prose-content blockquote {
-  @apply border-l-4 border-powder-blue pl-6 italic text-slate-blue my-8 bg-porcelain-white/50 py-4 pr-4 rounded-r-md;
+  @apply border-l-4 border-deep-violet/20 pl-8 italic text-slate-blue/80 my-10 bg-porcelain-white py-6 pr-6 rounded-r-2xl;
 }
 
-/* CMS Blocks Styling */
-.prose-content .product-block {
-  @apply p-6 my-6 rounded-2xl border transition-all;
-}
-
-.prose-content .block-feature {
-  @apply bg-primary/5 border-primary/20;
-}
-
-.prose-content .block-warning {
-  @apply bg-destructive/5 border-destructive/20;
-}
-
-.prose-content .block-success {
-  @apply bg-green-500/5 border-green-500/20;
-}
-
-.prose-content .block-faq {
-  @apply bg-accent/5 border-accent/20;
-}
-
-.prose-content table {
-  @apply w-full border-collapse my-6;
-}
-
-.prose-content th, .prose-content td {
-  @apply border border-stone-gray/20 p-3 text-sm;
-}
-
-.prose-content th {
-  @apply bg-muted/50 font-bold text-midnight-ink;
-}
-
+/* Scrollbar Refinement */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -147,5 +108,13 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-stone-gray/50 rounded-full;
+  @apply bg-stone-gray/50 rounded-full hover:bg-ghost-gray/50 transition-colors;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
