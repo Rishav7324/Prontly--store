@@ -7,7 +7,7 @@ import { ProductGrid } from '@/components/store/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Shield, Rocket, Crown, Zap, ArrowRight, Layout, BookOpen, Layers, Sparkles, Globe, ShieldCheck, ChevronRight } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, ChevronRight, Zap } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
 import Link from 'next/link';
@@ -91,10 +91,11 @@ export default function Home() {
                       muted 
                       loop 
                       playsInline
+                      preload="auto"
                       className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/20 via-transparent to-primary/10 mix-blend-overlay" />
-                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" />
+                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.3)]" />
                  </div>
                  
                  {/* Floating Badge */}
@@ -105,13 +106,10 @@ export default function Home() {
                        </div>
                        <div>
                           <p className="text-[10px] font-black uppercase text-ghost-gray tracking-widest">Verified Source</p>
-                          <p className="text-sm font-bold text-midnight-ink">100% Secure Delivery</p>
+                          <p className="text-sm font-bold text-midnight-ink">Secure Delivery</p>
                        </div>
                     </div>
                  </div>
-
-                 {/* Decorative element */}
-                 <div className="absolute -top-12 -right-12 w-64 h-64 bg-deep-violet/5 rounded-full blur-3xl -z-10" />
               </div>
             </div>
           </div>
