@@ -45,37 +45,44 @@ export default function Home() {
       
       <main className="flex-1">
         {/* Architectural Hero Section */}
-        <section className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-48">
-          {/* Stripe-style Background Pattern */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-[30%] -left-[10%] w-[120%] h-[120%] bg-[#ffffff]" />
-            <div className="absolute top-0 right-0 w-[80%] h-[100%] bg-[radial-gradient(circle_at_70%_20%,rgba(83,58,253,0.1),transparent_50%)]" />
-            <div className="absolute bottom-0 left-0 w-[60%] h-[60%] bg-[radial-gradient(circle_at_20%_80%,rgba(247,45,243,0.05),transparent_50%)]" />
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
+        <section className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-48 bg-midnight-ink min-h-[600px] flex items-center">
+          {/* High-Performance Background Video */}
+          <div className="absolute inset-0 z-0">
+            <video 
+              src="https://cdn.prontly.in/Hero%20video/342475.mp4"
+              autoPlay 
+              muted 
+              loop 
+              playsInline
+              preload="auto"
+              className="w-full h-full object-cover opacity-40 scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-midnight-ink/60 via-midnight-ink/20 to-background" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay" />
           </div>
 
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
               <div className="lg:col-span-7 space-y-8">
                 <div className="space-y-4">
-                  <Badge variant="outline" className="bg-white/80 backdrop-blur-sm border-primary/20 text-primary px-4 py-1.5 font-bold uppercase tracking-widest text-[10px] rounded-full shadow-sm">
-                    <Sparkles className="h-3 w-3 mr-2 inline" />
+                  <Badge variant="outline" className="bg-primary/10 backdrop-blur-md border-primary/30 text-primary px-4 py-1.5 font-bold uppercase tracking-widest text-[10px] rounded-full shadow-lg">
+                    <Sparkles className="h-3 w-3 mr-2 inline animate-pulse" />
                     Market Intelligence Platform
                   </Badge>
-                  <h1 className="text-4xl md:text-5xl lg:text-7xl font-headline font-light text-midnight-ink leading-[1.1] tracking-tight">
+                  <h1 className="text-4xl md:text-5xl lg:text-7xl font-headline font-light text-white leading-[1.1] tracking-tight">
                     {heroHeadline}
                   </h1>
                 </div>
                 
-                <p className="text-base md:text-lg text-slate-blue max-w-xl leading-relaxed">
+                <p className="text-base md:text-lg text-white/70 max-w-xl leading-relaxed font-light">
                   {heroSubheadline}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 pt-4">
-                  <Button asChild size="lg" className="h-11 px-8 rounded-md bg-deep-violet hover:bg-deep-violet/90 text-white font-bold shadow-lg shadow-deep-violet/20 transition-all">
+                  <Button asChild size="lg" className="h-12 px-10 rounded-md bg-deep-violet hover:bg-deep-violet/90 text-white font-bold shadow-2xl shadow-primary/40 transition-all hover:scale-105">
                     <Link href="/products">Explore Inventory</Link>
                   </Button>
-                  <Button asChild variant="ghost" size="lg" className="h-11 px-6 text-midnight-ink font-bold hover:bg-powder-blue/50">
+                  <Button asChild variant="ghost" size="lg" className="h-12 px-6 text-white hover:text-primary font-bold hover:bg-white/10">
                     <Link href="/signup" className="flex items-center gap-2">
                       Get started <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -84,7 +91,8 @@ export default function Home() {
               </div>
 
               <div className="lg:col-span-5 relative hidden lg:block">
-                 <div className="relative aspect-square w-full rounded-2xl shadow-2xl overflow-hidden bg-midnight-ink border border-white/5 group">
+                 <div className="relative aspect-square w-full rounded-2xl shadow-[0_0_50px_rgba(83,58,253,0.3)] overflow-hidden bg-midnight-ink border border-white/10 group group-hover:border-primary/50 transition-all duration-500">
+                    <div className="absolute inset-0 bg-primary/5 group-hover:bg-transparent transition-colors z-10" />
                     <video 
                       src="https://cdn.prontly.in/Hero%20video/342475.mp4"
                       autoPlay 
@@ -92,17 +100,16 @@ export default function Home() {
                       loop 
                       playsInline
                       preload="auto"
-                      className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
+                      className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/20 via-transparent to-primary/10 mix-blend-overlay" />
-                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.3)]" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-midnight-ink/40 via-transparent to-primary/20 mix-blend-overlay z-20" />
                  </div>
                  
                  {/* Floating Badge */}
-                 <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl border border-stone-gray/10 animate-bounce [animation-duration:3000ms] z-20">
-                    <div className="flex items-center gap-3">
-                       <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-600">
-                          <ShieldCheck className="h-6 w-6" />
+                 <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl shadow-2xl border border-stone-gray/10 animate-bounce [animation-duration:4000ms] z-30">
+                    <div className="flex items-center gap-4">
+                       <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-600 shadow-inner">
+                          <ShieldCheck className="h-7 w-7" />
                        </div>
                        <div>
                           <p className="text-[10px] font-black uppercase text-ghost-gray tracking-widest">Verified Source</p>
