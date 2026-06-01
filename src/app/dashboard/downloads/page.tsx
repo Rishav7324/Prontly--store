@@ -54,7 +54,7 @@ export default function DownloadsPage() {
               <Ban className="h-12 w-12 text-red-500" />
             </div>
             <h3 className="text-3xl font-bold font-headline mb-4">Vault Sync Failure</h3>
-            <p className="text-muted-foreground max-w-md mx-auto mb-10 text-lg leading-relaxed">We encountered a protocol error while synchronizing your library. Please verify your credentials and retry.</p>
+            <p className="text-muted-foreground max-w-md mx-auto mb-10 text-lg leading-relaxed">We encountered a guidelines error while synchronizing your library. Please verify your credentials and retry.</p>
             <Button onClick={() => refetch()} className="rounded-2xl px-12 h-16 font-bold shadow-2xl shadow-primary/20">Retry Connection</Button>
           </div>
         ) : downloads?.length === 0 ? (

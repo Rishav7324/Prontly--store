@@ -376,7 +376,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
         HTMLAttributes: { class: 'text-primary underline font-bold cursor-pointer decoration-primary/30 underline-offset-4' },
       }),
       Placeholder.configure({
-        placeholder: placeholder || 'Begin your editorial protocol...',
+        placeholder: placeholder || 'Begin your editorial guidelines...',
       }),
       Subscript,
       Superscript,
