@@ -35,7 +35,7 @@ export default function ProductNotFound() {
 
         <div className="mt-20 pt-10 border-t border-white/5 w-full max-w-2xl">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground opacity-50">
-            Error Protocol 404 • Product Resource Missing
+            Error guidelines 404 • Product Resource Missing
           </p>
         </div>
       </main>

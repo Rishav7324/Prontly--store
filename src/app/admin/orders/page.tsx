@@ -216,7 +216,7 @@ export default function AdminOrders() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 bg-card border-white/10 rounded-2xl p-2 shadow-2xl">
-                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Audit Protocol</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Audit guidelines</DropdownMenuLabel>
                           <DropdownMenuItem asChild className="rounded-xl focus:bg-primary/10 focus:text-primary p-3">
                             <Link href={`/admin/orders/${order.id}`} className="cursor-pointer flex items-center">
                               <Eye className="mr-3 h-4 w-4" /> Inspect Record

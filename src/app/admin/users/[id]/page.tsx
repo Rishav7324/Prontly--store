@@ -177,7 +177,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                 <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-start gap-3">
                   <AlertCircle className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
                   <p className="text-xs text-yellow-500/90 leading-relaxed">
-                    Custom sender not configured. This will be sent from <strong>support@store.prontly.in</strong>. Verify your domain in Admin Settings.
+                    Custom sender not configured. This will be sent from <strong>store.support@prontly.in</strong>. Verify your domain in Admin Settings.
                   </p>
                 </div>
               )}

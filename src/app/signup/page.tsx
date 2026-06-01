@@ -220,7 +220,7 @@ export default function SignupPage() {
                   className="border-primary h-5 w-5 rounded-md"
                 />
                 <label htmlFor="terms" className="text-[11px] text-muted-foreground leading-snug font-medium">
-                  I agree to the <Link href="/terms" className="text-primary hover:underline font-bold">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-bold">Privacy Protocol</Link>
+                  I agree to the <Link href="/terms" className="text-primary hover:underline font-bold">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-bold">Privacy guidelines</Link>
                 </label>
               </div>
 

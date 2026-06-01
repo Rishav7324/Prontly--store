@@ -188,7 +188,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(83,58,253,0.2),transparent)]" />
             
             <div className="relative z-10 space-y-6 max-w-3xl mx-auto">
-              <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-widest font-black py-1 px-4 rounded-full text-[8px]">Protocol Initialize</Badge>
+              <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-widest font-black py-1 px-4 rounded-full text-[8px]">guidelines Initialize</Badge>
               <h2 className="text-3xl md:text-5xl font-headline tracking-tight">Accelerate your creative output.</h2>
               <p className="text-base md:text-lg text-white/60 font-light leading-relaxed max-w-xl mx-auto">Join thousands of creators using Prontly to scale their technical and artistic infrastructure.</p>
               

@@ -85,7 +85,7 @@ export default function AdminProducts() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Inventory Protocol</h1>
+          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Inventory guidelines</h1>
           <p className="text-muted-foreground">Managing verified digital architecture and portfolio index.</p>
         </div>
         <Button asChild className="rounded-xl shadow-lg shadow-primary/20">

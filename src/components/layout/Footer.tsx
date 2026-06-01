@@ -64,9 +64,9 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-[9px] text-ghost-gray font-black uppercase tracking-[0.2em]">
-          <p>© {new Date().getFullYear()} Prontly Store • Bihar, India</p>
+          <p>© {new Date().getFullYear()} Prontly Store • Godda, Jharkhand </p>
           <div className="flex items-center gap-4">
-            <Link href="/cookies" className="hover:text-primary">Cookie Protocol</Link>
+            <Link href="/cookies" className="hover:text-primary">Cookie guidelines</Link>
             <Link href="/delivery-policy" className="hover:text-primary">Delivery System</Link>
           </div>
         </div>

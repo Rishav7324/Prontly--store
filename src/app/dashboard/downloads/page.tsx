@@ -93,10 +93,10 @@ export default function DownloadsPage() {
                 </p>
                 <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
                   <Button variant="outline" className="rounded-2xl h-14 px-8 font-bold border-white/10 hover:bg-white/5" asChild>
-                    <a href="mailto:support@store.prontly.in">Contact Data Support</a>
+                    <a href="mailto:store.support@prontly.in">Contact Data Support</a>
                   </Button>
                   <Button variant="ghost" className="rounded-2xl h-14 px-8 gap-2 text-primary font-bold hover:bg-primary/5" asChild>
-                    <Link href="/delivery-policy">Delivery Protocol <HelpCircle className="h-5 w-5" /></Link>
+                    <Link href="/delivery-policy">Delivery guidelines <HelpCircle className="h-5 w-5" /></Link>
                   </Button>
                 </div>
               </div>

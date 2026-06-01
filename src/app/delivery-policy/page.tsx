@@ -34,7 +34,7 @@ export default function DeliveryPolicy() {
             </p>
             <ul className="list-disc pl-6 mt-4 space-y-2 text-muted-foreground">
               <li>You will be redirected to a confirmation page with secure download links.</li>
-              <li>An automated email containing the download instructions will be sent to your registered email address from <strong>delivery@store.prontly.in</strong>.</li>
+              <li>An automated email containing the download instructions will be sent to your registered email address from <strong>store.support@prontly.in</strong>.</li>
               <li>Logged-in users can access all their purchases anytime through the <strong>My Library</strong> section of their dashboard.</li>
             </ul>
           </section>
@@ -49,7 +49,7 @@ export default function DeliveryPolicy() {
           <section>
             <h2 className="text-2xl font-bold mb-4">4. Support & Troubleshooting</h2>
             <p className="text-muted-foreground leading-relaxed">
-              If you encounter any issues with file extraction or download links, please contact <a href="mailto:support@store.prontly.in" className="text-primary hover:underline">support@store.prontly.in</a>. We guarantee a response and resolution within 24 hours.
+              If you encounter any issues with file extraction or download links, please contact <a href="mailto:store.support@prontly.in" className="text-primary hover:underline">store.support@prontly.in</a>. We guarantee a response and resolution within 24 hours.
             </p>
           </section>
         </div>

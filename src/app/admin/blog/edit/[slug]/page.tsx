@@ -114,7 +114,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
           <Link href="/admin/blog"><ChevronLeft className="h-4 w-4" /></Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold font-headline">Editorial Protocol</h1>
+          <h1 className="text-3xl font-bold font-headline">Editorial guidelines</h1>
           <p className="text-muted-foreground">Adjusting record for: {slug}</p>
         </div>
       </header>
