@@ -1,4 +1,3 @@
-
 'use client';
 
 import { use, useMemo } from 'react';
@@ -106,12 +105,11 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
               fill 
               className="object-cover" 
               priority
-              data-ai-hint="featured article image"
             />
           </div>
 
           <div 
-            className="prose-content mx-auto text-sm md:text-base leading-relaxed text-muted-foreground"
+            className="prose-content mx-auto text-base leading-relaxed text-slate-blue"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 

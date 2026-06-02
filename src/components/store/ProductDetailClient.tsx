@@ -288,12 +288,13 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                   </div>
                   
                   <div className="relative">
-                    <div className={cn(
-                      "prose-content text-sm leading-relaxed text-slate-blue overflow-hidden transition-all duration-700",
-                      isDescExpanded ? "max-h-[5000px]" : "max-h-[220px]"
-                    )}>
-                      <div dangerouslySetInnerHTML={{ __html: product.description || '' }} />
-                    </div>
+                    <div 
+                      className={cn(
+                        "prose-content text-sm leading-relaxed text-slate-blue overflow-hidden transition-all duration-700",
+                        isDescExpanded ? "max-h-[5000px]" : "max-h-[220px]"
+                      )}
+                      dangerouslySetInnerHTML={{ __html: product.description || '' }} 
+                    />
                     
                     {!isDescExpanded && (
                       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
@@ -380,4 +381,3 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
     </div>
   );
 }
-
