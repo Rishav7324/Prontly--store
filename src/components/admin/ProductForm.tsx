@@ -49,70 +49,36 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSlugLocked, setIsSlugLocked] = useState(!!id);
-  const hasHydrated = useRef(false);
   
   const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
 
+  // Initialize state directly from initialData if available
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    shortDescription: '',
-    categoryId: '',
-    categorySlug: '',
-    tags: '',
-    price: 0,
-    compareAtPrice: 0,
-    images: [] as string[],
-    bannerImage: '',
-    fileKey: '',
-    previewFileKey: '',
-    fileSize: 0,
-    fileFormat: 'ZIP',
-    fileVersion: '1.0',
-    isPublished: true,
-    isFeatured: false,
+    name: initialData?.name || '',
+    slug: initialData?.slug || '',
+    description: initialData?.description || '',
+    shortDescription: initialData?.shortDescription || '',
+    categoryId: initialData?.categoryId || '',
+    categorySlug: initialData?.categorySlug || '',
+    tags: Array.isArray(initialData?.tags) ? initialData.tags.join(', ') : '',
+    price: initialData?.price ? initialData.price / 100 : 0,
+    compareAtPrice: initialData?.compareAtPrice ? initialData.compareAtPrice / 100 : 0,
+    images: initialData?.images || [],
+    bannerImage: initialData?.bannerImage || '',
+    fileKey: initialData?.fileKey || '',
+    previewFileKey: initialData?.previewFileKey || '',
+    fileSize: initialData?.fileSize || 0,
+    fileFormat: initialData?.fileFormat || 'ZIP',
+    fileVersion: initialData?.fileVersion || '1.0',
+    isPublished: initialData?.isPublished ?? true,
+    isFeatured: initialData?.isFeatured ?? false,
     seo: {
-      title: '',
-      description: '',
-      canonicalUrl: '',
-      ogImage: '',
+      title: initialData?.seo?.title || '',
+      description: initialData?.seo?.description || '',
+      canonicalUrl: initialData?.seo?.canonicalUrl || '',
+      ogImage: initialData?.seo?.ogImage || '',
     }
   });
-
-  // Populate form only once when initialData arrives to prevent resets while typing
-  useEffect(() => {
-    if (initialData && !hasHydrated.current) {
-      setFormData({
-        name: initialData.name || '',
-        slug: initialData.slug || '',
-        description: initialData.description || '',
-        shortDescription: initialData.shortDescription || '',
-        categoryId: initialData.categoryId || '',
-        categorySlug: initialData.categorySlug || '',
-        tags: Array.isArray(initialData.tags) ? initialData.tags.join(', ') : '',
-        price: initialData.price ? initialData.price / 100 : 0,
-        compareAtPrice: initialData.compareAtPrice ? initialData.compareAtPrice / 100 : 0,
-        images: initialData.images || [],
-        bannerImage: initialData.bannerImage || '',
-        fileKey: initialData.fileKey || '',
-        previewFileKey: initialData.previewFileKey || '',
-        fileSize: initialData.fileSize || 0,
-        fileFormat: initialData.fileFormat || 'ZIP',
-        fileVersion: initialData.fileVersion || '1.0',
-        isPublished: initialData.isPublished ?? true,
-        isFeatured: initialData.isFeatured ?? false,
-        seo: {
-          title: initialData.seo?.title || '',
-          description: initialData.seo?.description || '',
-          canonicalUrl: initialData.seo?.canonicalUrl || '',
-          ogImage: initialData.seo?.ogImage || '',
-        }
-      });
-      setIsSlugLocked(true);
-      hasHydrated.current = true;
-    }
-  }, [initialData]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'source' | 'preview' | 'banner') => {
     const file = e.target.files?.[0];
@@ -189,7 +155,6 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     const slugToSave = formData.slug || generateSlug(formData.name);
     const selectedCategory = categories?.find(c => c.id === formData.categoryId);
     
-    // Final data normalization
     const productData = {
       ...formData,
       slug: slugToSave,
@@ -203,7 +168,8 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         createdAt: serverTimestamp(),
         downloadCount: 0,
         salesCount: 0,
-        averageRating: 5.0
+        averageRating: 5.0,
+        reviewCount: 0
       }),
     };
 
@@ -230,17 +196,17 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-40">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-40 animate-in fade-in duration-500">
       <div className="lg:col-span-8 space-y-8">
         <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
           <CardHeader className="p-8 border-b border-white/5 bg-muted/20 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-headline">Product Specifications</CardTitle>
-              <CardDescription>Primary asset identity and workflows.</CardDescription>
+              <CardTitle className="text-2xl font-headline text-midnight-ink">Product Specifications</CardTitle>
+              <CardDescription>Primary asset identity and description.</CardDescription>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={handleAiGenerate} disabled={isGenerating} className="gap-2 rounded-xl h-10 border-primary/20 text-primary">
+            <Button type="button" variant="outline" size="sm" onClick={handleAiGenerate} disabled={isGenerating} className="gap-2 rounded-xl h-10 border-primary/20 text-primary hover:bg-primary/5 transition-all">
               {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              AI Forge
+              AI Assistant
             </Button>
           </CardHeader>
           <CardContent className="p-8 space-y-8">
@@ -252,7 +218,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               <div className="grid gap-2">
                 <Label className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                   SEO Slug
-                  <button type="button" onClick={() => setIsSlugLocked(!isSlugLocked)} className="text-[9px] text-primary flex items-center gap-1">
+                  <button type="button" onClick={() => setIsSlugLocked(!isSlugLocked)} className="text-[9px] text-primary flex items-center gap-1 hover:underline">
                     {isSlugLocked ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
                     {isSlugLocked ? 'Unlock' : 'Lock'}
                   </button>
@@ -267,17 +233,17 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Technical Documentation</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Workflows & Documentation</Label>
               <RichTextEditor content={formData.description} onChange={(c) => setFormData({...formData, description: c})} />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-white/5 bg-muted/20"><CardTitle className="text-xl font-headline">Media & Workflows</CardTitle></CardHeader>
+          <CardHeader className="p-8 border-b border-white/5 bg-muted/20"><CardTitle className="text-xl font-headline text-midnight-ink">Visuals & Files</CardTitle></CardHeader>
           <CardContent className="p-8 space-y-8">
             <div className="grid gap-4">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gallery Visuals (Max 5)</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gallery Images (Max 5)</Label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {formData.images.map((img, i) => (
                   <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group bg-muted shadow-lg">
@@ -286,7 +252,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                   </div>
                 ))}
                 {formData.images.length < 5 && (
-                  <label className="aspect-square border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 border-white/10">
+                  <label className="aspect-square border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 border-white/10 transition-colors">
                     <Upload className="h-5 w-5 text-muted-foreground mb-1" />
                     <span className="text-[8px] font-bold uppercase text-muted-foreground">Upload</span>
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
@@ -297,10 +263,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Source Asset (Secure R2)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Main Asset File (Private)</Label>
                 <div className="flex gap-2">
                   <div className="h-12 flex-1 bg-muted/30 border border-white/5 rounded-xl flex items-center px-4 font-mono text-[9px] text-muted-foreground truncate">
-                    {formData.fileKey ? 'ENCRYPTED_SYNC_ACTIVE' : 'AWAITING_UPLOAD'}
+                    {formData.fileKey ? 'SYNCED: ' + formData.fileKey.split('/').pop() : 'AWAITING_UPLOAD'}
                   </div>
                   <Button type="button" variant="outline" className="h-12 px-4 rounded-xl relative overflow-hidden border-white/10">
                     <Upload className="h-4 w-4" />
@@ -309,10 +275,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                 </div>
               </div>
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preview Asset (Limited)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preview Asset (Public)</Label>
                 <div className="flex gap-2">
                   <div className="h-12 flex-1 bg-muted/30 border border-white/5 rounded-xl flex items-center px-4 font-mono text-[9px] text-muted-foreground truncate">
-                    {formData.previewFileKey ? 'PREVIEW_ACTIVE' : 'NO_PREVIEW'}
+                    {formData.previewFileKey ? 'SYNCED: ' + formData.previewFileKey.split('/').pop() : 'OPTIONAL'}
                   </div>
                   <Button type="button" variant="outline" className="h-12 px-4 rounded-xl relative overflow-hidden border-white/10">
                     <Upload className="h-4 w-4" />
@@ -328,11 +294,11 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       <div className="lg:col-span-4 space-y-8">
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
           <CardHeader className="p-6 border-b border-white/5 bg-primary/5">
-            <CardTitle className="text-lg font-headline text-primary flex items-center gap-2"><Zap className="h-4 w-4" /> Commercials</CardTitle>
+            <CardTitle className="text-lg font-headline text-primary flex items-center gap-2"><Zap className="h-4 w-4" /> Pricing & Meta</CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Classification</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Category</Label>
               <Select value={formData.categoryId} onValueChange={(val) => setFormData({...formData, categoryId: val})}>
                 <SelectTrigger className="h-12 bg-background/50 rounded-xl"><SelectValue placeholder="Select Category" /></SelectTrigger>
                 <SelectContent>
@@ -345,14 +311,14 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Value (INR)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Price (INR)</Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
                   <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} className="h-12 bg-background/50 rounded-xl pl-8 font-bold" />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Strike Value</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Strike Price</Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
                   <Input type="number" value={formData.compareAtPrice} onChange={(e) => setFormData({...formData, compareAtPrice: Number(e.target.value)})} className="h-12 bg-background/50 rounded-xl pl-8 text-muted-foreground" />
@@ -361,24 +327,27 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Technical Version</Label>
-              <Input value={formData.fileVersion} onChange={(e) => setFormData({...formData, fileVersion: e.target.value})} className="h-12 bg-background/50 rounded-xl font-mono text-xs" placeholder="e.g. 1.0.4" />
+              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Asset Format & Version</Label>
+              <div className="flex gap-2">
+                <Input value={formData.fileFormat} onChange={(e) => setFormData({...formData, fileFormat: e.target.value.toUpperCase()})} className="h-12 bg-background/50 rounded-xl font-mono text-xs" placeholder="ZIP, PDF..." />
+                <Input value={formData.fileVersion} onChange={(e) => setFormData({...formData, fileVersion: e.target.value})} className="h-12 bg-background/50 rounded-xl font-mono text-xs" placeholder="v1.0" />
+              </div>
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Indexing Tags</Label>
-              <Input value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} className="h-12 bg-background/50 rounded-xl text-xs" placeholder="ai, ui, react, gpt4..." />
+              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Search Tags</Label>
+              <Input value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} className="h-12 bg-background/50 rounded-xl text-xs" placeholder="ai, guide, toolkit..." />
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
           <CardHeader className="p-6 border-b border-white/5 bg-muted/30">
-            <CardTitle className="text-lg font-headline flex items-center gap-2"><Globe className="h-4 w-4" /> SEO Terminal</CardTitle>
+            <CardTitle className="text-lg font-headline text-midnight-ink flex items-center gap-2"><Globe className="h-4 w-4" /> SEO Terminal</CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-5">
             <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Meta Title</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Meta Title Override</Label>
               <Input value={formData.seo?.title} onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} className="h-10 bg-background/50 rounded-lg text-xs" />
             </div>
             <div className="grid gap-2">
@@ -389,28 +358,28 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         </Card>
 
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
-          <CardHeader className="p-6 border-b border-white/5 bg-muted/30"><CardTitle className="text-lg font-headline">Deployment Registry</CardTitle></CardHeader>
+          <CardHeader className="p-6 border-b border-white/5 bg-muted/30"><CardTitle className="text-lg font-headline text-midnight-ink">Publishing</CardTitle></CardHeader>
           <CardContent className="p-6 space-y-6">
             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
               <div className="space-y-1">
-                <p className="text-xs font-bold">Public Availability</p>
-                <p className="text-[10px] text-muted-foreground uppercase">Visible in catalog</p>
+                <p className="text-xs font-bold text-midnight-ink">Active Visibility</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Show in catalog</p>
               </div>
               <Switch checked={formData.isPublished} onCheckedChange={(val) => setFormData({...formData, isPublished: val})} />
             </div>
             <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
               <div className="space-y-1">
-                <p className="text-xs font-bold text-primary">Featured Slot</p>
-                <p className="text-[10px] text-primary/60 uppercase">High-velocity placement</p>
+                <p className="text-xs font-bold text-primary">Featured Product</p>
+                <p className="text-[10px] text-primary/60 uppercase">Homepage placement</p>
               </div>
               <Switch checked={formData.isFeatured} onCheckedChange={(val) => setFormData({...formData, isFeatured: val})} />
             </div>
           </CardContent>
         </Card>
 
-        <Button type="submit" disabled={isSaving} className="w-full h-16 rounded-2xl text-lg font-bold shadow-2xl shadow-primary/20 group">
+        <Button type="submit" disabled={isSaving} className="w-full h-16 rounded-2xl text-lg font-bold shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 group">
           {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-3" /> : <CheckCircle2 className="h-5 w-5 mr-3" />}
-          {id ? 'Sync Record' : 'Authorize Deployment'}
+          {id ? 'Synchronize Record' : 'Deploy Product'}
         </Button>
       </div>
     </form>

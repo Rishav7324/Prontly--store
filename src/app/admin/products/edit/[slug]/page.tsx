@@ -1,26 +1,40 @@
 'use client';
 
 import { use, useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, limit, doc } from 'firebase/firestore';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
+/**
+ * @fileOverview Product Edit Resolver
+ * Handles dual resolution (Slug or ID) to ensure data is always found.
+ */
 export default function EditProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const db = useFirestore();
   
-  // Resolve the document by querying the slug index
-  const productQuery = useMemoFirebase(() => {
+  // 1. Attempt lookup by Slug field
+  const slugQuery = useMemoFirebase(() => {
     return db ? query(collection(db, 'products'), where('slug', '==', slug), limit(1)) : null;
   }, [db, slug]);
 
-  const { data: products, loading } = useCollection(productQuery);
-  const product = products?.[0];
+  const { data: slugResults, loading: slugLoading } = useCollection(slugQuery);
+  
+  // 2. Fallback: Attempt lookup by direct Document ID
+  const idRef = useMemoFirebase(() => {
+    return db ? doc(db, 'products', slug) : null;
+  }, [db, slug]);
 
-  if (loading) {
+  const { data: idResult, loading: idLoading } = useDoc(idRef);
+
+  // Resolve the actual product data from either source
+  const product = (slugResults && slugResults.length > 0) ? slugResults[0] : (idResult || null);
+  const isLoading = slugLoading && idLoading;
+
+  if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -28,12 +42,12 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     );
   }
 
-  if (!product) {
+  if (!product && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-96 space-y-4">
         <AlertCircle className="h-12 w-12 text-destructive opacity-50" />
-        <h2 className="text-xl font-bold">Product not detected</h2>
-        <p className="text-muted-foreground text-sm">The asset with slug "{slug}" could not be resolved in the catalog.</p>
+        <h2 className="text-xl font-bold text-midnight-ink">Product not found</h2>
+        <p className="text-muted-foreground text-sm">The asset with identifier "{slug}" could not be resolved.</p>
         <Button asChild variant="outline" className="rounded-xl">
           <Link href="/admin/products">Return to Catalog</Link>
         </Button>
@@ -48,13 +62,19 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
           <Link href="/admin/products"><ChevronLeft className="h-4 w-4" /></Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold font-headline">Modify Asset</h1>
-          <p className="text-muted-foreground text-xs font-mono uppercase tracking-widest">Index UID: {product.id}</p>
+          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Modify Asset</h1>
+          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
+            Index UID: {product?.id}
+          </p>
         </div>
       </header>
 
-      {/* Synchronize form with the resolved document ID */}
-      <ProductForm initialData={product} id={product.id} />
+      {/* Passing a key forces re-render when data is ready, solving hydration issues */}
+      <ProductForm 
+        key={product?.id || 'loading'} 
+        initialData={product} 
+        id={product?.id} 
+      />
     </div>
   );
 }
