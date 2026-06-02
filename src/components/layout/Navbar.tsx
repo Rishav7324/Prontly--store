@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Heart, ShieldCheck, LayoutDashboard, Settings, LogOut, Search } from 'lucide-react';
+import { ShoppingCart, Heart, ShieldCheck, LayoutDashboard, Settings, LogOut, Search, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useUser, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { 
@@ -20,7 +21,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { CartDrawer } from '../store/CartDrawer';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export function Navbar() {
@@ -32,6 +32,7 @@ export function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -49,6 +50,13 @@ export function Navbar() {
     }
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   const cartItemCount = mounted ? getItemCount() : 0;
 
   return (
@@ -61,13 +69,13 @@ export function Navbar() {
       >
         <nav 
           className={cn(
-            "w-full max-w-6xl h-14 flex items-center justify-between px-4 transition-all duration-300 rounded-xl pointer-events-auto border",
+            "w-full max-w-7xl h-12 flex items-center justify-between px-4 transition-all duration-300 rounded-xl pointer-events-auto border",
             isScrolled 
               ? "bg-white/80 backdrop-blur-xl border-white/40 shadow-xl" 
               : "bg-transparent border-transparent"
           )}
         >
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8 lg:w-1/4">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="relative h-7 w-7 overflow-hidden rounded-lg bg-white/5 transition-transform group-hover:scale-105">
                 <Image 
@@ -80,24 +88,37 @@ export function Navbar() {
               <span className="font-headline text-lg font-bold tracking-tighter text-midnight-ink">Prontly</span>
             </Link>
             
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/products" className="text-[10px] font-bold text-slate-blue hover:text-primary transition-colors uppercase tracking-[0.15em]">Marketplace</Link>
-              <Link href="/blog" className="text-[10px] font-bold text-slate-blue hover:text-primary transition-colors uppercase tracking-[0.15em]">Resources</Link>
+            <div className="hidden xl:flex items-center gap-6">
+              <Link href="/products" className="text-[9px] font-black text-slate-blue hover:text-primary transition-colors uppercase tracking-[0.2em]">Marketplace</Link>
+              <Link href="/blog" className="text-[9px] font-black text-slate-blue hover:text-primary transition-colors uppercase tracking-[0.2em]">Resources</Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* SEARCH TERMINAL */}
+          <div className="hidden md:flex flex-1 max-w-md px-4">
+             <form onSubmit={handleSearch} className="w-full relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ghost-gray opacity-50" />
+                <Input 
+                  placeholder="Search assets..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-8 bg-black/5 border-none rounded-lg pl-9 text-[11px] font-medium placeholder:text-ghost-gray/60 focus-visible:ring-1 focus-visible:ring-primary/20"
+                />
+             </form>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 lg:w-1/4">
             <div className="flex items-center gap-0.5 border-r border-stone-gray/10 pr-2 mr-1">
-              <Button variant="ghost" size="icon" className="text-slate-blue hover:text-primary rounded-full h-9 w-9" asChild>
+              <Button variant="ghost" size="icon" className="text-slate-blue hover:text-primary rounded-full h-8 w-8" asChild>
                 <Link href="/wishlist">
                   <Heart className={cn("h-4 w-4", itemIds.length > 0 && "fill-primary text-primary")} />
                 </Link>
               </Button>
 
-              <Button variant="ghost" size="icon" className="relative text-slate-blue hover:text-primary rounded-full h-9 w-9" onClick={() => setIsCartOpen(true)}>
+              <Button variant="ghost" size="icon" className="relative text-slate-blue hover:text-primary rounded-full h-8 w-8" onClick={() => setIsCartOpen(true)}>
                 <ShoppingCart className="h-4 w-4" />
                 {cartItemCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-3 w-3 rounded-full bg-primary border border-white text-[7px] font-black text-white flex items-center justify-center">
+                  <span className="absolute top-1 right-1 h-3 w-3 rounded-full bg-primary border border-white text-[7px] font-black text-white flex items-center justify-center">
                     {cartItemCount}
                   </span>
                 )}
@@ -122,27 +143,30 @@ export function Navbar() {
                   <DropdownMenuSeparator className="bg-stone-gray/5" />
                   <div className="space-y-1">
                     {isAdmin && (
-                      <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 text-[11px] font-bold">
-                        <Link href="/admin"><ShieldCheck className="h-3.5 w-3.5 mr-2" /> Admin Center</Link>
+                      <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 text-[10px] font-bold uppercase tracking-wider">
+                        <Link href="/admin"><ShieldCheck className="h-3.5 w-3.5 mr-2 text-primary" /> Admin Center</Link>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 text-[11px] font-bold">
-                      <Link href="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-2" /> Library</Link>
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 text-[10px] font-bold uppercase tracking-wider">
+                      <Link href="/dashboard"><LayoutDashboard className="h-3.5 w-3.5 mr-2 text-primary" /> My Library</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer h-9 text-[10px] font-bold uppercase tracking-wider">
+                      <Link href="/dashboard/settings"><Settings className="h-3.5 w-3.5 mr-2 text-primary" /> Settings</Link>
                     </DropdownMenuItem>
                   </div>
                   <DropdownMenuSeparator className="bg-stone-gray/5" />
-                  <DropdownMenuItem className="rounded-lg text-destructive cursor-pointer h-9 text-[11px] font-bold" onClick={handleSignOut}>
+                  <DropdownMenuItem className="rounded-lg text-destructive cursor-pointer h-9 text-[10px] font-bold uppercase tracking-wider" onClick={handleSignOut}>
                     <LogOut className="h-3.5 w-3.5 mr-2" /> Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Link href="/login">
-                  <Button variant="ghost" className="text-slate-blue hover:text-midnight-ink font-bold text-[10px] px-3 h-8 uppercase tracking-wider">Log in</Button>
+                  <Button variant="ghost" className="text-slate-blue hover:text-midnight-ink font-black text-[9px] px-3 h-8 uppercase tracking-[0.15em]">Log in</Button>
                 </Link>
                 <Link href="/signup">
-                  <Button className="h-8 px-4 rounded-lg bg-deep-violet text-white font-bold text-[10px] shadow-sm uppercase tracking-wider">
+                  <Button className="h-8 px-4 rounded-lg bg-deep-violet text-white font-black text-[9px] shadow-lg shadow-deep-violet/10 uppercase tracking-[0.15em]">
                     Sign up
                   </Button>
                 </Link>
