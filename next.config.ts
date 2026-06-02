@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://cdn.prontly.in https://images.unsplash.com https://picsum.photos https://lh3.googleusercontent.com; connect-src 'self' https://lottie.host https://*.firebaseio.com https://*.googleapis.com https://api.razorpay.com https://www.google-analytics.com; frame-src https://api.razorpay.com https://checkout.razorpay.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://lottie.host; upgrade-insecure-requests;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://checkout.razorpay.com https://www.googletagmanager.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://cdn.prontly.in https://images.unsplash.com https://picsum.photos https://lh3.googleusercontent.com; connect-src 'self' https://lottie.host https://*.firebaseio.com https://*.googleapis.com https://api.razorpay.com https://www.google-analytics.com; frame-src https://api.razorpay.com https://checkout.razorpay.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: https://lottie.host; worker-src 'self' blob:; upgrade-insecure-requests;",
           },
           {
             key: 'X-Frame-Options',
