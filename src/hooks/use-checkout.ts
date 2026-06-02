@@ -68,8 +68,8 @@ export function useCheckout() {
 
           if (verifyRes.ok) {
             clearCart();
-            toast({ title: "Purchase Complete", description: "Your assets are now available in the library." });
-            router.push("/dashboard/downloads");
+            // Redirect to the new specialized success terminal
+            router.push(`/checkout/success?orderId=${data.orderId}`);
           } else {
             toast({ 
               variant: "destructive", 
