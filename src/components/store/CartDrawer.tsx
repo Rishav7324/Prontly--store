@@ -23,9 +23,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     setMounted(true);
   }, []);
 
-  const handleRemove = (e: React.MouseEvent, id: string, name: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRemove = (id: string, name: string) => {
     removeItem(id);
     toast({ title: "Item Removed", description: `${name} has been removed.` });
   };
@@ -67,7 +65,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-bold text-midnight-ink truncate leading-tight group-hover:text-primary transition-colors">{item.name}</h4>
                         <button 
-                          onClick={(e) => handleRemove(e, item.id, item.name)}
+                          onClick={() => handleRemove(item.id, item.name)}
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
                           type="button"
                         >

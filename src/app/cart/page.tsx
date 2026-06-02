@@ -28,11 +28,9 @@ export default function CartPage() {
     setMounted(true);
   }, []);
 
-  const handleRemove = (e: React.MouseEvent, id: string, name: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRemove = (id: string, name: string) => {
     removeItem(id);
-    toast({ title: "Item Removed", description: `${name} has been removed.` });
+    toast({ title: "Item Removed", description: `${name} has been removed from your cart.` });
   };
 
   if (!mounted) return null;
@@ -94,7 +92,7 @@ export default function CartPage() {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={(e) => handleRemove(e, item.id, item.name)}
+                          onClick={() => handleRemove(item.id, item.name)}
                           className="text-muted-foreground hover:text-destructive h-8 w-8"
                         >
                           <Trash2 className="h-4 w-4" />
