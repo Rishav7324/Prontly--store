@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { generateMeta } from '@/lib/seo/generate-meta';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Zap, ShieldCheck, Cpu, Globe, Rocket, Users } from 'lucide-react';
 import Link from 'next/link';
 
