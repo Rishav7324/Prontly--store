@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, Loader2, Save, ImageIcon, Sparkles, Wand2, ArrowUpRight, Globe, Lock, Eye } from 'lucide-react';
+import { ChevronLeft, Loader2, Save, ImageIcon, Sparkles, Wand2, ArrowUpRight, Globe, Lock, Eye, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
@@ -309,4 +309,3 @@ export default function NewBlogPostPage() {
     </div>
   );
 }
-
