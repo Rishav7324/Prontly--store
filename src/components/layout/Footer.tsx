@@ -10,7 +10,7 @@ export function Footer() {
     <footer className="border-t bg-white py-12">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
-          {/* Column 1: Brand & Identity (Takes up 4 cols) */}
+          {/* Column 1: Brand & Identity */}
           <div className="md:col-span-5 space-y-6">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-primary shadow-sm">
@@ -24,8 +24,8 @@ export function Footer() {
               <span className="font-bold text-2xl tracking-tight text-midnight-ink">Prontly</span>
             </Link>
             <p className="text-slate-blue text-base leading-relaxed max-w-sm font-medium">
-              High-quality digital assets for creators and developers. 
-              Find the tools you need to build your projects faster.
+              High-quality digital assets for professional creators. 
+              Engineering tools that accelerate your production workflow.
             </p>
             
             <div className="flex gap-3">
@@ -53,8 +53,8 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Navigation Links (Remaining 7 cols split into 2-column layout) */}
-          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-2 gap-8 md:pl-12">
+          {/* Navigation Links */}
+          <div className="md:col-span-7 grid grid-cols-2 gap-8 md:pl-12">
             <div className="space-y-4">
               <h4 className="text-xs font-black uppercase tracking-widest text-midnight-ink">Marketplace</h4>
               <ul className="space-y-3">
@@ -72,6 +72,8 @@ export function Footer() {
                 <li><Link href="/contact" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Contact & Support</Link></li>
                 <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Terms of Service</Link></li>
+                <li><Link href="/delivery-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Delivery Policy</Link></li>
+                <li><Link href="/refund-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Refund Policy</Link></li>
               </ul>
             </div>
           </div>
