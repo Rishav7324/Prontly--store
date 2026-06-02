@@ -181,9 +181,9 @@ export default function Home() {
         </section>
 
         {/* WHY PRONTLY - PRECISION GRID */}
-        <section className="py-24 bg-foreground text-white overflow-hidden relative">
+        <section className="py-24 bg-white border-y border-stone-gray/5 overflow-hidden relative">
            <div className="container mx-auto px-4 max-w-7xl relative z-10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-16">
                  {[
                    { title: "Instant Access", desc: "Download source files immediately after payment verification.", icon: Zap },
                    { title: "Expert Crafted", desc: "Professionally engineered prompts tested for production accuracy.", icon: Cpu },
@@ -192,19 +192,21 @@ export default function Home() {
                    { title: "Mobile Friendly", desc: "Access your dashboard and library from any device.", icon: Globe },
                    { title: "Premium Quality", desc: "High-value digital assets curated for elite performance.", icon: Star },
                  ].map((feature, i) => (
-                   <div key={i} className="space-y-4 group">
-                      <div className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-all duration-300">
-                         <feature.icon className="h-6 w-6" />
+                   <div key={i} className="flex gap-6 group">
+                      <div className="h-14 w-14 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shrink-0 shadow-sm">
+                         <feature.icon className="h-7 w-7" />
                       </div>
-                      <h4 className="text-lg font-bold">{feature.title}</h4>
-                      <p className="text-white/60 text-sm leading-relaxed font-medium">{feature.desc}</p>
+                      <div className="space-y-2">
+                        <h4 className="text-xl font-bold text-midnight-ink">{feature.title}</h4>
+                        <p className="text-muted-foreground text-sm leading-relaxed font-medium">{feature.desc}</p>
+                      </div>
                    </div>
                  ))}
               </div>
            </div>
            {/* Decorative elements */}
-           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/20 rounded-full blur-[100px]" />
-           <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-[80px]" />
+           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-[100px] -z-10" />
+           <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -z-10" />
         </section>
 
         {/* FINAL CONVERSION TERMINAL */}
