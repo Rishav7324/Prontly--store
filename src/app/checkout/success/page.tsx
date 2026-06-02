@@ -4,13 +4,14 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Download, Loader2, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { Download, Loader2, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 /**
  * @fileOverview Specialized Order Success Terminal
  * Features a mobile "Half-Screen" layout and desktop "Square Popup" visual style.
+ * Integrates high-fidelity video fulfillment animation.
  */
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -26,30 +27,32 @@ function SuccessContent() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background relative overflow-hidden">
       {/* Background Decorative Elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
       
       <main className="container mx-auto px-4 z-10 flex items-center justify-center h-full">
         {/* Success Container: Adaptive Layout */}
         <div className={cn(
           "bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] border border-stone-gray/10 flex flex-col items-center justify-center text-center transition-all duration-1000 ease-out animate-in fade-in zoom-in-95",
           // Mobile: Half screen fixed at bottom
-          "fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-[3rem] p-10",
+          "fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-[3rem] p-10",
           // Desktop: Square popup centered
           "sm:relative sm:bottom-auto sm:h-auto sm:max-w-md sm:aspect-square sm:rounded-[4rem] sm:p-12"
         )}>
-          {/* Animated Success Visual */}
-          <div className="relative h-32 w-32 mb-8 group">
-            <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping duration-1000" />
-            <div className="relative h-full w-full bg-green-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-500/30 transform transition-transform group-hover:scale-110">
-              <CheckCircle2 className="h-16 w-16 text-white" />
-            </div>
-            <div className="absolute -top-2 -right-2">
-                <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
-            </div>
+          {/* Lottie Video Success Visual */}
+          <div className="relative h-48 w-48 -mt-12 sm:-mt-16 mb-4 overflow-hidden pointer-events-none">
+            <video
+              src="https://lottie.host/9055b5eb-3f6e-464d-a72d-d223e1906f09/G74N0kKk6b.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-contain"
+            />
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1">
+            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-accent mb-1">
                 <ShieldCheck className="h-3.5 w-3.5" /> Fulfillment Confirmed
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight text-midnight-ink">Order Successful.</h1>
@@ -59,18 +62,18 @@ function SuccessContent() {
           </div>
 
           <p className="mt-6 text-muted-foreground text-sm leading-relaxed max-w-[280px] font-medium italic">
-            "Your digital assets have been synchronized to your vault. Lifetime access is now active."
+            "Your assets have been synchronized to your vault. Access is now active."
           </p>
 
           <div className="mt-10 grid grid-cols-1 gap-4 w-full">
-            <Button asChild size="lg" className="h-16 rounded-2xl font-bold shadow-xl shadow-primary/20 text-lg group">
+            <Button asChild size="lg" className="h-14 rounded-2xl font-bold shadow-xl shadow-accent/20 text-base group">
               <Link href="/dashboard/downloads">
                 Access Digital Vault
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
             
-            <Button variant="ghost" asChild className="h-10 text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray hover:text-primary">
+            <Button variant="ghost" asChild className="h-10 text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray hover:text-accent">
               <Link href="/dashboard">Return to Workspace</Link>
             </Button>
           </div>
@@ -86,7 +89,7 @@ export default function OrderSuccessPage() {
       <Navbar />
       <Suspense fallback={
         <div className="flex h-screen items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Loader2 className="h-10 w-10 animate-spin text-accent" />
         </div>
       }>
         <SuccessContent />
