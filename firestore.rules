@@ -62,7 +62,7 @@ service cloud.firestore {
 
     // Blog Posts
     match /blog_posts/{postId} {
-      allow read: if resource.data.status == 'published' || isAdmin();
+      allow read: if true;
       allow write: if isAdmin();
     }
 

@@ -48,7 +48,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 2. Fetch Blog Posts
     const blogSnap = await db.collection('blog_posts')
-      .where('status', '==', 'published')
       .select('slug', 'updatedAt', 'publishedAt')
       .get();
     

@@ -31,8 +31,7 @@ async function getPosts() {
         publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
         tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || []
       };
-    })
-    .filter((p: any) => status === ' ' );
+    });
 }
 
 export async function generateMetadata(): Promise<Metadata> {
