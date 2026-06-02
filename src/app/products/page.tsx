@@ -4,7 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MarketplaceClient } from '@/components/store/MarketplaceClient';
 import { firebaseConfig } from '@/firebase/config';
 import { generateMeta } from '@/lib/seo/generate-meta';
-import { getCollectionSchema } from '@/lib/seo/schema-builder';
+import { getCollectionSchema, getBreadcrumbSchema } from '@/lib/seo/schema-builder';
 
 interface MarketplacePageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -29,23 +29,26 @@ async function getInitialData() {
       };
     });
 
-    // 2. Fetch All Products (with slug)
+    // 2. Fetch All Products
     const prodRes = await fetch(`${baseUrl}/products?pageSize=100`, { next: { revalidate: 3600 } });
     const prodData = await prodRes.json();
     const products = (prodData.documents || []).map((doc: any) => {
       const fields = doc.fields || {};
       
-      // SAFETY: Robust mapping for potentially missing or differently typed Firestore fields
       return {
         id: doc.name.split('/').pop(),
         slug: fields.slug?.stringValue || "",
         name: fields.name?.stringValue || "Untitled Asset",
         price: parseInt(fields.price?.integerValue || fields.price?.doubleValue?.toString() || "0"),
-        categorySlug: fields.categorySlug?.stringValue || "",
+        compareAtPrice: parseInt(fields.compareAtPrice?.integerValue || fields.compareAtPrice?.doubleValue?.toString() || "0"),
+        categorySlug: fields.categorySlug?.stringValue || "asset",
         images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
         averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
-        salesCount: parseInt(fields.salesCount?.integerValue || fields.salesCount?.doubleValue?.toString() || "0"),
-        shortDescription: fields.shortDescription?.stringValue || ""
+        reviewCount: parseInt(fields.reviewCount?.integerValue || "0"),
+        salesCount: parseInt(fields.salesCount?.integerValue || "0"),
+        shortDescription: fields.shortDescription?.stringValue || "",
+        tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+        isFeatured: fields.isFeatured?.booleanValue || false
       };
     });
 
@@ -57,18 +60,20 @@ async function getInitialData() {
 }
 
 export async function generateMetadata({ searchParams }: MarketplacePageProps): Promise<Metadata> {
-  const { category, q } = await searchParams;
+  const sParams = await searchParams;
+  const category = sParams.category as string | undefined;
+  const q = sParams.q as string | undefined;
   
-  let title = "Browse All AI Prompts & Templates";
-  let description = "Shop premium AI prompts, UI kits and creator templates. Hand-tested for GPT-4o, Midjourney and Claude. Instant delivery.";
+  let title = "Digital Marketplace | Elite Assets & Templates";
+  let description = "Acquire professional-grade AI prompts, UI systems, and technical documentation. Instant electronic fulfillment with perpetual licensing.";
 
   if (category) {
-    title = `${category.toString().toUpperCase()} AI Prompts & Assets`;
-    description = `Premium ${category} digital assets and templates optimized for your workflow. Instant download with lifetime updates.`;
+    title = `${category.charAt(0).toUpperCase() + category.slice(1)} Assets — Prontly`;
+    description = `Browse our specialized inventory of ${category} assets. Engineered for performance and architectural scale.`;
   }
 
   if (q) {
-    title = `Search results for "${q}"`;
+    title = `Search results for "${q}" — Marketplace`;
   }
 
   return generateMeta({
@@ -84,6 +89,11 @@ export default async function ProductListingPage({ searchParams }: MarketplacePa
   const { categories, products } = await getInitialData();
 
   const collectionSchema = getCollectionSchema(category || "Digital Inventory", products);
+  const breadcrumbSchema = getBreadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Marketplace", path: "/products" },
+    ...(category ? [{ name: category.charAt(0).toUpperCase() + category.slice(1), path: `/products?category=${category}` }] : [])
+  ]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -91,8 +101,12 @@ export default async function ProductListingPage({ searchParams }: MarketplacePa
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 pt-32 pb-12">
+      <main className="flex-1 container mx-auto px-4 pt-32 pb-24 max-w-7xl">
         <MarketplaceClient 
           initialProducts={products} 
           initialCategories={categories} 
