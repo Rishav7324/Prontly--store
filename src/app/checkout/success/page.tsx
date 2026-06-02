@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 /**
  * @fileOverview Specialized Order Success Terminal
  * Features a mobile "Half-Screen" layout and desktop "Square Popup" visual style.
- * Integrates high-fidelity video fulfillment animation.
+ * Integrates high-fidelity video fulfillment animation from lottie.host.
  */
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -36,32 +36,34 @@ function SuccessContent() {
           // Mobile: Half screen fixed at bottom
           "fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-[3rem] p-10",
           // Desktop: Square popup centered
-          "sm:relative sm:bottom-auto sm:h-auto sm:max-w-md sm:aspect-square sm:rounded-[4rem] sm:p-12"
+          "sm:relative sm:bottom-auto sm:w-[500px] sm:h-[500px] sm:rounded-[4rem] sm:p-12"
         )}>
           {/* Lottie Video Success Visual */}
-          <div className="relative h-48 w-48 -mt-12 sm:-mt-16 mb-4 overflow-hidden pointer-events-none">
+          <div className="relative h-40 w-40 mb-6 overflow-hidden pointer-events-none flex items-center justify-center">
             <video
               src="https://lottie.host/9055b5eb-3f6e-464d-a72d-d223e1906f09/G74N0kKk6b.mp4"
               autoPlay
               muted
               loop
               playsInline
-              preload="metadata"
-              className="w-full h-full object-contain"
+              preload="auto"
+              className="w-full h-full object-contain scale-125"
             />
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-accent mb-1">
                 <ShieldCheck className="h-3.5 w-3.5" /> Fulfillment Confirmed
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight text-midnight-ink">Order Successful.</h1>
-            <p className="text-slate-blue text-xs font-bold uppercase tracking-widest bg-muted/50 py-1.5 px-4 rounded-lg inline-block">
-                REF: {orderId?.slice(-8).toUpperCase() || 'VERIFIED'}
-            </p>
+            <div className="inline-block">
+                <p className="text-slate-blue text-[10px] font-black uppercase tracking-widest bg-muted/50 py-1.5 px-4 rounded-lg">
+                    REF: {orderId?.slice(-8).toUpperCase() || 'VERIFIED'}
+                </p>
+            </div>
           </div>
 
-          <p className="mt-6 text-muted-foreground text-sm leading-relaxed max-w-[280px] font-medium italic">
+          <p className="mt-8 text-muted-foreground text-sm leading-relaxed max-w-[300px] font-medium italic">
             "Your assets have been synchronized to your vault. Access is now active."
           </p>
 
