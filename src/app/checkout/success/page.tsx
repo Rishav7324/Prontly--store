@@ -4,14 +4,15 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 /**
  * @fileOverview Specialized Order Success Terminal
  * Features a mobile "Half-Screen" layout and desktop "Square Popup" visual style.
- * Integrates high-fidelity video fulfillment animation from lottie.host.
+ * Integrates DotLottie animation for a professional fulfillment experience.
  */
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -38,16 +39,12 @@ function SuccessContent() {
           // Desktop: Square popup centered
           "sm:relative sm:bottom-auto sm:w-[500px] sm:h-[500px] sm:rounded-[4rem] sm:p-12"
         )}>
-          {/* Lottie Video Success Visual */}
-          <div className="relative h-40 w-40 mb-6 overflow-hidden pointer-events-none flex items-center justify-center">
-            <video
-              src="https://lottie.host/9055b5eb-3f6e-464d-a72d-d223e1906f09/G74N0kKk6b.mp4"
-              autoPlay
-              muted
+          {/* Lottie Animation Success Visual */}
+          <div className="relative h-48 w-48 mb-4 pointer-events-none flex items-center justify-center">
+            <DotLottieReact
+              src="https://lottie.host/7db04fd3-72d7-48d9-94ed-b35c3f31c42f/YKy5xvFHcB.lottie"
               loop
-              playsInline
-              preload="auto"
-              className="w-full h-full object-contain scale-125"
+              autoplay
             />
           </div>
 
