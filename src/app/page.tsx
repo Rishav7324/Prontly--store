@@ -100,7 +100,7 @@ export default function Home() {
       ? (rawProducts.reduce((sum, p) => sum + (p.averageRating || 5.0), 0) / rawProducts.length).toFixed(1)
       : '4.9';
     return {
-      downloads: totalDownloads > 0 ? totalDownloads : 5000, // Show floor of 5000 for brand authority if early
+      downloads: totalDownloads > 0 ? totalDownloads : 5000,
       count: rawProducts.length,
       rating: avgRating
     };
@@ -125,7 +125,7 @@ export default function Home() {
                     Scale Your Creative <span className="text-accent">Workflow</span> with Verified Tools
                   </h1>
                   <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-                    Discover professionally crafted AI prompts, automation systems, and business-ready resources engineered for production scale.
+                    Discover professionally crafted prompts, automation systems, creator resources, and business-ready digital assets.
                   </p>
                 </div>
 
@@ -214,7 +214,7 @@ export default function Home() {
             <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div className="space-y-1">
                 <h2 className="text-headline-xl">Catalog Categories</h2>
-                <p className="text-muted-foreground text-sm font-medium">Explore the technical depth of our verified collections.</p>
+                <p className="text-muted-foreground text-sm font-medium">Explore the depth of our verified collections.</p>
               </div>
               <Button variant="ghost" asChild className="text-accent font-bold hover:bg-accent/5 px-4 h-10 rounded-xl">
                 <Link href="/products">Browse All <ArrowRight className="h-4 w-4 ml-2" /></Link>
@@ -268,10 +268,10 @@ export default function Home() {
                  {[
                    { title: "Instant Access", desc: "Download source files immediately after payment verification via Global R2 Edge.", icon: Zap },
                    { title: "Expert Crafted", desc: "Professionally engineered prompts tested for production accuracy and results.", icon: Cpu },
-                   { title: "Lifetime Updates", desc: "Access future version updates and technical maintenance at no additional cost.", icon: CheckCircle2 },
+                   { title: "Lifetime Updates", desc: "Access future version updates and maintenance at no additional cost.", icon: CheckCircle2 },
                    { title: "Secure Payments", desc: "Enterprise-grade encryption and PCI-compliant processing for every transaction.", icon: ShieldCheck },
                    { title: "Mobile Friendly", desc: "Manage your dashboard and access your digital library from any device, anywhere.", icon: Globe },
-                   { title: "Verified Quality", desc: "All digital assets undergo rigorous technical verification before listing.", icon: Shield },
+                   { title: "Verified Quality", desc: "All digital assets undergo rigorous verification before listing.", icon: Shield },
                  ].map((feature, i) => (
                    <div key={i} className="flex gap-6 group">
                       <div className="h-14 w-14 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shrink-0 shadow-sm">
@@ -298,7 +298,7 @@ export default function Home() {
               <div className="relative z-10 space-y-6 max-w-3xl mx-auto">
                 <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-[0.2em] font-black py-1 px-4 rounded-full text-[10px]">Ready to Build?</Badge>
                 <h2 className="text-3xl md:text-6xl font-bold font-headline leading-tight tracking-tight">Start Building Faster With Premium Assets</h2>
-                <p className="text-lg text-white/60 font-medium max-w-xl mx-auto leading-relaxed">Join thousands of creators scaling their creative architecture with our verified catalog.</p>
+                <p className="text-lg text-white/60 font-medium max-w-xl mx-auto leading-relaxed">Join thousands of creators scaling their creative workflows with our verified catalog.</p>
                 
                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
                   <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-white/90 h-14 px-12 text-sm font-bold rounded-xl shadow-xl transition-all hover:scale-105">
