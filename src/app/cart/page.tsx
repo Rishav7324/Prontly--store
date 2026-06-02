@@ -13,8 +13,7 @@ import {
   Minus, 
   ArrowRight, 
   ChevronLeft,
-  ShieldCheck,
-  Zap
+  ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -68,8 +67,8 @@ export default function CartPage() {
               <Link href="/products"><ChevronLeft className="h-5 w-5" /></Link>
             </Button>
             <div>
-              <h1 className="text-4xl font-bold font-headline text-midnight-ink">Shopping Cart.</h1>
-              <p className="text-sm text-muted-foreground mt-1">Ready to finalize your {getItemCount()} assets.</p>
+              <h1 className="text-3xl font-bold font-headline text-midnight-ink">Shopping Cart.</h1>
+              <p className="text-xs text-muted-foreground mt-1">Ready to finalize your {getItemCount()} assets.</p>
             </div>
           </div>
         </header>
@@ -85,21 +84,21 @@ export default function CartPage() {
                     </div>
                     <div className="flex-1 min-w-0 space-y-4">
                       <div className="flex justify-between items-start gap-4">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">{item.category}</p>
-                          <h3 className="font-bold text-lg text-midnight-ink truncate">{item.name}</h3>
+                          <h3 className="font-bold text-base sm:text-lg text-midnight-ink line-clamp-2 leading-tight">{item.name}</h3>
                         </div>
                         <Button 
                           variant="ghost" 
                           size="icon"
                           onClick={() => handleRemove(item.id, item.name)}
-                          className="text-muted-foreground hover:text-destructive h-8 w-8"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-9 w-9 shrink-0 transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center border border-stone-gray/20 rounded-lg p-1 bg-porcelain-white/50">
+                        <div className="flex items-center border border-stone-gray/10 rounded-lg p-1 bg-porcelain-white/50">
                           <button 
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="h-8 w-8 flex items-center justify-center hover:bg-white rounded-md transition-colors"

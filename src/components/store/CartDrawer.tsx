@@ -10,10 +10,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
-interface CartDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+interface CartDrawerProps { open: boolean; onOpenChange: (open: boolean) => void; }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { items, removeItem, updateQuantity, getTotal, getItemCount } = useCart();
@@ -61,18 +58,21 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                     <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-bold text-midnight-ink truncate leading-tight group-hover:text-primary transition-colors">{item.name}</h4>
+                    <div className="space-y-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-sm font-bold text-midnight-ink line-clamp-2 leading-tight group-hover:text-primary transition-colors">{item.name}</h4>
+                          <p className="text-[9px] font-black uppercase text-ghost-gray tracking-widest mt-1">{item.category}</p>
+                        </div>
                         <button 
                           onClick={() => handleRemove(item.id, item.name)}
-                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          className="text-muted-foreground hover:text-destructive transition-all p-1.5 hover:bg-destructive/5 rounded-lg shrink-0"
                           type="button"
+                          aria-label="Remove item"
                         >
-                          <X className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      <p className="text-[9px] font-black uppercase text-ghost-gray tracking-widest mt-1">{item.category}</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center border border-stone-gray/10 rounded-lg p-0.5 bg-porcelain-white/50">
