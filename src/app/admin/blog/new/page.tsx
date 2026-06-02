@@ -207,10 +207,10 @@ export default function NewBlogPostPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-10">
           <Card className="border-stone-gray/10 bg-white rounded-[2.5rem] overflow-hidden shadow-sm">
-            <CardHeader className="p-10 border-b border-stone-gray/5 bg-muted/20">
+            <CardHeader className="p-4 sm:p-10 border-b border-stone-gray/5 bg-muted/20">
               <CardTitle className="text-xl font-headline">Editorial Content</CardTitle>
             </CardHeader>
-            <CardContent className="p-10 space-y-8">
+            <CardContent className="p-4 sm:p-10 space-y-8">
               <div className="grid gap-3">
                 <Label htmlFor="title" className="text-[10px] font-black uppercase tracking-widest text-ghost-gray ml-1">Headline</Label>
                 <Input id="title" value={formData.title} onChange={handleTitleChange} required className="h-16 bg-background rounded-2xl text-2xl font-bold border-stone-gray/10 px-6" placeholder="Article title..." />

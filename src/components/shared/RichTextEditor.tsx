@@ -120,7 +120,7 @@ function EditorToolbar({ editor, onOpenBlockMenu }: EditorToolbarProps) {
 
   return (
     <div className="flex items-center w-full h-14 bg-white/90 backdrop-blur-xl border-b border-slate-100">
-      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2 px-4 w-full">
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2 px-2 md:px-4 w-full">
         <div className="flex items-center gap-1 pr-2 border-r border-slate-100">
           <ToolbarButton onClick={onOpenBlockMenu} title="Insert Element" className="bg-slate-900 text-white hover:bg-slate-800">
             <Plus className="w-5 h-5" />
@@ -341,7 +341,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     editorProps: {
       attributes: {
         class: cn(
-          'prose-content focus:outline-none min-h-[500px] px-4 md:px-24 py-12 md:py-24 text-base leading-relaxed selection:bg-primary/10 transition-all',
+          'prose-content focus:outline-none min-h-[500px] px-2 md:px-24 py-6 md:py-24 text-base leading-relaxed selection:bg-primary/10 transition-all',
           className
         ),
       },
@@ -392,4 +392,3 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ri
     </div>
   );
 }
-

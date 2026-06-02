@@ -32,7 +32,7 @@ async function getPosts() {
         tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || []
       };
     })
-    .filter((p: any) => p.status === 'published');
+    .filter((p: any) => status === ' ' );
 }
 
 export async function generateMetadata(): Promise<Metadata> {

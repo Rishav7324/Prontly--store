@@ -17,14 +17,14 @@ import {
   Trash2, 
   Image as ImageIcon, 
   Sparkles, 
-  CheckCircle2,
-  Lock,
-  Globe,
-  Zap,
-  ShieldCheck,
-  Search,
-  FileCode,
-  Info
+  CheckCircle2, 
+  Lock, 
+  Globe, 
+  Zap, 
+  ShieldCheck, 
+  Search, 
+  FileCode, 
+  Info 
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFileAction } from '@/app/actions/r2-actions';
@@ -199,7 +199,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-40 animate-in fade-in duration-500">
       <div className="lg:col-span-8 space-y-8">
         <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-white/5 bg-muted/20 flex flex-row items-center justify-between">
+          <CardHeader className="p-4 sm:p-8 border-b border-white/5 bg-muted/20 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-2xl font-headline text-midnight-ink">Product Specifications</CardTitle>
               <CardDescription>Primary asset identity and description.</CardDescription>
@@ -209,7 +209,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               AI Assistant
             </Button>
           </CardHeader>
-          <CardContent className="p-8 space-y-8">
+          <CardContent className="p-4 sm:p-8 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="grid gap-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Asset Name</Label>
@@ -240,8 +240,8 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         </Card>
 
         <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-white/5 bg-muted/20"><CardTitle className="text-xl font-headline text-midnight-ink">Visuals & Files</CardTitle></CardHeader>
-          <CardContent className="p-8 space-y-8">
+          <CardHeader className="p-4 sm:p-8 border-b border-white/5 bg-muted/20"><CardTitle className="text-xl font-headline text-midnight-ink">Visuals & Files</CardTitle></CardHeader>
+          <CardContent className="p-4 sm:p-8 space-y-8">
             <div className="grid gap-4">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gallery Images (Max 5)</Label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">

@@ -130,7 +130,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
           <Card className="rounded-[2rem] border-white/5 bg-card/30 shadow-sm overflow-hidden">
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-4 sm:p-8 space-y-6">
               <div className="grid gap-2">
                 <Label>Headline</Label>
                 <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required className="h-14 bg-background/50 rounded-2xl text-lg font-bold" />
