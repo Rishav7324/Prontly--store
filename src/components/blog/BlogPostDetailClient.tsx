@@ -111,7 +111,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
           <article className="lg:col-span-10 space-y-10">
             <header className="space-y-8 max-w-3xl">
               <nav className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.25em] text-primary mb-4">
-                <Link href="/blog" className="hover:opacity-70 transition-opacity">Editorial</Link>
+                <Link href="/blog" className="hover:opacity-70 transition-opacity">Blog</Link>
                 <ChevronRight className="h-2.5 w-2.5 opacity-40" />
                 <span className="text-midnight-ink opacity-60">Insight Case</span>
               </nav>
@@ -124,7 +124,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
                     </Badge>
                   ))}
                 </div>
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-headline leading-[1.1] tracking-tight text-midnight-ink">
+                <h1 className="text-2xl md:text-6xl lg:text-7xl font-bold font-headline leading-[1.1] tracking-tight text-midnight-ink">
                   {post.title}
                 </h1>
               </div>
@@ -136,7 +136,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-ghost-gray">Author</p>
-                    <p className="text-xs font-bold text-midnight-ink">{post.authorName || 'Prontly Editorial'}</p>
+                    <p className="text-xs font-bold text-midnight-ink">{post.authorName || 'Prontly Store'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
               </div>
             </header>
 
-            <div className="relative aspect-[21/9] w-full overflow-hidden rounded-[2.5rem] border border-stone-gray/10 bg-muted shadow-2xl group">
+            <div className="relative h-[160px] w-full overflow-hidden rounded-[1rem] border border-stone-gray/10 bg-muted shadow-2xl group">
               <Image
                 src={post.featuredImage || `https://picsum.photos/seed/${post.id}/1200/600`}
                 alt={post.title}

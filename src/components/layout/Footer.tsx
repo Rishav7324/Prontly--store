@@ -2,17 +2,18 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Twitter, Instagram, Mail, Github, Linkedin, Globe, ShieldCheck } from 'lucide-react';
+import { Twitter, Instagram, Mail, Github, Linkedin, Globe, ShieldCheck, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function Footer() {
   return (
-    <footer className="border-t bg-porcelain-white py-16">
-      <div className="container mx-auto px-4 max-w-[1400px]">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-12">
-          <div className="lg:col-span-4 space-y-6">
+    <footer className="border-t bg-white py-12">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-12">
+          {/* Column 1: Brand & Identity */}
+          <div className="space-y-6">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white transition-transform group-hover:scale-110 shadow-sm border border-stone-gray/5">
+              <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-primary shadow-sm">
                 <Image 
                   src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
                   alt="Prontly Logo" 
@@ -20,11 +21,13 @@ export function Footer() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-midnight-ink font-headline">Prontly Store</span>
+              <span className="font-bold text-2xl tracking-tight text-midnight-ink">Prontly</span>
             </Link>
-            <p className="text-slate-blue text-sm leading-relaxed max-w-sm font-medium opacity-80">
-              The professional ecosystem for modern digital creation. Specialized technical prompts and UI systems engineered for production scale.
+            <p className="text-slate-blue text-base leading-relaxed max-w-sm font-medium">
+              High-quality digital assets for creators and developers. 
+              Find the tools you need to build your projects faster.
             </p>
+            
             <div className="flex gap-3">
               {[
                 { icon: Twitter, href: "#" },
@@ -32,74 +35,58 @@ export function Footer() {
                 { icon: Instagram, href: "#" },
                 { icon: Github, href: "#" },
               ].map((social, i) => (
-                <Button key={i} variant="ghost" size="icon" className="h-10 w-10 rounded-xl border border-stone-gray/10 text-slate-blue hover:text-primary hover:bg-white transition-all shadow-sm">
+                <Button key={i} variant="ghost" size="icon" className="h-10 w-10 rounded-xl border border-stone-gray/10 text-slate-blue hover:text-primary hover:bg-muted transition-all">
                   <social.icon className="h-4 w-4" />
                 </Button>
               ))}
             </div>
-            <div className="pt-2 flex items-center gap-4">
-               <div className="flex items-center gap-2 px-3 py-1 bg-green-500/5 rounded-full border border-green-500/10">
-                  <ShieldCheck className="h-3 w-3 text-green-500" />
-                  <span className="text-[9px] font-black uppercase text-green-600 tracking-widest">PCI Compliant</span>
+
+            <div className="pt-4 flex flex-wrap items-center gap-4">
+               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg border border-green-100">
+                  <ShieldCheck className="h-4 w-4 text-green-600" />
+                  <span className="text-[10px] font-bold text-green-700 uppercase tracking-wider">Secure Checkout</span>
                </div>
-               <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/5 rounded-full border border-blue-500/10">
-                  <Globe className="h-3 w-3 text-blue-500" />
-                  <span className="text-[9px] font-black uppercase text-blue-600 tracking-widest">Global Edge</span>
+               <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
+                  <Globe className="h-4 w-4 text-blue-600" />
+                  <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Instant Delivery</span>
                </div>
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Product</h4>
-            <ul className="space-y-3">
-              <li><Link href="/products" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">All Products</Link></li>
-              <li><Link href="/products?view=categories" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Categories</Link></li>
-              <li><Link href="/products?sort=newest" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">New Releases</Link></li>
-              <li><Link href="/products?view=featured" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Bestsellers</Link></li>
-            </ul>
-          </div>
+          {/* Column 2: Navigation Links in a nested grid */}
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-midnight-ink">Shop</h4>
+              <ul className="space-y-3">
+                <li><Link href="/products" className="text-sm text-slate-600 hover:text-primary transition-colors">All Products</Link></li>
+                <li><Link href="/products?view=categories" className="text-sm text-slate-600 hover:text-primary transition-colors">Categories</Link></li>
+                <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors">Blog & Guides</Link></li>
+                <li><Link href="/wishlist" className="text-sm text-slate-600 hover:text-primary transition-colors">My Wishlist</Link></li>
+              </ul>
+            </div>
 
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Resources</h4>
-            <ul className="space-y-3">
-              <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Insights Blog</Link></li>
-              <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Expert Guides</Link></li>
-              <li><Link href="/testimonials" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Case Studies</Link></li>
-              <li><Link href="/wishlist" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Personal Wishlist</Link></li>
-            </ul>
-          </div>
-
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Company</h4>
-            <ul className="space-y-3">
-              <li><Link href="/testimonials" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">About Prontly</Link></li>
-              <li><Link href="mailto:contact@prontly.in" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Contact Us</Link></li>
-              <li><Link href="mailto:support@prontly.in" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Tech Support</Link></li>
-              <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Community</Link></li>
-            </ul>
-          </div>
-
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Legal</h4>
-            <ul className="space-y-3">
-              <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Terms of Use</Link></li>
-              <li><Link href="/refund-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Refund Policy</Link></li>
-              <li><Link href="/delivery-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Delivery Engine</Link></li>
-            </ul>
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-midnight-ink">Support</h4>
+              <ul className="space-y-3">
+                <li><Link href="mailto:support@prontly.in" className="text-sm text-slate-600 hover:text-primary transition-colors">Help Center</Link></li>
+                <li><Link href="/delivery-policy" className="text-sm text-slate-600 hover:text-primary transition-colors">Delivery Info</Link></li>
+                <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div className="pt-10 border-t border-stone-gray/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[10px] text-ghost-gray font-black uppercase tracking-[0.2em]">
-            © {new Date().getFullYear()} Prontly Store • Digital Fulfillment Globally
+        <div className="pt-8 border-t border-stone-gray/10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-[11px] text-slate-400 font-medium">
+            © {new Date().getFullYear()} Prontly. All rights reserved.
           </p>
-          <div className="flex items-center gap-8">
-             <div className="flex items-center gap-2 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-default">
-                <Image src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" alt="Stripe" width={40} height={20} className="object-contain" />
-                <span className="text-[9px] font-bold text-midnight-ink uppercase tracking-wider">Secured Payments</span>
+          <div className="flex items-center gap-6">
+             <div className="flex items-center gap-2 opacity-50">
+                <CreditCard className="h-4 w-4 text-midnight-ink" />
+                <span className="text-[10px] font-bold text-midnight-ink uppercase tracking-wider">Verified Payments</span>
              </div>
-             <Link href="/cookies" className="text-[10px] text-ghost-gray font-black uppercase tracking-[0.2em] hover:text-primary transition-colors">Cookie Dashboard</Link>
+             <Link href="/cookies" className="text-[11px] text-slate-400 hover:text-primary transition-colors font-medium">Cookie Settings</Link>
           </div>
         </div>
       </div>
