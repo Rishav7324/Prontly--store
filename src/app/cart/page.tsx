@@ -32,7 +32,7 @@ export default function CartPage() {
     e.preventDefault();
     e.stopPropagation();
     removeItem(id);
-    toast({ title: "Item Removed", description: `${name} has been removed from your cart.` });
+    toast({ title: "Item Removed", description: `${name} has been removed.` });
   };
 
   if (!mounted) return null;
@@ -91,13 +91,14 @@ export default function CartPage() {
                           <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">{item.category}</p>
                           <h3 className="font-bold text-lg text-midnight-ink truncate">{item.name}</h3>
                         </div>
-                        <button 
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
                           onClick={(e) => handleRemove(e, item.id, item.name)}
-                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                          type="button"
+                          className="text-muted-foreground hover:text-destructive h-8 w-8"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center border border-stone-gray/20 rounded-lg p-1 bg-porcelain-white/50">
@@ -128,7 +129,7 @@ export default function CartPage() {
           </div>
 
           <div className="lg:col-span-4 space-y-6">
-            <Card className="border-stone-gray/10 bg-white rounded-[2rem] p-8 shadow-xl">
+            <Card className="border-stone-gray/10 bg-white rounded-[2.5rem] p-8 shadow-xl">
               <h2 className="text-xl font-bold font-headline text-midnight-ink mb-6">Order Recap</h2>
               <div className="space-y-4">
                 <div className="flex justify-between text-sm">
@@ -160,15 +161,6 @@ export default function CartPage() {
                 </div>
               </div>
             </Card>
-
-            <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Zap className="h-4 w-4" />
-              </div>
-              <p className="text-xs text-slate-blue leading-relaxed font-medium">
-                Purchased assets are added to your <strong className="text-midnight-ink">Digital Library</strong> immediately after verification. Perpetual licenses included.
-              </p>
-            </div>
           </div>
         </div>
       </main>

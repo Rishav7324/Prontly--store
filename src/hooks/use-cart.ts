@@ -1,8 +1,8 @@
-
 'use client';
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { analytics } from '@/lib/analytics';
 
 export interface CartItem {
   id: string;
@@ -28,16 +28,19 @@ export const useCart = create<CartStore>()(
     (set, get) => ({
       items: [],
       addItem: (newItem) => {
+        const item = { ...newItem, quantity: 1 };
+        analytics.addToCart(item);
+        
         set((state) => {
-          const existingItem = state.items.find((item) => String(item.id) === String(newItem.id));
+          const existingItem = state.items.find((i) => String(i.id) === String(newItem.id));
           if (existingItem) {
             return {
-              items: state.items.map((item) =>
-                String(item.id) === String(newItem.id) ? { ...item, quantity: item.quantity + 1 } : item
+              items: state.items.map((i) =>
+                String(i.id) === String(newItem.id) ? { ...i, quantity: i.quantity + 1 } : i
               ),
             };
           }
-          return { items: [...state.items, { ...newItem, quantity: 1 }] };
+          return { items: [...state.items, item] };
         });
       },
       removeItem: (id) => {
@@ -61,7 +64,7 @@ export const useCart = create<CartStore>()(
       },
     }),
     {
-      name: 'prontly-cart-v2',
+      name: 'prontly-cart-v3',
     }
   )
 );

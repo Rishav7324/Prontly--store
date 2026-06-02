@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,7 +27,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     e.preventDefault();
     e.stopPropagation();
     removeItem(id);
-    toast({ title: "Item Removed", description: `${name} has been removed from your cart.` });
+    toast({ title: "Item Removed", description: `${name} has been removed.` });
   };
 
   return (
@@ -70,6 +69,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                         <button 
                           onClick={(e) => handleRemove(e, item.id, item.name)}
                           className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                          type="button"
                         >
                           <X className="h-4 w-4" />
                         </button>

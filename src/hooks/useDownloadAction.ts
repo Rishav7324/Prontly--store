@@ -5,6 +5,7 @@ import { useAuth } from '@/firebase';
 import { useQueryClient } from '@tanstack/react-query';
 import type { GenerateDownloadUrlResponse } from '@/types/download';
 import { toast } from '@/hooks/use-toast';
+import { analytics } from '@/lib/analytics';
 
 interface DownloadState {
   isLoading: boolean;
@@ -23,6 +24,9 @@ export function useDownloadAction(productId: string, orderId: string) {
   const triggerDownload = useCallback(async () => {
     if (!user) return;
     setState(s => ({ ...s, isLoading: true, error: null }));
+    
+    // Log GA4 Event
+    analytics.downloadStart(productId, orderId);
 
     try {
       const token = await user.getIdToken();
@@ -39,18 +43,18 @@ export function useDownloadAction(productId: string, orderId: string) {
 
       if (!data.success || !data.signedUrl) {
         const messages: Record<string, string> = {
-          DOWNLOAD_LIMIT_REACHED: "Download limit reach ho gayi. Support se contact karo.",
-          RATE_LIMIT_EXCEEDED: "Bahut zyada requests. 1 ghante baad try karo.",
-          FILE_NOT_FOUND: "File nahi mili. Support se contact karo.",
-          DOWNLOAD_REVOKED: "Ye download revoke ho gayi hai. Support se contact karo.",
+          DOWNLOAD_LIMIT_REACHED: "License limit reached. Please contact support.",
+          RATE_LIMIT_EXCEEDED: "Too many attempts. Retry in 1 hour.",
+          FILE_NOT_FOUND: "Source artifact not found in vault.",
+          DOWNLOAD_REVOKED: "License access has been restricted.",
         };
-        throw new Error(messages[data.code ?? ""] ?? data.error ?? "Download failed");
+        throw new Error(messages[data.code ?? ""] ?? data.error ?? "Download failure");
       }
 
       // Trigger Browser Download
       const link = document.createElement("a");
       link.href = data.signedUrl;
-      link.download = data.fileName ?? "download";
+      link.download = data.fileName ?? "source-artifact";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
@@ -63,12 +67,12 @@ export function useDownloadAction(productId: string, orderId: string) {
       });
       
       queryClient.invalidateQueries({ queryKey: ['user-downloads'] });
-      toast({ title: "Starting Download", description: data.fileName });
+      toast({ title: "Authorization Validated", description: `Starting download: ${data.fileName}` });
 
     } catch (err: any) {
       const message = err.message || "Download failed";
       setState({ isLoading: false, error: message, remainingDownloads: null });
-      toast({ variant: "destructive", title: "Download Error", description: message });
+      toast({ variant: "destructive", title: "Vault Error", description: message });
     }
   }, [user, productId, orderId, queryClient]);
 

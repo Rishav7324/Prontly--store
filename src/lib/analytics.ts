@@ -1,4 +1,3 @@
-
 'use client';
 
 /**
@@ -41,9 +40,18 @@ export function trackEvent({ action, params }: TrackEventProps) {
 }
 
 /**
- * Specialized trackers for e-commerce flow
+ * Specialized trackers for high-performance e-commerce monitoring.
  */
 export const analytics = {
+  pageView: (title: string) => {
+    trackEvent({
+      action: 'page_view',
+      params: {
+        page_title: title,
+        page_location: window.location.href
+      }
+    });
+  },
   viewProduct: (product: any) => {
     trackEvent({
       action: 'product_view',
@@ -61,7 +69,6 @@ export const analytics = {
       action: 'add_to_cart',
       params: {
         product_id: item.id,
-        product_name: item.name,
         price: item.price / 100,
         currency: 'INR'
       }
@@ -82,9 +89,18 @@ export const analytics = {
       action: 'purchase',
       params: {
         transaction_id: order.id,
-        value: order.total / 100,
+        value: (order.totalAmount || order.total) / 100,
         currency: 'INR',
         items: order.items.map((i: any) => ({ item_id: i.productId, item_name: i.productName }))
+      }
+    });
+  },
+  downloadStart: (productId: string, orderId: string) => {
+    trackEvent({
+      action: 'download_start',
+      params: {
+        product_id: productId,
+        order_id: orderId
       }
     });
   },
@@ -94,6 +110,14 @@ export const analytics = {
       params: {
         search_term: term,
         result_count: count
+      }
+    });
+  },
+  signUp: (method: 'email' | 'google') => {
+    trackEvent({
+      action: 'sign_up',
+      params: {
+        method
       }
     });
   }
