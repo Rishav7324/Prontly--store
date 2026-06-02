@@ -1,40 +1,34 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-bg",
-      "description": "Abstract digital network landscape",
-      "imageUrl": "https://picsum.photos/seed/prontly-hero/1200/600",
-      "imageHint": "digital network"
-    },
-    {
-      "id": "product-1",
-      "description": "AI Prompt Engineering Guide",
-      "imageUrl": "https://picsum.photos/seed/prompt-guide/600/400",
+      "id": "hero-stack-1",
+      "description": "AI Prompt Pack Visual",
+      "imageUrl": "https://picsum.photos/seed/prontly-p1/600/800",
       "imageHint": "artificial intelligence"
     },
     {
-      "id": "product-2",
-      "description": "SaaS UI Dashboard Template",
-      "imageUrl": "https://picsum.photos/seed/saas-ui/600/400",
+      "id": "hero-stack-2",
+      "description": "Creator UI Kit Visual",
+      "imageUrl": "https://picsum.photos/seed/prontly-p2/600/800",
       "imageHint": "ui design"
     },
     {
-      "id": "product-3",
-      "description": "Digital Marketing Masterclass",
-      "imageUrl": "https://picsum.photos/seed/marketing/600/400",
-      "imageHint": "digital marketing"
+      "id": "coll-1",
+      "description": "Creator Bundle Collection",
+      "imageUrl": "https://picsum.photos/seed/coll1/800/600",
+      "imageHint": "creative workstation"
     },
     {
-      "id": "product-4",
-      "description": "React Component Library",
-      "imageUrl": "https://picsum.photos/seed/react-code/600/400",
-      "imageHint": "code programming"
+      "id": "coll-2",
+      "description": "AI Business Kit",
+      "imageUrl": "https://picsum.photos/seed/coll2/800/600",
+      "imageHint": "business office"
     },
     {
-      "id": "avatar-1",
-      "description": "User profile avatar",
-      "imageUrl": "https://picsum.photos/seed/user1/100/100",
-      "imageHint": "person portrait"
+      "id": "coll-3",
+      "description": "Prompt Engineer Pack",
+      "imageUrl": "https://picsum.photos/seed/coll3/800/600",
+      "imageHint": "code terminal"
     }
   ]
 }
