@@ -124,9 +124,9 @@ export default function Home() {
                   <h1 className="text-display-lg text-foreground">
                     Scale Your Creative <span className="text-accent">Workflow</span> with Verified Tools
                   </h1>
-                  <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
+                  <h2 className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed font-normal">
                     Discover professionally crafted prompts, automation systems, creator resources, and business-ready digital assets.
-                  </p>
+                  </h2>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -222,19 +222,22 @@ export default function Home() {
             </header>
 
             <div className="flex overflow-x-auto gap-5 pb-4 no-scrollbar snap-x">
-              {categories?.map((cat: any) => (
-                <Link key={cat.id} href={`/products?category=${cat.slug}`} className="snap-start shrink-0">
-                  <div className="w-52 h-60 bg-white border border-stone-gray/10 rounded-2xl p-6 flex flex-col items-center text-center justify-center space-y-4 transition-all hover:-translate-y-1 hover:shadow-xl group">
-                    <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center shadow-inner group-hover:bg-primary/5 transition-colors">
-                      <span className="text-2xl  group-hover:grayscale-0 transition-all">{cat.iconEmoji || '📦'}</span>
+              {categories?.map((cat: any) => {
+                const assetCount = rawProducts?.filter((p: any) => p.categorySlug === cat.slug).length || 0;
+                return (
+                  <Link key={cat.id} href={`/products?category=${cat.slug}`} className="snap-start shrink-0">
+                    <div className="w-52 h-60 bg-white border border-stone-gray/10 rounded-2xl p-6 flex flex-col items-center text-center justify-center space-y-4 transition-all hover:-translate-y-1 hover:shadow-xl group">
+                      <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center shadow-inner group-hover:bg-primary/5 transition-colors">
+                        <span className="text-2xl group-hover:grayscale-0 transition-all">{cat.iconEmoji || '📦'}</span>
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-sm leading-tight text-midnight-ink">{cat.name}</h4>
+                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{assetCount} Assets</p>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-sm leading-tight text-midnight-ink">{cat.name}</h4>
-                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{cat.productCount } Assets</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
