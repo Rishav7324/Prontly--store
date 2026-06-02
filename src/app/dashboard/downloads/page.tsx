@@ -31,7 +31,7 @@ export default function DownloadsPage() {
             </div>
             <h1 className="text-5xl md:text-7xl font-bold font-headline leading-tight tracking-tight">My Library.</h1>
             <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
-              Access your perpetual licenses and source files. All assets are cryptographically protected and delivered via Cloudflare Global Edge.
+              Access your perpetual licenses and source files. All assets are protected and delivered via Cloudflare Global Edge.
             </p>
           </div>
           <div className="flex gap-3">
@@ -54,7 +54,7 @@ export default function DownloadsPage() {
               <Ban className="h-12 w-12 text-red-500" />
             </div>
             <h3 className="text-3xl font-bold font-headline mb-4">Vault Sync Failure</h3>
-            <p className="text-muted-foreground max-w-md mx-auto mb-10 text-lg leading-relaxed">We encountered a guidelines error while synchronizing your library. Please verify your credentials and retry.</p>
+            <p className="text-muted-foreground max-w-md mx-auto mb-10 text-lg leading-relaxed">We encountered an error while synchronizing your library. Please verify your credentials and retry.</p>
             <Button onClick={() => refetch()} className="rounded-2xl px-12 h-16 font-bold shadow-2xl shadow-primary/20">Retry Connection</Button>
           </div>
         ) : downloads?.length === 0 ? (
@@ -64,10 +64,10 @@ export default function DownloadsPage() {
             </div>
             <h2 className="text-4xl font-bold font-headline mb-6 tracking-tight">The vault is currently empty.</h2>
             <p className="text-muted-foreground max-w-md mx-auto mb-12 text-xl leading-relaxed font-light">
-              Acquire professional AI prompts and high-performance UI systems to start building your digital architecture.
+              Acquire professional AI prompts and high-performance UI systems to start building your technical workflows.
             </p>
             <Button asChild size="lg" className="rounded-2xl h-18 px-14 font-bold shadow-2xl shadow-primary/30 text-lg">
-              <Link href="/products">Explore Marketplace</Link>
+              <Link href="/products">Explore Catalog</Link>
             </Button>
           </div>
         ) : (
@@ -96,7 +96,7 @@ export default function DownloadsPage() {
                     <a href="mailto:store.support@prontly.in">Contact Data Support</a>
                   </Button>
                   <Button variant="ghost" className="rounded-2xl h-14 px-8 gap-2 text-primary font-bold hover:bg-primary/5" asChild>
-                    <Link href="/delivery-policy">Delivery guidelines <HelpCircle className="h-5 w-5" /></Link>
+                    <Link href="/delivery-policy">Delivery Policy <HelpCircle className="h-5 w-5" /></Link>
                   </Button>
                 </div>
               </div>

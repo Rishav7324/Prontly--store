@@ -54,7 +54,7 @@ async function getInitialData() {
 
     return { categories, products };
   } catch (error) {
-    console.error('[MARKETPLACE_DATA_FETCH_ERROR]:', error);
+    console.error('[CATALOG_DATA_FETCH_ERROR]:', error);
     return { categories: [], products: [] };
   }
 }
@@ -64,16 +64,16 @@ export async function generateMetadata({ searchParams }: MarketplacePageProps): 
   const category = sParams.category as string | undefined;
   const q = sParams.q as string | undefined;
   
-  let title = "Digital Marketplace | Elite Assets & Templates";
+  let title = "Product Catalog | Premium Assets & Templates";
   let description = "Acquire professional-grade AI prompts, UI systems, and technical documentation. Instant electronic fulfillment with perpetual licensing.";
 
   if (category) {
     title = `${category.charAt(0).toUpperCase() + category.slice(1)} Assets — Prontly`;
-    description = `Browse our specialized inventory of ${category} assets. Engineered for performance and architectural scale.`;
+    description = `Browse our specialized collection of ${category} assets. Built for professional performance.`;
   }
 
   if (q) {
-    title = `Search results for "${q}" — Marketplace`;
+    title = `Search results for "${q}" — Catalog`;
   }
 
   return generateMeta({
@@ -88,10 +88,10 @@ export default async function ProductListingPage({ searchParams }: MarketplacePa
   const category = sParams.category as string | undefined;
   const { categories, products } = await getInitialData();
 
-  const collectionSchema = getCollectionSchema(category || "Digital Inventory", products);
+  const collectionSchema = getCollectionSchema(category || "Product Catalog", products);
   const breadcrumbSchema = getBreadcrumbSchema([
     { name: "Home", path: "/" },
-    { name: "Marketplace", path: "/products" },
+    { name: "Catalog", path: "/products" },
     ...(category ? [{ name: category.charAt(0).toUpperCase() + category.slice(1), path: `/products?category=${category}` }] : [])
   ]);
 

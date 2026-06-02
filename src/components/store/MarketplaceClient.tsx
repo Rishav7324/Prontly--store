@@ -113,14 +113,14 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
 
   return (
     <div className="flex flex-col gap-12 lg:flex-row">
-      {/* 1. ARCHITECTURAL SIDEBAR */}
+      {/* 1. SIDEBAR NAVIGATION */}
       <aside className="w-full lg:w-72 space-y-12 flex-shrink-0">
         <div className="space-y-10">
-          {/* Categories Nexus */}
+          {/* Categories */}
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="h-1 w-4 bg-primary rounded-full" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Inventory Nexus</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Categories</h3>
             </div>
             <div className="space-y-1.5">
               <Button 
@@ -157,12 +157,12 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
             </div>
           </div>
 
-          {/* Data Cloud (Tags) */}
+          {/* Metadata Index (Tags) */}
           {popularTags.length > 0 && (
             <div>
                <div className="flex items-center gap-2 mb-6">
                 <div className="h-1 w-4 bg-slate-200 rounded-full" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Metadata Index</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Market Index</h3>
               </div>
               <div className="flex flex-wrap gap-2">
                 {popularTags.map(tag => (
@@ -188,7 +188,7 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
           )}
         </div>
 
-        {/* Enterprise Context */}
+        {/* Enterprise Solutions */}
         <Card className="bg-midnight-ink text-white rounded-[2rem] overflow-hidden border-none shadow-2xl relative group">
           <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
             <Zap className="h-16 w-16" />
@@ -196,11 +196,11 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
           <CardContent className="p-8 space-y-5">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-white/10 rounded-full">
                <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-               <span className="text-[8px] font-black uppercase tracking-widest">Enterprise Sync</span>
+               <span className="text-[8px] font-black uppercase tracking-widest">Enterprise Support</span>
             </div>
             <div className="space-y-2">
-              <h4 className="font-headline text-xl font-bold leading-tight">Custom Architecture.</h4>
-              <p className="text-[11px] text-white/60 leading-relaxed font-medium">Need specialized licensing or bulk seat synchronization for your technical team?</p>
+              <h4 className="font-headline text-xl font-bold leading-tight">Custom Solutions.</h4>
+              <p className="text-[11px] text-white/60 leading-relaxed font-medium">Need specialized licensing or bulk seat synchronization for your professional team?</p>
             </div>
             <Button variant="outline" className="w-full h-10 border-white/20 hover:bg-white hover:text-midnight-ink rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all">
               Launch Inquiry
@@ -209,15 +209,15 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
         </Card>
       </aside>
 
-      {/* 2. PRODUCT REGISTRY TERMINAL */}
+      {/* 2. PRODUCT CATALOG TERMINAL */}
       <div className="flex-1 space-y-10">
         <header className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
               <nav className="flex items-center gap-2 text-[9px] font-black text-ghost-gray uppercase tracking-widest mb-1 opacity-60">
-                <Link href="/" className="hover:text-primary transition-colors">Root</Link>
+                <Link href="/" className="hover:text-primary transition-colors">Home</Link>
                 <ChevronRight className="h-2.5 w-2.5" />
-                <span className="text-midnight-ink">Inventory</span>
+                <span className="text-midnight-ink">Catalog</span>
                 {categoryFilter && (
                   <>
                     <ChevronRight className="h-2.5 w-2.5" />
@@ -226,13 +226,13 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
                 )}
               </nav>
               <h1 className="text-3xl md:text-5xl font-bold font-headline tracking-tighter text-midnight-ink">
-                {searchQuery ? `Query: "${searchQuery}"` : (
+                {searchQuery ? `Search: "${searchQuery}"` : (
                   categoryFilter ? (
                     categories?.find((c: any) => c.slug === categoryFilter)?.name || categoryFilter
-                  ) : "Registry Index."
+                  ) : "Product Catalog."
                 )}
               </h1>
-              <p className="text-sm text-slate-blue font-medium">Verified source artifacts for architectural development.</p>
+              <p className="text-sm text-slate-blue font-medium">Verified source files for professional creation.</p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
           {/* ACTIVE FILTER LEDGER */}
           {(categoryFilter || tagFilter || searchQuery) && (
             <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-stone-gray/5">
-               <span className="text-[10px] font-black uppercase text-ghost-gray tracking-widest mr-2">Active Modifiers:</span>
+               <span className="text-[10px] font-black uppercase text-ghost-gray tracking-widest mr-2">Active Filters:</span>
                
                {categoryFilter && (
                  <Badge className="bg-primary/5 text-primary border border-primary/20 h-8 pl-3 pr-1.5 rounded-xl font-bold gap-2">
@@ -281,13 +281,13 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
                
                {searchQuery && (
                  <Badge className="bg-deep-violet/5 text-deep-violet border border-deep-violet/10 h-8 pl-3 pr-1.5 rounded-xl font-bold gap-2">
-                   Search: {searchQuery}
+                   Query: {searchQuery}
                    <Link href="/products" className="h-5 w-5 rounded-lg hover:bg-deep-violet/10 flex items-center justify-center transition-colors"><X className="h-3 w-3" /></Link>
                  </Badge>
                )}
 
                <Button variant="ghost" onClick={clearFilters} className="text-[9px] font-black uppercase text-rose-500 tracking-widest h-8 px-3 rounded-xl hover:bg-rose-50">
-                 Purge All Filters
+                 Clear Filters
                </Button>
 
                <div className="ml-auto text-[9px] font-black uppercase tracking-widest text-ghost-gray opacity-40">
@@ -305,10 +305,10 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
             <div className="h-24 w-24 rounded-[2.5rem] bg-white flex items-center justify-center mx-auto mb-8 shadow-xl border border-stone-gray/5">
               <Search className="h-10 w-10 text-ghost-gray opacity-20" />
             </div>
-            <h3 className="text-3xl font-bold font-headline text-midnight-ink mb-4">No matching artifacts.</h3>
-            <p className="text-slate-blue text-sm max-w-sm mx-auto leading-relaxed mb-10">Your current parameters returned zero registry entries. Adjust your filters or explore our root catalog.</p>
+            <h3 className="text-3xl font-bold font-headline text-midnight-ink mb-4">No matching products.</h3>
+            <p className="text-slate-blue text-sm max-w-sm mx-auto leading-relaxed mb-10">Your current parameters returned zero matches. Adjust your filters or explore our full catalog.</p>
             <Button variant="outline" onClick={clearFilters} className="rounded-xl h-12 px-10 border-stone-gray/20 font-bold text-xs uppercase tracking-widest hover:bg-midnight-ink hover:text-white transition-all shadow-sm">
-              Reset Registry Feed
+              Reset Product Feed
             </Button>
           </div>
         )}
@@ -318,10 +318,10 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
            <div className="pt-20 border-t border-stone-gray/5 flex flex-col items-center gap-4">
               <div className="flex items-center gap-3">
                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">End of Registry</span>
+                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">End of Catalog</span>
                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
               </div>
-              <p className="text-xs text-muted-foreground italic">Verified for architectural production standards.</p>
+              <p className="text-xs text-muted-foreground italic">Verified for professional production standards.</p>
            </div>
         )}
       </div>

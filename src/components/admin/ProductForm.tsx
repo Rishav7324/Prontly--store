@@ -213,7 +213,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           db, adminId: user.uid, adminEmail: user.email!,
           action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: docRef.id, details: { name: formData.name, slug: slugToSave }
         });
-        toast({ title: `Asset ${id ? 'Updated' : 'Deployed'}` });
+        toast({ title: `Product ${id ? 'Updated' : 'Deployed'}` });
         router.push('/admin/products');
       })
       .catch(async () => {
@@ -234,7 +234,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
           <CardHeader className="p-8 border-b border-white/5 bg-muted/20 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-headline">Product Architecture</CardTitle>
+              <CardTitle className="text-2xl font-headline">Product Specifications</CardTitle>
               <CardDescription>Primary identity and technical documentation.</CardDescription>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={handleAiGenerate} disabled={isGenerating} className="gap-2 rounded-xl h-10 border-primary/20 text-primary">
@@ -296,7 +296,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Source Artifact (Private R2)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Source File (Private R2)</Label>
                 <div className="flex gap-2">
                   <div className="h-12 flex-1 bg-muted/30 border border-white/5 rounded-xl flex items-center px-4 font-mono text-[9px] text-muted-foreground truncate">
                     {formData.fileKey ? 'ENCRYPTED_VAULT_SYNCED' : 'PENDING_UPLOAD'}
@@ -308,7 +308,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                 </div>
               </div>
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preview Artifact (Limited)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preview File (Limited)</Label>
                 <div className="flex gap-2">
                   <div className="h-12 flex-1 bg-muted/30 border border-white/5 rounded-xl flex items-center px-4 font-mono text-[9px] text-muted-foreground truncate">
                     {formData.previewFileKey ? 'PREVIEW_AUTHORIZED' : 'NO_PREVIEW'}
@@ -328,7 +328,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
       <div className="lg:col-span-4 space-y-8">
         <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
           <CardHeader className="p-6 border-b border-white/5 bg-primary/5">
-            <CardTitle className="text-lg font-headline text-primary flex items-center gap-2"><Zap className="h-4 w-4" /> Commercials</CardTitle>
+            <CardTitle className="text-lg font-headline text-primary flex items-center gap-2"><Zap className="h-4 w-4" /> Pricing</CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             <div className="grid gap-2">

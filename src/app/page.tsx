@@ -72,8 +72,8 @@ export default function Home() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const heroHeadline = settings?.homepageHeroCopy?.headline || "Elite Architecture for Modern Creators.";
-  const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Professional-grade AI prompts, modular UI systems, and high-performance documentation. Engineered to scale your workflow.";
+  const heroHeadline = settings?.homepageHeroCopy?.headline || "Premium Assets for Modern Creators.";
+  const heroSubheadline = settings?.homepageHeroCopy?.subheadline || "Professional-grade AI prompts, modular UI systems, and high-performance documentation. Built to scale your workflow.";
 
   return (
     <div className="min-h-screen bg-background flex flex-col selection:bg-primary selection:text-white">
@@ -88,7 +88,7 @@ export default function Home() {
                 <div className="space-y-4">
                   <Badge variant="outline" className="bg-white/80 border-primary/20 text-primary px-3 py-1 font-bold uppercase tracking-widest text-[9px] rounded-full shadow-sm">
                     <Sparkles className="h-2.5 w-2.5 mr-2 inline" />
-                    Market Intelligence Platform
+                    Digital Asset Marketplace
                   </Badge>
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-headline leading-[1.05] text-midnight-ink tracking-tight max-w-xl">
                     {heroHeadline}
@@ -100,7 +100,7 @@ export default function Home() {
 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <Button asChild size="lg" className="h-11 px-8 rounded-xl bg-deep-violet text-white font-bold shadow-xl shadow-deep-violet/20 transition-all active:scale-95 text-xs uppercase tracking-widest">
-                    <Link href="/products">Explore Inventory</Link>
+                    <Link href="/products">Explore Catalog</Link>
                   </Button>
                   <Button asChild variant="ghost" className="h-11 px-6 text-midnight-ink hover:text-primary font-bold transition-colors group text-xs uppercase tracking-widest">
                     <Link href="/signup" className="flex items-center gap-2">
@@ -183,7 +183,7 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
               {[
                 { label: "Market Volume", val: "₹1.2Cr+", icon: TrendingUp },
-                { label: "Verified Assets", val: "4.8k+", icon: ShieldCheck },
+                { label: "Verified Products", val: "4.8k+", icon: ShieldCheck },
                 { label: "Global Nodes", val: "120+", icon: Globe },
                 { label: "Active Creators", val: "18k+", icon: Users },
               ].map((m, i) => (
@@ -199,18 +199,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* COMPACT CATEGORIES NEXUS */}
+        {/* COMPACT CATEGORIES SECTION */}
         <section className="py-20 bg-porcelain-white/30">
           <div className="container mx-auto px-4 max-w-7xl">
             <header className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div className="space-y-2">
                 <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 font-bold uppercase text-[8px] tracking-widest px-3 py-1 rounded-full">
-                  Asset Nexus
+                  Product Categories
                 </Badge>
-                <h2 className="text-3xl md:text-4xl font-headline text-midnight-ink tracking-tight">Specialized categories.</h2>
+                <h2 className="text-3xl md:text-4xl font-headline text-midnight-ink tracking-tight">Specialized collections.</h2>
               </div>
               <Button variant="ghost" asChild className="text-primary font-bold h-auto p-0 flex items-center gap-2 text-xs uppercase tracking-widest hover:translate-x-1 transition-all">
-                <Link href="/products">Explore full inventory <ArrowRight className="h-3.5 w-3.5" /></Link>
+                <Link href="/products">Explore full catalog <ArrowRight className="h-3.5 w-3.5" /></Link>
               </Button>
             </header>
             
@@ -241,7 +241,7 @@ export default function Home() {
               <Badge variant="outline" className="text-green-600 border-green-500/20 bg-green-500/5 font-bold uppercase text-[8px] tracking-widest px-3 py-1 rounded-full">
                 Market Velocity
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-headline text-midnight-ink tracking-tight">Curated high-performance assets.</h2>
+              <h2 className="text-3xl md:text-4xl font-headline text-midnight-ink tracking-tight">Curated premium assets.</h2>
             </div>
             <div className="hidden md:flex gap-2">
                <Button variant="outline" size="sm" className="rounded-full h-9 px-5 text-[10px] font-black uppercase tracking-widest border-stone-gray/10">Bestsellers</Button>
@@ -258,7 +258,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* AUTHORIZATION TERMINAL - PROMO */}
+        {/* EXCLUSIVE OFFER TERMINAL - PROMO */}
         <section className="container mx-auto px-4 py-16 max-w-7xl">
            <div className="rounded-[3rem] bg-porcelain-white border border-stone-gray/10 p-8 md:p-16 flex flex-col lg:flex-row items-center gap-12 relative overflow-hidden shadow-sm">
               <div className="absolute top-0 right-0 p-10 opacity-[0.03] pointer-events-none">
@@ -268,9 +268,9 @@ export default function Home() {
               <div className="flex-1 space-y-6 text-center lg:text-left z-10">
                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-deep-violet/5 border border-deep-violet/10 rounded-full">
                     <Clock className="h-3 w-3 text-deep-violet" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-deep-violet">Limited Authorization Terminal</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-deep-violet">Limited Access Offer</span>
                  </div>
-                 <h2 className="text-3xl md:text-5xl font-headline text-midnight-ink tracking-tight leading-[1.1]">Accelerate your ecosystem with a <span className="text-primary italic">20% discount.</span></h2>
+                 <h2 className="text-3xl md:text-5xl font-headline text-midnight-ink tracking-tight leading-[1.1]">Accelerate your workflows with a <span className="text-primary italic">20% discount.</span></h2>
                  <p className="text-sm md:text-base text-slate-blue leading-relaxed max-w-xl">
                    Join the professional tier and unlock full access to our source file vault. Valid for all new account initializations this week.
                  </p>
@@ -313,7 +313,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                  {[
                    { name: "Siddharth K.", role: "AI Researcher", text: "The prompt engineering guides here are at a different level. Absolute production standards.", avatar: "1" },
-                   { name: "Elena Rossi", role: "UI/UX Lead", text: "Cleanest modular architecture I've found in months. Saved us weeks of development time.", avatar: "2" },
+                   { name: "Elena Rossi", role: "UI/UX Lead", text: "Cleanest modular assets I've found in months. Saved us weeks of development time.", avatar: "2" },
                    { name: "Marcus Chen", role: "Founder, SaaS Lab", text: "Instant delivery and perpetual updates make Prontly our go-to for technical assets.", avatar: "3" },
                  ].map((t, i) => (
                    <Card key={i} className="border-stone-gray/10 bg-porcelain-white/50 rounded-2xl shadow-sm hover:shadow-md transition-all">
@@ -346,7 +346,7 @@ export default function Home() {
             <div className="relative z-10 space-y-6 max-w-3xl mx-auto">
               <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-widest font-black py-1 px-4 rounded-full text-[9px]">Initialization</Badge>
               <h2 className="text-3xl md:text-6xl font-headline tracking-tight leading-[1.05]">Accelerate your creative output.</h2>
-              <p className="text-sm md:text-lg text-white/60 font-light leading-relaxed max-w-xl mx-auto">Join thousands of creators using Prontly to scale their technical and artistic infrastructure.</p>
+              <p className="text-sm md:text-lg text-white/60 font-light leading-relaxed max-w-xl mx-auto">Join thousands of creators using Prontly to scale their technical and artistic workflows.</p>
               
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8">
                 <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-porcelain-white h-14 px-12 text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95">

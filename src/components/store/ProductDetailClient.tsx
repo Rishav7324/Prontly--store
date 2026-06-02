@@ -84,7 +84,7 @@ const ProductShare = ({ product }: { product: any }) => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md rounded-md border-stone-gray/20 bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-midnight-ink">Share Asset</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-midnight-ink">Share Product</DialogTitle>
           <DialogDescription className="text-slate-blue">Spread the word about this professional digital asset.</DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2 py-4">
@@ -116,7 +116,7 @@ const ProductShare = ({ product }: { product: any }) => {
 
 const ProductBreadcrumbs = ({ category, name }: { category: string, name: string }) => (
   <nav className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-ghost-gray mb-8 overflow-hidden whitespace-nowrap">
-    <Link href="/products" className="hover:text-deep-violet transition-colors shrink-0">Marketplace</Link>
+    <Link href="/products" className="hover:text-deep-violet transition-colors shrink-0">Catalog</Link>
     <ChevronRight className="h-2.5 w-2.5 shrink-0 opacity-50" />
     <Link href={`/products?category=${category}`} className="hover:text-deep-violet transition-colors shrink-0">{category}</Link>
     <ChevronRight className="h-2.5 w-2.5 shrink-0 opacity-50" />
@@ -221,7 +221,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                   <div className="flex items-center gap-1.5 text-slate-blue">
                     <Layers className="h-4 w-4" />
                     <span className="font-bold text-midnight-ink text-sm font-mono">{product.salesCount || 0}</span>
-                    <span className="text-ghost-gray text-xs ml-1">Installs</span>
+                    <span className="text-ghost-gray text-xs ml-1">Purchases</span>
                   </div>
                 </div>
 
@@ -270,7 +270,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                 <div className="pt-8 space-y-4 border-t border-stone-gray/10">
                   <h2 className="text-sm font-bold text-midnight-ink flex items-center gap-2">
                     <Info className="h-4 w-4 text-deep-violet" />
-                    Specifications
+                    Product Details
                   </h2>
                   <div 
                     className="prose-content text-sm"
@@ -280,7 +280,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
 
                 <div className="pt-8 space-y-4 border-t border-stone-gray/10">
                    <div className="flex items-center justify-between">
-                     <h3 className="text-[10px] font-black uppercase text-ghost-gray tracking-[0.15em]">Technical Audit</h3>
+                     <h3 className="text-[10px] font-black uppercase text-ghost-gray tracking-[0.15em]">Technical Details</h3>
                      <ProductShare product={product} />
                    </div>
                    
@@ -315,7 +315,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
             <div className="flex items-end justify-between">
               <div className="space-y-2">
                 <Badge variant="outline" className="border-deep-violet/20 text-deep-violet bg-deep-violet/5 font-bold uppercase text-[9px] tracking-[0.2em] px-2 py-0.5">
-                  Similar infrastructure
+                  Suggested Products
                 </Badge>
                 <h2 className="text-3xl font-bold font-headline text-midnight-ink tracking-tight">Expand your toolkit.</h2>
               </div>
@@ -332,7 +332,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
         <div className="flex justify-center py-20 border-t border-stone-gray/10 mt-20">
           <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary rounded-full px-6">
             <Link href="/products" className="flex items-center">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to product
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to catalog
             </Link>
           </Button>
         </div>

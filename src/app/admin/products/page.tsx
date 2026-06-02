@@ -68,14 +68,14 @@ export default function AdminProducts() {
   }, [allProducts, searchTerm]);
 
   const deleteProduct = async (id: string, name: string) => {
-    if (!db || !user || !confirm('Permanently remove this asset?')) return;
+    if (!db || !user || !confirm('Permanently remove this product?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
       await logAdminAction({
         db, adminId: user.uid, adminEmail: user.email || 'unknown',
         action: 'DELETE', resourceType: 'PRODUCT', resourceId: id, details: { name }
       });
-      toast({ title: "Asset Purged" });
+      toast({ title: "Product Purged" });
     } catch (e) {
       toast({ variant: "destructive", title: "Operation Failed" });
     }
@@ -85,13 +85,13 @@ export default function AdminProducts() {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Inventory guidelines</h1>
-          <p className="text-muted-foreground">Managing verified digital architecture and portfolio index.</p>
+          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Product Inventory</h1>
+          <p className="text-muted-foreground">Managing verified digital assets and catalog index.</p>
         </div>
         <Button asChild className="rounded-xl shadow-lg shadow-primary/20">
           <Link href="/admin/products/new">
             <Plus className="mr-2 h-4 w-4" />
-            Add Asset
+            Add Product
           </Link>
         </Button>
       </header>
@@ -120,7 +120,7 @@ export default function AdminProducts() {
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-white/5">
                   <TableHead className="w-20 pl-8">Preview</TableHead>
-                  <TableHead>Asset Title</TableHead>
+                  <TableHead>Product Title</TableHead>
                   <TableHead>SEO Slug</TableHead>
                   <TableHead>Value (INR)</TableHead>
                   <TableHead className="text-right pr-8">Actions</TableHead>
@@ -163,10 +163,10 @@ export default function AdminProducts() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 bg-card border-white/10 rounded-2xl p-2 shadow-2xl">
-                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Audit Terminal</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Admin Terminal</DropdownMenuLabel>
                           <DropdownMenuItem asChild className="rounded-xl focus:bg-primary/10 focus:text-primary p-3 cursor-pointer">
                             <Link href={`/admin/products/edit/${product.slug}`} className="flex items-center">
-                              <Edit className="mr-3 h-4 w-4" /> Modify Artifact
+                              <Edit className="mr-3 h-4 w-4" /> Modify Product
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild className="rounded-xl focus:bg-primary/10 focus:text-primary p-3 cursor-pointer">
@@ -191,7 +191,7 @@ export default function AdminProducts() {
           ) : (
             <div className="flex h-60 flex-col items-center justify-center text-center p-8">
               <Package className="h-12 w-12 text-muted-foreground mb-4 opacity-10" />
-              <h3 className="text-xl font-bold font-headline">Vault Empty</h3>
+              <h3 className="text-xl font-bold font-headline">Catalog Empty</h3>
               <p className="text-muted-foreground text-sm max-w-xs mx-auto">Start defining your digital inventory to begin the marketplace cycle.</p>
             </div>
           )}
