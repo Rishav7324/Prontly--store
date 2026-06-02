@@ -49,18 +49,18 @@ export default async function BlogListingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 pt-40 pb-20">
-        <header className="max-w-2xl mb-16">
-          <Badge variant="outline" className="mb-4 border-primary/50 text-primary">Insights & Updates</Badge>
-          <h1 className="text-4xl md:text-6xl font-bold font-headline mb-6">The Prontly Blog</h1>
-          <p className="text-xl text-muted-foreground">Expert guides, industry news, and tips to master your digital workflow.</p>
+      <main className="flex-1 container mx-auto px-4 pt-28 pb-12">
+        <header className="max-w-2xl mb-10">
+          <Badge variant="outline" className="mb-3 border-primary/50 text-primary">Insights & Updates</Badge>
+          <h1 className="text-4xl md:text-5xl font-bold font-headline mb-4">The Prontly Blog</h1>
+          <p className="text-lg text-muted-foreground">Expert guides, industry news, and tips to master your digital workflow.</p>
         </header>
 
         {posts && posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post: any) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className="group">
-                <Card className="h-full overflow-hidden border-white/5 bg-card/50 transition-all hover:border-primary/30">
+                <Card className="h-full overflow-hidden border-white/5 bg-card/50 transition-all hover:border-primary/30 rounded-2xl">
                   <div className="relative aspect-video overflow-hidden bg-muted">
                     <Image 
                       src={post.featuredImage || `https://picsum.photos/seed/${post.id}/800/450`} 
@@ -69,7 +69,7 @@ export default async function BlogListingPage() {
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
-                  <CardHeader className="space-y-2">
+                  <CardHeader className="space-y-1.5 p-5">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -80,12 +80,12 @@ export default async function BlogListingPage() {
                         5 min read
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors">
+                    <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
                       {post.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                  <CardContent className="space-y-4 px-5 pb-5">
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                       {post.excerpt}
                     </p>
                     <div className="flex flex-wrap gap-2">

@@ -37,7 +37,7 @@ export function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -65,7 +65,7 @@ export function Navbar() {
       <header 
         className={cn(
           "fixed top-0 left-0 right-0 z-50 px-4 transition-all duration-300 flex justify-center",
-          isScrolled ? "pt-2" : "pt-4"
+          isScrolled ? "pt-1" : "pt-2"
         )}
       >
         <nav 

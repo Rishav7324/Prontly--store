@@ -112,10 +112,10 @@ export default function Home() {
       
       <main className="flex-1">
         {/* CONVERSION-OPTIMIZED HERO */}
-        <section className="relative pt-32 pb-16 lg:pt-48 lg:pb-24 overflow-hidden">
+        <section className="relative pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden">
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              <div className="lg:col-span-7 space-y-8">
+              <div className="lg:col-span-7 space-y-6">
                 <div className="space-y-4">
                   <Badge variant="outline" className="bg-white border-accent/20 text-accent px-3 py-1 font-semibold uppercase tracking-wider text-[11px] rounded-full shadow-sm">
                     <Sparkles className="h-3 w-3 mr-2 inline text-accent fill-accent/10" />
@@ -141,7 +141,7 @@ export default function Home() {
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-10 gap-y-6 pt-10 border-t border-stone-gray/5">
+                <div className="flex flex-wrap items-center gap-x-10 gap-y-4 pt-8 border-t border-stone-gray/5">
                   {[
                     { label: `${stats.downloads}+ Downloads`, icon: Zap },
                     { label: `${stats.count} Assets`, icon: Package },
@@ -149,8 +149,8 @@ export default function Home() {
                     { label: "Instant Access", icon: Clock },
                   ].map((stat, i) => (
                     <div key={i} className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center">
-                        <stat.icon className="h-4 w-4 text-accent" />
+                      <div className="h-7 w-7 rounded-lg bg-primary/5 flex items-center justify-center">
+                        <stat.icon className="h-3.5 w-3.5 text-accent" />
                       </div>
                       <span className="text-[11px] font-black uppercase tracking-widest text-midnight-ink">{stat.label}</span>
                     </div>
@@ -160,7 +160,7 @@ export default function Home() {
 
               {/* Floating Product Stack */}
               <div className="lg:col-span-5 relative hidden lg:block">
-                 <div className="relative h-[500px] w-full">
+                 <div className="relative h-[450px] w-full">
                     {trendingProducts.length > 0 ? (
                       <>
                         <div className="absolute top-0 right-0 w-72 aspect-[4/5] bg-white border border-stone-gray/10 rounded-2xl overflow-hidden shadow-2xl transform rotate-6 translate-x-10 translate-y-10 transition-all duration-700 hover:rotate-3 hover:translate-y-6">
@@ -209,9 +209,9 @@ export default function Home() {
         </section>
 
         {/* CATEGORIES NEXUS */}
-        <section className="py-20 bg-muted/30 border-y border-stone-gray/5">
+        <section className="py-12 bg-muted/30 border-y border-stone-gray/5">
           <div className="container mx-auto px-4 max-w-7xl">
-            <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div className="space-y-1">
                 <h2 className="text-headline-xl">Catalog Categories</h2>
                 <p className="text-muted-foreground text-sm font-medium">Explore the depth of our verified collections.</p>
@@ -221,15 +221,15 @@ export default function Home() {
               </Button>
             </header>
 
-            <div className="flex overflow-x-auto gap-5 pb-6 no-scrollbar snap-x">
+            <div className="flex overflow-x-auto gap-5 pb-4 no-scrollbar snap-x">
               {categories?.map((cat: any) => (
                 <Link key={cat.id} href={`/products?category=${cat.slug}`} className="snap-start shrink-0">
-                  <div className="w-56 h-64 bg-white border border-stone-gray/10 rounded-2xl p-8 flex flex-col items-center text-center justify-center space-y-5 transition-all hover:-translate-y-1 hover:shadow-xl group">
-                    <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center shadow-inner group-hover:bg-primary/5 transition-colors">
-                      <span className="text-3xl grayscale group-hover:grayscale-0 transition-all">{cat.iconEmoji || '📦'}</span>
+                  <div className="w-52 h-60 bg-white border border-stone-gray/10 rounded-2xl p-6 flex flex-col items-center text-center justify-center space-y-4 transition-all hover:-translate-y-1 hover:shadow-xl group">
+                    <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center shadow-inner group-hover:bg-primary/5 transition-colors">
+                      <span className="text-2xl grayscale group-hover:grayscale-0 transition-all">{cat.iconEmoji || '📦'}</span>
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-bold text-base leading-tight text-midnight-ink">{cat.name}</h4>
+                      <h4 className="font-bold text-sm leading-tight text-midnight-ink">{cat.name}</h4>
                       <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{cat.productCount || 0} Assets</p>
                     </div>
                   </div>
@@ -240,8 +240,8 @@ export default function Home() {
         </section>
 
         {/* TRENDING NOW */}
-        <section className="py-24 container mx-auto px-4 max-w-7xl">
-           <header className="mb-12 text-center space-y-3">
+        <section className="py-16 container mx-auto px-4 max-w-7xl">
+           <header className="mb-10 text-center space-y-2">
               <Badge variant="outline" className="bg-secondary/5 border-secondary/20 text-secondary px-3 py-1 rounded-full uppercase tracking-widest text-[10px] font-black">Velocity Feed</Badge>
               <h2 className="text-3xl md:text-5xl font-bold font-headline text-midnight-ink tracking-tight">Trending Now</h2>
               <p className="text-muted-foreground max-w-lg mx-auto">Most popular digital products currently in the creative cycle.</p>
@@ -249,7 +249,7 @@ export default function Home() {
            
            <ProductGrid products={trendingProducts} loading={loading} />
            
-           <div className="mt-16 text-center">
+           <div className="mt-12 text-center">
               <Button asChild variant="outline" className="rounded-xl h-12 px-8 font-bold border-stone-gray/10">
                 <Link href="/products">View Full Catalog</Link>
               </Button>
@@ -257,14 +257,14 @@ export default function Home() {
         </section>
 
         {/* WHY PRONTLY - 2 COLUMN GRID */}
-        <section className="py-24 bg-white border-y border-stone-gray/5 overflow-hidden relative">
+        <section className="py-16 bg-white border-y border-stone-gray/5 overflow-hidden relative">
            <div className="container mx-auto px-4 max-w-7xl relative z-10">
-              <header className="max-w-2xl mb-16 space-y-4">
+              <header className="max-w-2xl mb-12 space-y-2">
                 <h2 className="text-3xl md:text-5xl font-bold font-headline text-midnight-ink tracking-tight">Built for Professional Performance.</h2>
                 <p className="text-lg text-slate-blue leading-relaxed">Why leading creators choose Prontly for their digital toolkits.</p>
               </header>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
                  {[
                    { title: "Instant Access", desc: "Download source files immediately after payment verification via Global R2 Edge.", icon: Zap },
                    { title: "Expert Crafted", desc: "Professionally engineered prompts tested for production accuracy and results.", icon: Cpu },
@@ -273,12 +273,12 @@ export default function Home() {
                    { title: "Mobile Friendly", desc: "Manage your dashboard and access your digital library from any device, anywhere.", icon: Globe },
                    { title: "Verified Quality", desc: "All digital assets undergo rigorous verification before listing.", icon: Shield },
                  ].map((feature, i) => (
-                   <div key={i} className="flex gap-6 group">
-                      <div className="h-14 w-14 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shrink-0 shadow-sm">
-                         <feature.icon className="h-7 w-7" />
+                   <div key={i} className="flex gap-5 group">
+                      <div className="h-12 w-12 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shrink-0 shadow-sm">
+                         <feature.icon className="h-6 w-6" />
                       </div>
-                      <div className="space-y-2">
-                        <h4 className="text-xl font-bold text-midnight-ink">{feature.title}</h4>
+                      <div className="space-y-1">
+                        <h4 className="text-lg font-bold text-midnight-ink">{feature.title}</h4>
                         <p className="text-muted-foreground text-sm leading-relaxed font-medium">{feature.desc}</p>
                       </div>
                    </div>
@@ -288,17 +288,17 @@ export default function Home() {
         </section>
 
         {/* FINAL CONVERSION */}
-        <section className="container mx-auto px-4 py-24 max-w-7xl">
-           <div className="rounded-[2.5rem] bg-midnight-ink text-white p-12 lg:p-20 text-center space-y-8 relative overflow-hidden shadow-2xl group">
+        <section className="container mx-auto px-4 py-16 max-w-7xl">
+           <div className="rounded-[2rem] bg-midnight-ink text-white p-10 lg:p-16 text-center space-y-6 relative overflow-hidden shadow-2xl group">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent)]" />
               <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
                  <Zap className="h-48 w-48 text-white" />
               </div>
               
-              <div className="relative z-10 space-y-6 max-w-3xl mx-auto">
+              <div className="relative z-10 space-y-4 max-w-3xl mx-auto">
                 <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-[0.2em] font-black py-1 px-4 rounded-full text-[10px]">Ready to Build?</Badge>
-                <h2 className="text-3xl md:text-6xl font-bold font-headline leading-tight tracking-tight">Start Building Faster With Premium Assets</h2>
-                <p className="text-lg text-white/60 font-medium max-w-xl mx-auto leading-relaxed">Join thousands of creators scaling their creative workflows with our verified catalog.</p>
+                <h2 className="text-3xl md:text-5xl font-bold font-headline leading-tight tracking-tight">Start Building Faster With Premium Assets</h2>
+                <p className="text-base text-white/60 font-medium max-w-xl mx-auto leading-relaxed">Join thousands of creators scaling their creative workflows with our verified catalog.</p>
                 
                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
                   <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-white/90 h-14 px-12 text-sm font-bold rounded-xl shadow-xl transition-all hover:scale-105">
@@ -309,7 +309,7 @@ export default function Home() {
                   </Button>
                 </div>
 
-                <div className="pt-10 flex flex-wrap items-center justify-center gap-6 opacity-40 grayscale">
+                <div className="pt-8 flex flex-wrap items-center justify-center gap-6 opacity-40 grayscale">
                    <div className="flex items-center gap-2">
                      <ShieldCheck className="h-4 w-4" />
                      <span className="text-[10px] font-bold uppercase tracking-widest">SSL Encrypted</span>

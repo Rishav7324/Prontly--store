@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -8,10 +7,10 @@ import { Button } from '@/components/ui/button';
 
 export function Footer() {
   return (
-    <footer className="border-t bg-porcelain-white py-24">
+    <footer className="border-t bg-porcelain-white py-16">
       <div className="container mx-auto px-4 max-w-[1400px]">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-24 mb-20">
-          <div className="lg:col-span-4 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-12">
+          <div className="lg:col-span-4 space-y-6">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white transition-transform group-hover:scale-110 shadow-sm border border-stone-gray/5">
                 <Image 
@@ -38,7 +37,7 @@ export function Footer() {
                 </Button>
               ))}
             </div>
-            <div className="pt-4 flex items-center gap-4">
+            <div className="pt-2 flex items-center gap-4">
                <div className="flex items-center gap-2 px-3 py-1 bg-green-500/5 rounded-full border border-green-500/10">
                   <ShieldCheck className="h-3 w-3 text-green-500" />
                   <span className="text-[9px] font-black uppercase text-green-600 tracking-widest">PCI Compliant</span>
@@ -50,9 +49,9 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Product</h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/products" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">All Products</Link></li>
               <li><Link href="/products?view=categories" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Categories</Link></li>
               <li><Link href="/products?sort=newest" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">New Releases</Link></li>
@@ -60,9 +59,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Resources</h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Insights Blog</Link></li>
               <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Expert Guides</Link></li>
               <li><Link href="/testimonials" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Case Studies</Link></li>
@@ -70,9 +69,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Company</h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/testimonials" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">About Prontly</Link></li>
               <li><Link href="mailto:contact@prontly.in" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Contact Us</Link></li>
               <li><Link href="mailto:support@prontly.in" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Tech Support</Link></li>
@@ -80,9 +79,9 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-midnight-ink">Legal</h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Terms of Use</Link></li>
               <li><Link href="/refund-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Refund Policy</Link></li>
@@ -91,7 +90,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="pt-12 border-t border-stone-gray/10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="pt-10 border-t border-stone-gray/10 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[10px] text-ghost-gray font-black uppercase tracking-[0.2em]">
             © {new Date().getFullYear()} Prontly Store • Digital Fulfillment Globally
           </p>
