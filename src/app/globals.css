@@ -4,37 +4,36 @@
 
 @layer base {
   :root {
-    /* Platinum White Theme Colors */
-    --background: 0 0% 100%;
-    --foreground: 211 78% 11%;
-    --card: 210 44% 97%;
-    --card-foreground: 211 78% 11%;
+    /* Prontly Design System - HSL Tokens */
+    --background: 230 100% 99%; /* #f8f9ff */
+    --foreground: 211 63% 12%; /* #0b1c30 */
+    
+    --card: 0 0% 100%;
+    --card-foreground: 211 63% 12%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 211 78% 11%;
-    --primary: 248 98% 61%;
+    --popover-foreground: 211 63% 12%;
+    
+    --primary: 0 0% 0%; /* #000000 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 216 67% 98%;
-    --secondary-foreground: 216 21% 39%;
-    --muted: 216 67% 98%;
-    --muted-foreground: 211 15% 48%;
-    --accent: 248 98% 61%;
+    
+    --secondary: 212 100% 37%; /* #0058be */
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 221 100% 97%; /* #eff4ff */
+    --muted-foreground: 215 16% 47%; /* #64748b */
+    
+    --accent: 217 91% 60%; /* #3b82f6 */
     --accent-foreground: 0 0% 100%;
+    
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 20% 98%;
-    --border: 210 44% 93%;
-    --input: 210 44% 93%;
-    --ring: 248 98% 61%;
-    --radius: 0.75rem;
-
-    /* Brand Color Tokens */
-    --color-midnight-ink: #061b31;
-    --color-slate-blue: #50617a;
-    --color-ghost-gray: #64748d;
-    --color-platinum-white: #ffffff;
-    --color-porcelain-white: #f8fafd;
-    --color-powder-blue: #e5edf5;
-    --color-stone-gray: #d8d6df;
-    --color-deep-violet: #533afd;
+    
+    --border: 221 39% 91%; /* #e2e8f0 */
+    --input: 221 39% 91%;
+    --ring: 217 91% 60%;
+    
+    --radius: 1rem; /* 16px default */
   }
 }
 
@@ -45,58 +44,43 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-headline font-semibold tracking-tight;
+  h1, h2, h3, h4 {
+    @apply font-bold tracking-tight text-foreground;
   }
 }
 
-/* Elite Shadows */
-.platinum-shadow {
-  box-shadow: 0 20px 40px -10px rgba(50, 50, 93, 0.12), 0 10px 20px -15px rgba(0, 0, 0, 0.15);
+/* Custom Design System Utilities */
+.surface-container {
+  @apply bg-[#FFFFFF] border border-[#E2E8F0] shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1)];
 }
 
-.stripe-shadow-sm {
-  box-shadow: 0 2px 5px 0 rgba(60, 66, 87, 0.08), 0 1px 1px 0 rgba(0, 0, 0, 0.05);
+.glass-panel {
+  @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl;
 }
 
-.dreamy-gradient {
-  background: radial-gradient(circle at 70% 30%, rgba(83, 58, 253, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 10% 80%, rgba(244, 75, 204, 0.04) 0%, transparent 40%);
+.text-display-lg {
+  @apply text-[40px] md:text-[64px] font-bold leading-[1.1] tracking-[-0.04em];
 }
 
-/* Denser Prose Rendering */
-.prose-content {
-  @apply text-slate-blue leading-relaxed;
+.text-headline-xl {
+  @apply text-[30px] md:text-[36px] font-semibold leading-tight tracking-[-0.02em];
 }
 
-.prose-content h2 {
-  @apply text-midnight-ink text-2xl font-bold mt-10 mb-4 tracking-tight font-headline;
+.btn-gradient-hover:hover {
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  @apply border-transparent;
 }
 
-.prose-content h3 {
-  @apply text-midnight-ink text-lg font-bold mt-8 mb-3 tracking-tight;
+.card-lift {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.15)];
 }
 
-.prose-content p {
-  @apply mb-4 text-[14px];
-}
-
-.prose-content ul {
-  @apply space-y-2 mb-6 mt-4 list-none pl-0;
-}
-
-.prose-content li {
-  @apply flex items-start gap-2 text-[14px] before:content-['→'] before:text-deep-violet before:font-bold;
-}
-
-/* Utility Refinements */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-stone-gray/30 rounded-full hover:bg-ghost-gray/40;
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30;
 }
