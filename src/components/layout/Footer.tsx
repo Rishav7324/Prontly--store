@@ -9,9 +9,9 @@ export function Footer() {
   return (
     <footer className="border-t bg-white py-12">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-12">
-          {/* Column 1: Brand & Identity */}
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
+          {/* Column 1: Brand & Identity (Takes up 4 cols) */}
+          <div className="md:col-span-5 space-y-6">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-primary shadow-sm">
                 <Image 
@@ -53,25 +53,25 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Navigation Links in a nested grid */}
-          <div className="grid grid-cols-2 gap-8">
+          {/* Navigation Links (Remaining 7 cols split into 2-column layout) */}
+          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-2 gap-8 md:pl-12">
             <div className="space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-midnight-ink">Shop</h4>
+              <h4 className="text-xs font-black uppercase tracking-widest text-midnight-ink">Marketplace</h4>
               <ul className="space-y-3">
-                <li><Link href="/products" className="text-sm text-slate-600 hover:text-primary transition-colors">All Products</Link></li>
-                <li><Link href="/products?view=categories" className="text-sm text-slate-600 hover:text-primary transition-colors">Categories</Link></li>
-                <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors">Blog & Guides</Link></li>
-                <li><Link href="/wishlist" className="text-sm text-slate-600 hover:text-primary transition-colors">My Wishlist</Link></li>
+                <li><Link href="/products" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">All Products</Link></li>
+                <li><Link href="/products?view=categories" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Categories</Link></li>
+                <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Blog & Guides</Link></li>
+                <li><Link href="/wishlist" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">My Wishlist</Link></li>
               </ul>
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-midnight-ink">Support</h4>
+              <h4 className="text-xs font-black uppercase tracking-widest text-midnight-ink">Company</h4>
               <ul className="space-y-3">
-                <li><Link href="mailto:support@prontly.in" className="text-sm text-slate-600 hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link href="/delivery-policy" className="text-sm text-slate-600 hover:text-primary transition-colors">Delivery Info</Link></li>
-                <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link href="/about" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">About Us</Link></li>
+                <li><Link href="/contact" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Contact & Support</Link></li>
+                <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
