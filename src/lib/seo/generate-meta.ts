@@ -15,7 +15,7 @@ interface GenerateMetaProps {
 
 /**
  * Generates automated production SEO Metadata for any page.
- * Includes dynamic canonicals and automated OG Image generation via Edge route.
+ * Prioritizes the main product/blog image for social sharing.
  */
 export function generateMeta({
   title,
@@ -30,7 +30,7 @@ export function generateMeta({
   const fullTitle = `${title} | Prontly Store`.slice(0, 60);
   const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`;
   
-  // Generate automated OG image URL if no specific image is provided
+  // Generate automated branded OG image URL
   const ogUrl = new URL(`${SITE_URL}/api/og`);
   ogUrl.searchParams.set('title', title);
   ogUrl.searchParams.set('type', type === 'product' ? 'Digital Asset' : type === 'article' ? 'Blog' : 'Platform');
@@ -38,8 +38,25 @@ export function generateMeta({
   if (price) ogUrl.searchParams.set('price', (price / 100).toString());
   if (image) ogUrl.searchParams.set('image', image);
 
-  const finalOgImage = ogUrl.toString();
+  const dynamicOgImage = ogUrl.toString();
   const ogType = type === 'article' ? 'article' : 'website';
+
+  // Build the images array, putting the actual main image first if it exists
+  const ogImages = [];
+  if (image) {
+    ogImages.push({
+      url: image,
+      width: 1200,
+      height: 630,
+      alt: title,
+    });
+  }
+  ogImages.push({
+    url: dynamicOgImage,
+    width: 1200,
+    height: 630,
+    alt: title,
+  });
 
   return {
     title: fullTitle,
@@ -56,14 +73,7 @@ export function generateMeta({
       description: description.slice(0, 160),
       url: canonical,
       siteName: 'Prontly Store',
-      images: [
-        {
-          url: finalOgImage,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      images: ogImages,
       locale: 'en_US',
       type: ogType,
     },
@@ -73,7 +83,7 @@ export function generateMeta({
       description: description.slice(0, 160),
       site: '@prontly',
       creator: '@prontly',
-      images: [finalOgImage],
+      images: [image || dynamicOgImage],
     },
   };
 }

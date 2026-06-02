@@ -6,6 +6,7 @@ import { generateMeta } from '@/lib/seo/generate-meta';
 
 /**
  * PRODUCTION BLOG RESOLVER
+ * Fetches full document data for metadata generation.
  */
 async function getPostBySlug(slug: string) {
   const projectId = firebaseConfig.projectId;
@@ -35,24 +36,40 @@ async function getPostBySlug(slug: string) {
     if (res.ok) {
       const data = await res.json();
       if (data[0]?.document) {
+        const doc = data[0].document;
+        const fields = doc.fields;
         return {
-          id: data[0].document.name.split('/').pop(),
+          id: doc.name.split('/').pop(),
+          title: fields.title?.stringValue || '',
+          excerpt: fields.excerpt?.stringValue || '',
+          featuredImage: fields.featuredImage?.stringValue || '',
           slug: slug
         };
       }
     }
   } catch (error) {
-    console.error(error);
+    console.error('[BLOG_RESOLVER_FAULT]:', error);
   }
   return null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
+    return generateMeta({
+      title: "Article Not Found",
+      description: "This blog post does not exist or has been removed.",
+      path: `/blog/${slug}`
+    });
+  }
+
   return generateMeta({
-    title: "Article Details",
-    description: "Insights and updates from the Prontly team.",
+    title: post.title,
+    description: post.excerpt || "Insights and updates from the Prontly team.",
     path: `/blog/${slug}`,
+    image: post.featuredImage,
     type: 'article'
   });
 }

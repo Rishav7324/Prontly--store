@@ -2,12 +2,13 @@
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, where, limit, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, Loader2, Save, ImageIcon, Sparkles, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
   const { slug } = use(params);
   const router = useRouter();
   const db = useFirestore();
+  const { user } = useUser();
   const [isSaving, setIsSaving] = useState(false);
   
   const postQuery = useMemoFirebase(() => {
@@ -30,6 +32,8 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
   const { data: posts, loading } = useCollection(postQuery);
   const post = posts?.[0] as any;
 
+  const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
+
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -38,6 +42,8 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
     featuredImage: '',
     status: 'draft',
     tags: '',
+    authorName: '',
+    categoryId: '',
   });
 
   useEffect(() => {
@@ -50,6 +56,8 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
         featuredImage: post.featuredImage || '',
         status: post.status || 'draft',
         tags: post.tags?.join(', ') || '',
+        authorName: post.authorName || '',
+        categoryId: post.categoryId || '',
       });
     }
   }, [post]);
@@ -114,14 +122,14 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
           <Link href="/admin/blog"><ChevronLeft className="h-4 w-4" /></Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold font-headline">Editorial guidelines</h1>
+          <h1 className="text-3xl font-bold font-headline">Edit Article</h1>
           <p className="text-muted-foreground">Adjusting record for: {slug}</p>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="rounded-[2rem] border-white/5 bg-card/30">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-8">
+          <Card className="rounded-[2rem] border-white/5 bg-card/30 shadow-sm overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="grid gap-2">
                 <Label>Headline</Label>
@@ -139,11 +147,50 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
           </Card>
         </div>
 
-        <div className="space-y-8">
-          <Card className="rounded-[2rem] border-white/5 bg-card/30">
-            <CardHeader><CardTitle className="text-lg font-headline">Cover Intelligence</CardTitle></CardHeader>
+        <div className="lg:col-span-4 space-y-8">
+          <Card className="rounded-[2rem] border-white/5 bg-card/30 shadow-sm">
+            <CardHeader><CardTitle className="text-lg font-headline">Article Data</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label>Author Name</Label>
+                <Input value={formData.authorName} onChange={(e) => setFormData({...formData, authorName: e.target.value})} placeholder="Prontly Team" className="h-11 rounded-xl bg-background/50" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Classification</Label>
+                <Select value={formData.categoryId} onValueChange={(val) => setFormData({...formData, categoryId: val})}>
+                  <SelectTrigger className="h-11 rounded-xl bg-background/50">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Tags</Label>
+                <Input value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} className="h-11 rounded-xl bg-background/50" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Status</Label>
+                <Select value={formData.status} onValueChange={(val) => setFormData({...formData, status: val})}>
+                  <SelectTrigger className="h-11 rounded-xl bg-background/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2rem] border-white/5 bg-card/30 shadow-sm overflow-hidden">
+            <CardHeader><CardTitle className="text-lg font-headline">Cover Visual</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted border-white/5 flex items-center justify-center group shadow-xl">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted border-white/5 flex items-center justify-center group shadow-inner">
                 {formData.featuredImage ? (
                   <>
                     <Image src={formData.featuredImage} alt="Featured" fill className="object-cover" />
@@ -162,9 +209,9 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
             </CardContent>
           </Card>
 
-          <Button type="submit" className="w-full h-16 text-xl font-bold rounded-2xl shadow-2xl" disabled={isSaving}>
+          <Button type="submit" className="w-full h-16 text-xl font-bold rounded-2xl shadow-2xl shadow-primary/20" disabled={isSaving}>
             {isSaving ? <Loader2 className="h-6 w-6 animate-spin mr-3" /> : <Save className="h-6 w-6 mr-3" />}
-            Deploy Sync
+            Sync Record
           </Button>
         </div>
       </form>

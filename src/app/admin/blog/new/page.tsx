@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useCollection, useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, Loader2, Save, Upload, ImageIcon, Trash2, Sparkles, Wand2 } from 'lucide-react';
+import { ChevronLeft, Loader2, Save, Upload, ImageIcon, Trash2, Sparkles, Wand2, User } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
@@ -31,11 +31,15 @@ import {
 export default function NewBlogPostPage() {
   const router = useRouter();
   const db = useFirestore();
+  const { user } = useUser();
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   
+  const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
+  const { data: products } = useCollection(db ? collection(db, 'products') : null);
+
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -44,6 +48,9 @@ export default function NewBlogPostPage() {
     featuredImage: '',
     status: 'draft',
     tags: '',
+    authorName: '',
+    categoryId: '',
+    relatedProductIds: [] as string[]
   });
 
   const [aiInput, setAiInput] = useState({
@@ -122,12 +129,14 @@ export default function NewBlogPostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!db || !user) return;
     setIsSaving(true);
 
     try {
       await addDoc(collection(db, 'blog_posts'), {
         ...formData,
+        authorId: user.uid,
+        authorName: formData.authorName || user.displayName || 'Prontly Team',
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -145,7 +154,7 @@ export default function NewBlogPostPage() {
   };
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-32">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-full">
@@ -182,13 +191,13 @@ export default function NewBlogPostPage() {
         </Dialog>
       </header>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="border-white/5 bg-card/30">
-            <CardContent className="pt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-6">
+          <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-sm">
+            <CardContent className="pt-8 space-y-6">
               <div className="grid gap-2">
                 <Label htmlFor="title">Article Headline</Label>
-                <Input id="title" value={formData.title} onChange={handleTitleChange} required className="h-12 bg-background/50 rounded-xl" />
+                <Input id="title" value={formData.title} onChange={handleTitleChange} required className="h-14 bg-background/50 rounded-2xl text-lg font-bold" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="slug">Slug ID</Label>
@@ -202,11 +211,50 @@ export default function NewBlogPostPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card className="border-white/5 bg-card/30">
-            <CardHeader><CardTitle>Visual Assets</CardTitle></CardHeader>
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="border-white/5 bg-card/30 rounded-[2rem] shadow-sm">
+            <CardHeader><CardTitle className="text-lg font-headline">Editorial Settings</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-2">
+                <Label>Author Display Name</Label>
+                <Input value={formData.authorName} onChange={(e) => setFormData({...formData, authorName: e.target.value})} placeholder={user?.displayName || 'Prontly Team'} className="h-11 rounded-xl bg-background/50" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Primary Category</Label>
+                <Select value={formData.categoryId} onValueChange={(val) => setFormData({...formData, categoryId: val})}>
+                  <SelectTrigger className="h-11 rounded-xl bg-background/50">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Tags (Comma separated)</Label>
+                <Input value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} placeholder="ai, tutorial, marketplace" className="h-11 rounded-xl bg-background/50" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Publishing Status</Label>
+                <Select value={formData.status} onValueChange={(val) => setFormData({...formData, status: val})}>
+                  <SelectTrigger className="h-11 rounded-xl bg-background/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft (Private)</SelectItem>
+                    <SelectItem value="published">Published (Public)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-white/5 bg-card/30 rounded-[2rem] shadow-sm overflow-hidden">
+            <CardHeader><CardTitle className="text-lg font-headline">Visual Assets</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted border-2 border-dashed border-white/5 flex items-center justify-center group">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted border-2 border-dashed border-white/5 flex items-center justify-center group shadow-inner">
                 {formData.featuredImage ? (
                   <>
                     <Image src={formData.featuredImage} alt="Featured" fill className="object-cover" />
@@ -225,8 +273,9 @@ export default function NewBlogPostPage() {
             </CardContent>
           </Card>
 
-          <Button type="submit" className="w-full h-16 text-lg font-bold rounded-2xl shadow-xl" disabled={isSaving}>
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Deploy Article"}
+          <Button type="submit" className="w-full h-16 text-lg font-bold rounded-2xl shadow-xl shadow-primary/20" disabled={isSaving}>
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Publish Article
           </Button>
         </div>
       </form>
