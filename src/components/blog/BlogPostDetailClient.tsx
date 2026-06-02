@@ -19,7 +19,8 @@ import {
   Link2,
   Check,
   Facebook,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -45,8 +46,29 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
-    toast({ title: "Link Copied", description: "Share the intelligence with your network." });
+    toast({ title: "Link Copied", description: "The editorial path is now in your clipboard." });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSocialShare = (platform: string) => {
+    if (!post) return;
+    const shareUrl = window.location.href;
+    const text = `Insight: ${post.title} via Prontly Store`;
+    let url = '';
+
+    switch (platform) {
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'linkedin':
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case 'whatsapp':
+        url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + shareUrl)}`;
+        break;
+    }
+
+    if (url) window.open(url, '_blank');
   };
 
   const readingTime = useMemo(() => {
@@ -94,14 +116,29 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
           {/* STICKY SIDE SHARE - DESKTOP */}
           <aside className="hidden lg:block lg:col-span-1">
             <div className="sticky top-32 flex flex-col items-center gap-4">
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-ghost-gray vertical-text mb-4 opacity-40">Share</span>
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all border border-transparent hover:border-primary/10">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-ghost-gray vertical-text mb-4 opacity-40">Distribute</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full h-10 w-10 hover:bg-blue-50 hover:text-blue-500 transition-all border border-transparent hover:border-blue-100"
+                onClick={() => handleSocialShare('twitter')}
+              >
                 <Twitter className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all border border-transparent hover:border-primary/10">
-                <Linkedin className="h-4 w-4" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full h-10 w-10 hover:bg-green-50 hover:text-green-500 transition-all border border-transparent hover:border-green-100"
+                onClick={() => handleSocialShare('whatsapp')}
+              >
+                <MessageSquare className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all border border-transparent hover:border-primary/10" onClick={handleCopyLink}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all border border-transparent hover:border-primary/10" 
+                onClick={handleCopyLink}
+              >
                 {copied ? <Check className="h-4 w-4 text-green-500" /> : <Link2 className="h-4 w-4" />}
               </Button>
             </div>
@@ -162,7 +199,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
               </div>
             </header>
 
-            <div className="relative h-[160px] w-full overflow-hidden rounded-[1rem] border border-stone-gray/10 bg-muted shadow-2xl group">
+            <div className="relative h-[400px] w-full overflow-hidden rounded-[2rem] border border-stone-gray/10 bg-muted shadow-2xl group">
               <Image
                 src={post.featuredImage || `https://picsum.photos/seed/${post.id}/1200/600`}
                 alt={post.title}

@@ -25,7 +25,8 @@ import {
   Loader2,
   Zap,
   Plus,
-  Minus
+  Minus,
+  MessageSquare
 } from "lucide-react";
 import Image from "next/image";
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
@@ -57,12 +58,12 @@ const ProductShare = ({ product }: { product: any }) => {
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    toast({ title: "Link copied!", description: "Share it with your network." });
+    toast({ title: "Link Copied", description: "The asset path is now in your clipboard." });
   };
 
   const handleShare = (platform: string) => {
     let url = '';
-    const text = `Check out ${product.name} on Prontly Store!`;
+    const text = `Take a look at the ${product.name} on Prontly. Perfect for professional workflows.`;
     
     switch (platform) {
       case 'x':
@@ -79,36 +80,42 @@ const ProductShare = ({ product }: { product: any }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 px-3 gap-2 border-stone-gray/20 text-slate-blue text-[10px] uppercase font-bold tracking-tight">
-          <Share2 className="h-3.5 w-3.5" />
-          Share
+        <Button variant="outline" size="sm" className="h-9 px-4 gap-2.5 border-stone-gray/20 text-slate-blue text-[10px] uppercase font-bold tracking-widest hover:bg-white hover:border-primary/30 transition-all rounded-xl shadow-sm group">
+          <Share2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
+          Share Asset
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-2xl border-stone-gray/10 bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-midnight-ink">Share Asset</DialogTitle>
-          <DialogDescription className="text-slate-blue">Spread the word about this professional workflow tool.</DialogDescription>
-        </DialogHeader>
-        <div className="flex items-center space-x-2 py-4">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="link" className="sr-only">Link</Label>
-            <Input
-              id="link"
-              defaultValue={shareUrl}
-              readOnly
-              className="h-10 bg-muted/30 border-none rounded-xl font-mono text-xs px-4"
-            />
+      <DialogContent className="sm:max-w-md rounded-[2rem] border-stone-gray/10 bg-white p-8">
+        <DialogHeader className="space-y-3">
+          <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
+            <Share2 className="h-6 w-6 text-primary" />
           </div>
-          <Button type="submit" size="sm" className="px-3 h-10 rounded-xl bg-midnight-ink" onClick={handleCopy}>
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </Button>
+          <div>
+            <DialogTitle className="text-2xl font-headline font-bold text-midnight-ink">Distribute Intelligence</DialogTitle>
+            <DialogDescription className="text-slate-blue text-sm">Synchronize this professional tool with your creative network.</DialogDescription>
+          </div>
+        </DialogHeader>
+        
+        <div className="py-6">
+           <div className="flex items-center gap-2 p-1.5 bg-muted/30 rounded-2xl border border-stone-gray/5">
+              <Input
+                readOnly
+                defaultValue={shareUrl}
+                className="h-10 bg-transparent border-none focus-visible:ring-0 font-mono text-[10px] px-3 text-slate-600"
+              />
+              <Button size="sm" className="px-4 h-10 rounded-xl bg-midnight-ink font-bold gap-2" onClick={handleCopy}>
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-4 border-t border-stone-gray/10">
-          <Button variant="outline" className="rounded-xl h-10 gap-2 flex-1 border-stone-gray/20 text-slate-blue" onClick={() => handleShare('x')}>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="outline" className="rounded-xl h-12 gap-2 border-stone-gray/10 text-slate-blue font-bold text-xs hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600" onClick={() => handleShare('x')}>
             <Twitter className="h-4 w-4" /> X.com
           </Button>
-          <Button variant="outline" className="rounded-xl h-10 gap-2 flex-1 border-stone-gray/20 text-slate-blue" onClick={() => handleShare('whatsapp')}>
-            <ExternalLink className="h-4 w-4" /> WhatsApp
+          <Button variant="outline" className="rounded-xl h-12 gap-2 border-stone-gray/10 text-slate-blue font-bold text-xs hover:bg-green-50 hover:border-green-200 hover:text-green-600" onClick={() => handleShare('whatsapp')}>
+            <MessageSquare className="h-4 w-4" /> WhatsApp
           </Button>
         </div>
       </DialogContent>

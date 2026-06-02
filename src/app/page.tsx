@@ -226,11 +226,11 @@ export default function Home() {
                 <Link key={cat.id} href={`/products?category=${cat.slug}`} className="snap-start shrink-0">
                   <div className="w-52 h-60 bg-white border border-stone-gray/10 rounded-2xl p-6 flex flex-col items-center text-center justify-center space-y-4 transition-all hover:-translate-y-1 hover:shadow-xl group">
                     <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center shadow-inner group-hover:bg-primary/5 transition-colors">
-                      <span className="text-2xl grayscale group-hover:grayscale-0 transition-all">{cat.iconEmoji || '📦'}</span>
+                      <span className="text-2xl  group-hover:grayscale-0 transition-all">{cat.iconEmoji || '📦'}</span>
                     </div>
                     <div className="space-y-1">
                       <h4 className="font-bold text-sm leading-tight text-midnight-ink">{cat.name}</h4>
-                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{cat.productCount || 0} Assets</p>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{cat.productCount } Assets</p>
                     </div>
                   </div>
                 </Link>
@@ -297,14 +297,14 @@ export default function Home() {
               
               <div className="relative z-10 space-y-4 max-w-3xl mx-auto">
                 <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-[0.2em] font-black py-1 px-4 rounded-full text-[10px]">Ready to Build?</Badge>
-                <h2 className="text-3xl md:text-5xl font-bold font-headline leading-tight tracking-tight">Start Building Faster With Premium Assets</h2>
+                <h2 className="text-3xl text-white md:text-5xl font-bold font-headline leading-tight tracking-tight">Start Building Faster With Premium Assets</h2>
                 <p className="text-base text-white/60 font-medium max-w-xl mx-auto leading-relaxed">Join thousands of creators scaling their creative workflows with our verified catalog.</p>
                 
                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
                   <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-white/90 h-14 px-12 text-sm font-bold rounded-xl shadow-xl transition-all hover:scale-105">
                     <Link href="/products">Get Started Now</Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-14 px-12 text-sm font-bold rounded-xl">
+                  <Button asChild variant="outline" size="lg" className="text-black border-white/20 hover:bg-white/10 h-14 px-12 text-sm font-bold rounded-xl">
                     <Link href="/products?view=categories">Browse Categories</Link>
                   </Button>
                 </div>

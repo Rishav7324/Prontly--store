@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Customer Reviews & Success Stories",
     description: "Read what professional creators and developers say about Prontly Store's premium AI prompts and digital assets.",
     path: '/testimonials',
-    noIndex: true // Keep noindex until real testimonials are added
+    // Keep noindex until real testimonials are added
   });
 }
 
