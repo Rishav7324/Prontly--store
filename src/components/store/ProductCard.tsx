@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, ShoppingCart, Heart, Download, ShieldCheck } from 'lucide-react';
+import { Star, ShoppingCart, Heart, Download, ShieldCheck, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,26 +66,32 @@ export function ProductCard({
     ? Math.round(((compareAtPrice - priceRaw) / compareAtPrice) * 100) 
     : null;
 
-  const displayImages = images && images.length > 0 ? images : ['https://picsum.photos/seed/placeholder/600/800'];
   const productPath = `/products/${slug || id}`;
 
   return (
     <Card className="h-full border border-stone-gray/10 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-300 group/card flex flex-col">
       <Link href={productPath} className="flex flex-col h-full">
         <div className="relative aspect-[4/5] bg-porcelain-white overflow-hidden">
-          <Image
-            src={displayImages[0]}
-            alt={title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover/card:scale-105"
-            sizes="(max-width: 768px) 50vw, 25vw"
-          />
+          {images && images.length > 0 ? (
+            <Image
+              src={images[0]}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover/card:scale-105"
+              sizes="(max-width: 768px) 50vw, 25vw"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground/30">
+              <Package className="h-12 w-12 mb-2" />
+              <span className="text-[10px] font-black uppercase tracking-widest">No Visual Record</span>
+            </div>
+          )}
           
           <div className="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
             <div className="flex flex-col gap-1.5">
               {isFeatured && (
                 <Badge className="bg-primary text-white border-none font-bold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded shadow-sm w-fit">
-                  Top Seller
+                  Top Performer
                 </Badge>
               )}
               {discountPercent && (
@@ -132,10 +138,6 @@ export function ProductCard({
           <div className="flex flex-wrap gap-1.5 pt-1">
             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-100 rounded">
               <Download className="h-2.5 w-2.5 text-slate-400" />
-              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Instant</span>
-            </div>
-            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-100 rounded">
-              <ShieldCheck className="h-2.5 w-2.5 text-slate-400" />
               <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Verified</span>
             </div>
           </div>
