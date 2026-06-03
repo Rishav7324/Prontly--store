@@ -199,7 +199,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
               </div>
             </header>
 
-            <div className="relative h-[400px] w-full overflow-hidden rounded-[2rem] border border-stone-gray/10 bg-muted shadow-2xl group">
+            <div className="relative h-[160px] w-full overflow-hidden rounded-[1rem] border border-stone-gray/10 bg-muted shadow-2xl group">
               <Image
                 src={post.featuredImage || `https://picsum.photos/seed/${post.id}/1200/600`}
                 alt={post.title}

@@ -81,15 +81,15 @@ export default async function Home() {
   const { categories, products } = await getHomeData();
 
   const trendingProducts = products
-    .filter(p => p.isPublished !== false)
-    .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+    .filter((p: { isPublished: boolean; }) => p.isPublished !== false)
+    .sort((a: { salesCount: any; }, b: { salesCount: any; }) => (b.salesCount || 0) - (a.salesCount || 0))
     .slice(0, 4);
 
   const stats = {
-    downloads: products.reduce((sum, p) => sum + (p.salesCount || 0), 0) || 5000,
+    downloads: products.reduce((sum: any, p: { salesCount: any; }) => sum + (p.salesCount || 0), 0) || 5000,
     count: products.length,
     rating: products.length > 0 
-      ? (products.reduce((sum, p) => sum + (p.averageRating || 5.0), 0) / products.length).toFixed(1)
+      ? (products.reduce((sum: any, p: { averageRating: any; }) => sum + (p.averageRating || 5.0), 0) / products.length).toFixed(1)
       : '4.9'
   };
 
