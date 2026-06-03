@@ -1,12 +1,8 @@
-'use client';
-
-import { useMemo, useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -18,100 +14,91 @@ import {
   Package, 
   Clock,
   CheckCircle2,
-  ShoppingCart,
-  Mail,
   TrendingUp,
   Shield
 } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
 import Link from 'next/link';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { firebaseConfig } from '@/firebase/config';
+import { RecentPurchasePopup } from '@/components/store/RecentPurchasePopup';
 
 /**
- * LIVE PURCHASE NOTIFICATION COMPONENT
+ * @fileOverview High-performance Server-Side Homepage.
+ * Fetches data on the server to ensure perfect SEO and Crawler rendering.
  */
-function RecentPurchasePopup() {
-  const [visible, setVisible] = useState(false);
-  const [purchase, setPurchase] = useState({ name: "Alex", product: "AI Business Kit", time: "2 mins ago" });
+async function getHomeData() {
+  const projectId = firebaseConfig.projectId;
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
   
-  useEffect(() => {
-    const names = ["Sarah", "Michael", "Elena", "David", "Priya", "John"];
-    const products = ["AI Prompt Pack", "Automation System", "Creator Toolkit", "Business Kit", "Technical Guide"];
-    
-    const interval = setInterval(() => {
-      setPurchase({
-        name: names[Math.floor(Math.random() * names.length)],
-        product: products[Math.floor(Math.random() * products.length)],
-        time: "Just now"
-      });
-      setVisible(true);
-      setTimeout(() => setVisible(false), 5000);
-    }, 15000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  try {
+    const [catRes, prodRes] = await Promise.all([
+      fetch(`${baseUrl}/categories`, { next: { revalidate: 3600 } }),
+      fetch(`${baseUrl}/products?pageSize=100`, { next: { revalidate: 60 } })
+    ]);
 
-  if (!visible) return null;
+    const catData = await catRes.json();
+    const prodData = await prodRes.json();
 
-  return (
-    <div className="fixed bottom-24 left-4 z-40 animate-in slide-in-from-left-full duration-700 md:bottom-8 md:left-8">
-      <div className="bg-white/80 backdrop-blur-xl border border-stone-gray/10 shadow-2xl rounded-2xl p-4 flex items-center gap-4 max-w-xs">
-        <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
-          <ShoppingCart className="h-5 w-5 text-primary" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold text-midnight-ink">
-            <span className="text-primary">{purchase.name}</span> just purchased
-          </p>
-          <p className="text-[10px] text-slate-blue font-medium truncate">{purchase.product}</p>
-          <p className="text-[9px] text-ghost-gray uppercase font-black tracking-widest mt-0.5">{purchase.time}</p>
-        </div>
-      </div>
-    </div>
-  );
+    const categories = (catData.documents || []).map((doc: any) => {
+      const fields = doc.fields || {};
+      return {
+        id: doc.name.split('/').pop(),
+        name: fields.name?.stringValue || "",
+        slug: fields.slug?.stringValue || "",
+        iconEmoji: fields.iconEmoji?.stringValue || "📦",
+      };
+    });
+
+    const products = (prodData.documents || []).map((doc: any) => {
+      const fields = doc.fields || {};
+      const priceVal = fields.price?.integerValue || fields.price?.doubleValue || "0";
+      const compareVal = fields.compareAtPrice?.integerValue || fields.compareAtPrice?.doubleValue || "0";
+      
+      return {
+        id: doc.name.split('/').pop(),
+        slug: fields.slug?.stringValue || "",
+        name: fields.name?.stringValue || "Untitled Asset",
+        price: parseInt(priceVal.toString()),
+        compareAtPrice: parseInt(compareVal.toString()),
+        categorySlug: fields.categorySlug?.stringValue || "asset",
+        images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+        averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
+        salesCount: parseInt((fields.salesCount?.integerValue || 0).toString()),
+        shortDescription: fields.shortDescription?.stringValue || "",
+        isPublished: fields.isPublished?.booleanValue ?? true,
+        isFeatured: fields.isFeatured?.booleanValue || false
+      };
+    });
+
+    return { categories, products };
+  } catch (error) {
+    console.error('[HOMEPAGE_FETCH_ERROR]:', error);
+    return { categories: [], products: [] };
+  }
 }
 
-export default function Home() {
-  const db = useFirestore();
+export default async function Home() {
+  const { categories, products } = await getHomeData();
 
-  const categoriesQuery = useMemoFirebase(() => db ? collection(db, 'categories') : null, [db]);
-  const { data: categories } = useCollection(categoriesQuery);
+  const trendingProducts = products
+    .filter(p => p.isPublished !== false)
+    .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+    .slice(0, 4);
 
-  const productsQuery = useMemoFirebase(() => {
-    return db ? collection(db, 'products') : null;
-  }, [db]);
-
-  const { data: rawProducts, loading } = useCollection(productsQuery);
-
-  const trendingProducts = useMemo(() => {
-    if (!rawProducts) return [];
-    return [...rawProducts]
-      .filter(p => p.isPublished !== false)
-      .sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0))
-      .slice(0, 4);
-  }, [rawProducts]);
-
-  const stats = useMemo(() => {
-    if (!rawProducts) return { downloads: 0, count: 0, rating: '4.9' };
-    const totalDownloads = rawProducts.reduce((sum, p) => sum + (p.salesCount || 0), 0);
-    const avgRating = rawProducts.length > 0 
-      ? (rawProducts.reduce((sum, p) => sum + (p.averageRating || 5.0), 0) / rawProducts.length).toFixed(1)
-      : '4.9';
-    return {
-      downloads: totalDownloads > 0 ? totalDownloads : 5000,
-      count: rawProducts.length,
-      rating: avgRating
-    };
-  }, [rawProducts]);
+  const stats = {
+    downloads: products.reduce((sum, p) => sum + (p.salesCount || 0), 0) || 5000,
+    count: products.length,
+    rating: products.length > 0 
+      ? (products.reduce((sum, p) => sum + (p.averageRating || 5.0), 0) / products.length).toFixed(1)
+      : '4.9'
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col selection:bg-accent selection:text-white">
       <Navbar />
       
       <main className="flex-1">
-        {/* CONVERSION-OPTIMIZED HERO */}
+        {/* HERO SECTION */}
         <section className="relative pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden">
           <div className="container mx-auto px-4 relative z-10 max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -169,7 +156,7 @@ export default function Home() {
                              alt={trendingProducts[0]?.name} 
                              fill 
                              className="object-cover" 
-                             data-ai-hint="digital product"
+                             sizes="400px"
                            />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
                               <p className="text-white font-bold text-base">{trendingProducts[0]?.name}</p>
@@ -182,16 +169,9 @@ export default function Home() {
                                src={trendingProducts[1]?.images?.[0] || 'https://picsum.photos/seed/p2/600/800'} 
                                alt={trendingProducts[1]?.name} 
                                fill 
-                               className="object-cover" 
-                               data-ai-hint="digital asset"
+                               className="object-cover"
+                               sizes="400px"
                              />
-                             <div className="absolute inset-0 bg-gradient-to-t from-accent/80 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Button className="rounded-full h-12 w-12 p-0 bg-white text-accent" asChild>
-                                   <Link href={`/products/${trendingProducts[1]?.slug}`}>
-                                     <ArrowRight className="h-5 w-5" />
-                                   </Link>
-                                </Button>
-                             </div>
                           </div>
                         )}
                       </>
@@ -204,7 +184,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-          
           <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] -z-10" />
         </section>
 
@@ -223,7 +202,7 @@ export default function Home() {
 
             <div className="flex overflow-x-auto gap-5 pb-4 no-scrollbar snap-x">
               {categories?.map((cat: any) => {
-                const assetCount = rawProducts?.filter((p: any) => p.categorySlug === cat.slug).length || 0;
+                const assetCount = products.filter((p: any) => p.categorySlug === cat.slug).length;
                 return (
                   <Link key={cat.id} href={`/products?category=${cat.slug}`} className="snap-start shrink-0">
                     <div className="w-52 h-60 bg-white border border-stone-gray/10 rounded-2xl p-6 flex flex-col items-center text-center justify-center space-y-4 transition-all hover:-translate-y-1 hover:shadow-xl group">
@@ -249,9 +228,7 @@ export default function Home() {
               <h2 className="text-3xl md:text-5xl font-bold font-headline text-midnight-ink tracking-tight">Trending Now</h2>
               <p className="text-muted-foreground max-w-lg mx-auto">Most popular digital products currently in the creative cycle.</p>
            </header>
-           
-           <ProductGrid products={trendingProducts} loading={loading} />
-           
+           <ProductGrid products={trendingProducts} />
            <div className="mt-12 text-center">
               <Button asChild variant="outline" className="rounded-xl h-12 px-8 font-bold border-stone-gray/10">
                 <Link href="/products">View Full Catalog</Link>
@@ -259,7 +236,7 @@ export default function Home() {
            </div>
         </section>
 
-        {/* WHY PRONTLY - 2 COLUMN GRID */}
+        {/* FEATURES SECTION */}
         <section className="py-16 bg-white border-y border-stone-gray/5 overflow-hidden relative">
            <div className="container mx-auto px-4 max-w-7xl relative z-10">
               <header className="max-w-2xl mb-12 space-y-2">
@@ -290,7 +267,7 @@ export default function Home() {
            </div>
         </section>
 
-        {/* FINAL CONVERSION */}
+        {/* CTA SECTION */}
         <section className="container mx-auto px-4 py-16 max-w-7xl">
            <div className="rounded-[2rem] bg-midnight-ink text-white p-10 lg:p-16 text-center space-y-6 relative overflow-hidden shadow-2xl group">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent)]" />
@@ -302,29 +279,13 @@ export default function Home() {
                 <Badge className="bg-white/10 text-white border-white/20 uppercase tracking-[0.2em] font-black py-1 px-4 rounded-full text-[10px]">Ready to Build?</Badge>
                 <h2 className="text-3xl text-white md:text-5xl font-bold font-headline leading-tight tracking-tight">Start Building Faster With Premium Assets</h2>
                 <p className="text-base text-white/60 font-medium max-w-xl mx-auto leading-relaxed">Join thousands of creators scaling their creative workflows with our verified catalog.</p>
-                
                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
                   <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-white/90 h-14 px-12 text-sm font-bold rounded-xl shadow-xl transition-all hover:scale-105">
                     <Link href="/products">Get Started Now</Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="text-black border-white/20 hover:bg-white/10 h-14 px-12 text-sm font-bold rounded-xl">
+                  <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-14 px-12 text-sm font-bold rounded-xl">
                     <Link href="/products?view=categories">Browse Categories</Link>
                   </Button>
-                </div>
-
-                <div className="pt-8 flex flex-wrap items-center justify-center gap-6 opacity-40 grayscale">
-                   <div className="flex items-center gap-2">
-                     <ShieldCheck className="h-4 w-4" />
-                     <span className="text-[10px] font-bold uppercase tracking-widest">SSL Encrypted</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <CheckCircle2 className="h-4 w-4" />
-                     <span className="text-[10px] font-bold uppercase tracking-widest">Verified Seller</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <TrendingUp className="h-4 w-4" />
-                     <span className="text-[10px] font-bold uppercase tracking-widest">PCI Compliant</span>
-                   </div>
                 </div>
               </div>
            </div>
