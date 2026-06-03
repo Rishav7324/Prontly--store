@@ -114,11 +114,11 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                 <span className="font-headline font-bold text-2xl text-primary">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-3 w-full">
-              <Button className="h-12 rounded-xl font-bold shadow-lg shadow-primary/20" asChild onClick={() => onOpenChange(false)}>
+            <div className="grid grid-cols-1 justify-items-center gap-3 w-full">
+              <Button className="h-10 w-40 rounded-xl flex flex-col items-center font-bold shadow-lg shadow-primary/20" asChild onClick={() => onOpenChange(false)}>
                 <Link href="/checkout">Execute Checkout</Link>
               </Button>
-              <Button variant="outline" className="h-11 rounded-xl font-bold border-stone-gray/20 hover:bg-white transition-all text-xs group" asChild onClick={() => onOpenChange(false)}>
+              <Button variant="outline" className="h-10 rounded-xl font-bold border-stone-gray/20 hover:bg-white transition-all text-xs group" asChild onClick={() => onOpenChange(false)}>
                 <Link href="/cart">
                   Full Cart Interface
                   <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />

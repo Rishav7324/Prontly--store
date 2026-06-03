@@ -21,7 +21,7 @@ export function Footer() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-2xl tracking-tight text-midnight-ink">Prontly</span>
+              <span className="font-bold text-xl tracking-tight text-midnight-ink">Prontly Store</span>
             </Link>
             <p className="text-slate-blue text-base leading-relaxed max-w-sm font-medium">
               High-quality digital assets for professional creators. 

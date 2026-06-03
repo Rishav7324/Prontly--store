@@ -192,7 +192,7 @@ export default async function Home() {
           <div className="container mx-auto px-4 max-w-7xl">
             <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div className="space-y-1">
-                <h2 className="text-headline-xl">Catalog Categories</h2>
+                <h2 className="text-headline-3xl">Catalog Categories</h2>
                 <p className="text-muted-foreground text-sm font-medium">Explore the depth of our verified collections.</p>
               </div>
               <Button variant="ghost" asChild className="text-accent font-bold hover:bg-accent/5 px-4 h-10 rounded-xl">

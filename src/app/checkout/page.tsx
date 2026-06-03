@@ -57,31 +57,31 @@ export default function CheckoutPage() {
             <Link href="/cart"><ChevronLeft className="h-5 w-5" /></Link>
           </Button>
           <div>
-            <div className="flex items-center gap-2 text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">
-              <ShieldCheck className="h-3.5 w-3.5" /> Secure Checkout Terminal
+            <div className="flex items-center gap-2 text-[9px] font-green text-primary uppercase tracking-[0.2em] mb-1">
+              <ShieldCheck className="h-3.5 w-3.5" /> Secure Checkout 
             </div>
-            <h1 className="text-4xl font-bold font-headline tracking-tight text-midnight-ink">Finalize Order.</h1>
+            <h1 className="text-3xl font-bold font-headline tracking-tight text-midnight-ink">Finalize Order.</h1>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-7 space-y-8">
-            <Card className="rounded-3xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
+            <Card className="rounded-2xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center justify-between border-b border-stone-gray/10 pb-4">
                   <h3 className="text-xl font-bold font-headline text-midnight-ink">Customer Identity</h3>
-                  <Badge variant="outline" className="text-[10px] uppercase border-primary/20 text-primary">Verified Account</Badge>
+                  <Badge variant="outline" className="text-[8px] uppercase border-primary/20 text-primary">Verified Account</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-black tracking-widest text-ghost-gray ml-1">Full Name</Label>
-                    <div className="h-12 bg-muted/30 rounded-xl flex items-center px-4 text-sm font-medium border border-transparent">
+                    <div className="h-10 bg-muted/30 rounded-xl flex items-center px-4 text-sm font-medium border border-transparent">
                       {user?.displayName || 'Creator'}
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-black tracking-widest text-ghost-gray ml-1">Email Address</Label>
-                    <div className="h-12 bg-muted/30 rounded-xl flex items-center px-4 text-sm font-medium border border-transparent">
+                    <div className="h-10 bg-muted/30 rounded-xl flex items-center px-4 text-sm font-medium border border-transparent">
                       {user?.email}
                     </div>
                   </div>
@@ -100,22 +100,22 @@ export default function CheckoutPage() {
                     placeholder="Enter coupon..." 
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    className="h-12 bg-background/50 rounded-xl border-stone-gray/10"
+                    className="h-10 bg-background/50 rounded-xl border-stone-gray/10"
                   />
-                  <Button variant="outline" className="h-12 px-8 rounded-xl font-bold">Apply</Button>
+                  <Button variant="outline" className="h-10 px-8 rounded-xl font-bold">Apply</Button>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="space-y-4">
+            <div className="space-y-4  flex flex-col items-center">
               <Button 
                 onClick={() => startCheckout(couponCode)}
                 size="lg" 
-                className="w-full h-16 text-xl font-bold rounded-2xl shadow-xl shadow-primary/20 transition-all" 
+                className="w-50 h-12 text-1xl font-bold rounded-2xl flex items-center shadow-xl shadow-primary/20 transition-all" 
                 disabled={isProcessing || items.length === 0}
               >
                 {isProcessing ? <Loader2 className="h-6 w-6 animate-spin mr-3" /> : <CreditCard className="h-6 w-6 mr-3" />}
-                {isProcessing ? 'Synchronizing...' : `Authorize ${formatPrice(breakdown.total)}`}
+                {isProcessing ? 'Synchronizing...' : `Pay Now ${formatPrice(breakdown.total)}`}
               </Button>
               <p className="text-[10px] text-center text-ghost-gray uppercase font-black tracking-[0.2em]">
                 Instant Fulfillment • SSL Encrypted • Direct Delivery
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
                   <div className="pt-4 border-t border-stone-gray/10 flex justify-between items-baseline">
                     <span className="font-bold text-midnight-ink uppercase text-xs tracking-widest">Net Value</span>
                     <div className="text-right">
-                      <span className="text-4xl font-bold text-primary tracking-tighter">
+                      <span className="text-2xl font-bold text-primary tracking-tighter">
                         {formatPrice(breakdown.total)}
                       </span>
                     </div>

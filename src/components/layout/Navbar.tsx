@@ -84,7 +84,7 @@ export function Navbar() {
                   className="object-cover"
                 />
               </div>
-              <span className="font-bold text-lg tracking-tight text-foreground">Prontly</span>
+              <span className="font-bold text-lg tracking-tight text-foreground"></span>
             </Link>
             
             <div className="hidden xl:flex items-center gap-6">
@@ -187,7 +187,7 @@ export function Navbar() {
                          <div className="relative h-7 w-7 rounded-lg overflow-hidden bg-primary">
                             <Image src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" alt="Logo" fill />
                          </div>
-                         Prontly
+                         Prontly Store
                       </SheetTitle>
                    </SheetHeader>
                    <div className="p-8 space-y-6">

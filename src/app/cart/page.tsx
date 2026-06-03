@@ -67,7 +67,7 @@ export default function CartPage() {
               <Link href="/products"><ChevronLeft className="h-5 w-5" /></Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold font-headline text-midnight-ink">Shopping Cart.</h1>
+              <h1 className="text-2xl font-bold font-headline text-midnight-ink">Shopping Cart.</h1>
               <p className="text-xs text-muted-foreground mt-1">Ready to finalize your {getItemCount()} assets.</p>
             </div>
           </div>
@@ -79,14 +79,14 @@ export default function CartPage() {
               <Card key={item.id} className="border-stone-gray/10 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row gap-6">
-                    <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-stone-gray/10 shrink-0 bg-muted">
+                    <div className="relative h-24 w-24 grid grid-cols-2 rounded-xl overflow-hidden border border-stone-gray/10 shrink-0 bg-muted">
                       <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0 space-y-4">
                       <div className="flex justify-between items-start gap-4">
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">{item.category}</p>
-                          <h3 className="font-bold text-base sm:text-lg text-midnight-ink line-clamp-2 leading-tight">{item.name}</h3>
+                          <p className="text-[8px] font-black uppercase text-primary tracking-widest mb-1">{item.category}</p>
+                          <h4 className="font-bold text-[14px] sm:text-lg text-midnight-ink line-clamp-2 leading-tight">{item.name}</h4>
                         </div>
                         <Button 
                           variant="ghost" 
@@ -140,13 +140,13 @@ export default function CartPage() {
                 <div className="pt-6 border-t border-stone-gray/10 flex justify-between items-baseline">
                   <span className="font-bold text-lg text-midnight-ink uppercase text-[10px] tracking-widest">Net Value</span>
                   <div className="text-right">
-                    <span className="text-4xl font-bold text-primary tracking-tighter font-headline">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+                    <span className="text-3xl font-bold text-primary tracking-tighter font-headline">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 space-y-4">
-                <Button asChild size="lg" className="w-full h-14 rounded-xl font-bold shadow-xl shadow-primary/20 text-lg group">
+              <div className="mt-8 flex flex-col items-center space-y-4">
+                <Button asChild size="lg" className="w-50 h-10 rounded-xl font-bold shadow-xl shadow-primary/20 text-1xl group">
                   <Link href="/checkout">
                     Execute Order
                     <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
