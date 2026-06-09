@@ -283,7 +283,7 @@ export default async function Home() {
                   <Button asChild size="lg" className="bg-white text-midnight-ink hover:bg-white/90 h-14 px-12 text-sm font-bold rounded-xl shadow-xl transition-all hover:scale-105">
                     <Link href="/products">Get Started Now</Link>
                   </Button>
-                  <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 h-14 px-12 text-sm font-bold rounded-xl">
+                  <Button asChild variant="outline" size="lg" className="text-black border-white/20 hover:bg-white/10 h-14 px-12 text-sm font-bold rounded-xl">
                     <Link href="/products?view=categories">Browse Categories</Link>
                   </Button>
                 </div>
