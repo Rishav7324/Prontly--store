@@ -140,15 +140,15 @@ export default function AdminProducts() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm text-midnight-ink">{product.name}</span>
-                        <Badge variant="outline" className="w-fit text-[9px] uppercase font-black tracking-widest mt-1 border-primary/20 text-primary">
+                      <div className="flex flex-col items-start gap-1" >
+                        <span className="font-bold text-sm line-clamp-2 text-midnight-ink">{product.name}</span>
+                        <Badge variant="outline" className="w-full  line-clamp-1 text-[6px]  font-black tracking-widest mt-1 border-primary/20 text-primary">
                           {product.categorySlug || 'Asset'}
                         </Badge>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="text-[10px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded font-mono">
+                      <code className="text-[10x] line-clamp-1 text-muted-foreground bg-muted/50 px-2 py-0.5 rounded font-mono">
                         /{product.slug}
                       </code>
                     </TableCell>

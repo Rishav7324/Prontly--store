@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Key } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -36,6 +36,7 @@ import { optimizeImage } from '@/lib/image-optimizer';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 
 interface ProductFormProps {
   initialData?: any;
@@ -201,7 +202,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
           <CardHeader className="p-4 sm:p-8 border-b border-white/5 bg-muted/20 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-headline text-midnight-ink">Product Specifications</CardTitle>
+              <CardTitle className="text-1xl font-headline text-midnight-ink">Product Specifications</CardTitle>
               <CardDescription>Primary asset identity and description.</CardDescription>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={handleAiGenerate} disabled={isGenerating} className="gap-2 rounded-xl h-10 border-primary/20 text-primary hover:bg-primary/5 transition-all">
@@ -245,10 +246,10 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
             <div className="grid gap-4">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gallery Images (Max 5)</Label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                {formData.images.map((img, i) => (
+                {formData.images.map((img: string | StaticImport, i: Key | null | undefined) => (
                   <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group bg-muted shadow-lg">
                     <Image src={img} alt="Preview" fill className="object-cover" />
-                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))} className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_: any, idx: any) => idx !== i) }))} className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 ))}
                 {formData.images.length < 5 && (

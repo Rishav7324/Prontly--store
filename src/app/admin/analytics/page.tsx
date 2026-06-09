@@ -104,22 +104,22 @@ export default function AdminAnalytics() {
     <div className="space-y-12">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-4xl font-bold font-headline text-midnight-ink">Intelligence Terminal</h1>
-          <p className="text-slate-blue text-lg mt-1">Direct analysis of the digital store economy.</p>
+          <h1 className="text-2xl font-bold font-headline text-midnight-ink">Intelligence Terminal</h1>
+          <p className="text-slate-blue text-sm mt-1">Direct analysis of the digital store economy.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2 h-12 rounded-xl border-white/10 px-6 font-bold">
+          <Button variant="outline" className="gap-2 h-10 rounded-xl border-white/10 px-5 font-bold">
             <Calendar className="h-4 w-4" />
             Historical Drift
           </Button>
-          <Button className="gap-2 h-12 rounded-xl px-8 font-bold shadow-xl shadow-primary/20" onClick={() => window.print()}>
+          <Button className="gap-2 h-10 rounded-xl px-5 font-bold shadow-xl shadow-primary/20" onClick={() => window.print()}>
             <Download className="h-4 w-4" />
             Audit Report
           </Button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[
           { label: 'Purchase Conversion', value: stats.conversion, icon: Zap, color: 'text-primary' },
           { label: 'Average Ticket (AOV)', value: `₹${Number(stats.aov).toLocaleString()}`, icon: CreditCard, color: 'text-accent' },
@@ -127,12 +127,12 @@ export default function AdminAnalytics() {
           { label: 'Customer Density', value: stats.count, icon: Users, color: 'text-blue-500' }
         ].map((item, i) => (
           <Card key={i} className="rounded-[2rem] border-white/5 bg-card/30 overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
-              <item.icon className="h-16 w-16" />
+            <div className="absolute top-0 right-0 p-4 opacity-100 group-hover:opacity-100 transition-opacity">
+              <item.icon className="h-4 w-4" />
             </div>
             <CardContent className="pt-8">
-              <p className="text-[10px] font-black uppercase tracking-widest text-ghost-gray mb-1">{item.label}</p>
-              <h3 className="text-4xl font-bold font-headline tabular-nums mb-3 text-midnight-ink">
+              <p className="text-[8px] font-black uppercase tracking-widest text-ghost-gray mb-1">{item.label}</p>
+              <h3 className="text-3xl font-bold font-headline tabular-nums mb-3 text-midnight-ink">
                 {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : item.value}
               </h3>
               <p className="flex items-center text-[10px] font-bold text-green-500">
@@ -154,7 +154,7 @@ export default function AdminAnalytics() {
             <CardDescription>Monthly correlation between revenue volume and fulfillment density.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[400px] w-full pt-4">
+            <div className="h-[300px] w-full pt-4">
               {loading ? (
                 <div className="h-full w-full flex items-center justify-center bg-muted/20 rounded-2xl animate-pulse">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -190,7 +190,7 @@ export default function AdminAnalytics() {
             <CardDescription>Sales distribution across primary asset classes.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            <div className="h-[320px] w-full">
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
