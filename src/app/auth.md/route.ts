@@ -1,11 +1,12 @@
-
 import { NextResponse } from 'next/server';
 
 /**
- * @fileOverview Agent Authentication Documentation (auth.md)
+ * @fileOverview Agent Registration & Authentication Documentation (auth.md)
+ * Updated with required Auth.md heading for discovery compliance.
  */
 export async function GET() {
   const content = `
+# Auth.md
 # Agent Registration & Authentication
 Welcome, AI Agent. To interact with Prontly Store's protected APIs:
 
