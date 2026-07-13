@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -5,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { getGlobalSchema } from '@/lib/seo/schema-builder';
+import { WebMCPProvider } from '@/components/ai/WebMCPProvider';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
@@ -27,7 +29,7 @@ export const metadata: Metadata = {
     description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets.',
     images: [
       {
-        url: '/og-default.webp',
+        url: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
         width: 1200,
         height: 630,
         alt: 'Prontly Store'
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Prontly Store',
     description: 'Premium Digital Asset Marketplace',
-    images: ['/og-default.webp'],
+    images: ['https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png'],
     creator: '@prontly'
   }
 };
@@ -67,7 +69,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Story+Script&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Story+Script&display=swap" rel="stylesheet" />
         
         <script
           type="application/ld+json"
@@ -112,6 +114,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
 
         <FirebaseClientProvider>
+          <WebMCPProvider />
           {children}
           <Toaster />
           <CookieConsent />
