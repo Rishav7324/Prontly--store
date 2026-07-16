@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const data = doc.data();
       return {
         url: `${siteUrl}/products/${data.slug || doc.id}`,
-        lastModified: data.updatedAt?.toDate() || new Date(),
+        const lastModified = new Date("2026-07-16"),
         changeFrequency: 'weekly' as const,
         priority: 0.9,
       };
