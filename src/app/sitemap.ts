@@ -1,84 +1,53 @@
-import { MetadataRoute } from 'next';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { MetadataRoute } from "next";
+import { getAdminDb } from "@/lib/firebase-admin";
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Cache for 1 hour
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
-/**
- * @fileOverview Automatic Sitemap Generator
- * Fetches all dynamic content from Firestore using Admin SDK for reliability.
- */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
-  // Remove trailing slash if present to prevent double slashes in URLs
-  const siteUrl = rawSiteUrl.endsWith('/') ? rawSiteUrl.slice(0, -1) : rawSiteUrl;
-  
-  const staticRoutes: MetadataRoute.Sitemap = [
-    '',
-    '/products',
-    '/blog',
-    '/about',
-    '/contact',
-    '/testimonials',
-    '/wishlist',
-    '/terms',
-    '/privacy',
-    '/refund-policy',
-    '/delivery-policy',
-  ].map((route) => ({
-    url: `${siteUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: route === '' ? 1.0 : 0.8,
-  }));
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://store.prontly.in"
+  ).replace(/\/$/, "");
 
-  try {
-    // Database initialization inside try block to catch potential auth/env errors
-    const db = getAdminDb();
-    
-    // 1. Fetch Products with SLUGS
-    const productsSnap = await db.collection('products').select('slug', 'updatedAt').get();
-    const productRoutes = productsSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        url: `${siteUrl}/products/${data.slug || doc.id}`,
-        const lastModified = new Date("2026-07-16"),
-        changeFrequency: 'weekly' as const,
-        priority: 0.9,
-      };
-    });
+  const now = new Date();
 
-    // 2. Fetch Blog Posts
-    const blogSnap = await db.collection('blog_posts')
-      .select('slug', 'updatedAt', 'publishedAt')
-      .get();
-    
-    const blogRoutes = blogSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        url: `${siteUrl}/blog/${data.slug}`,
-        lastModified: data.updatedAt?.toDate() || data.publishedAt?.toDate() || new Date(),
-        changeFrequency: 'monthly' as const,
-        priority: 0.7,
-      };
-    });
-
-    // 3. Fetch Categories
-    const catSnap = await db.collection('categories').select('slug').get();
-    const catRoutes = catSnap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        url: `${siteUrl}/products?category=${data.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      };
-    });
-
-    return [...staticRoutes, ...productRoutes, ...blogRoutes, ...catRoutes];
-  } catch (error) {
-    console.error('[SITEMAP_ERROR]: Generation failed:', error);
-    // Fallback to static routes to avoid 500 error during crawler fetch
-    return staticRoutes;
-  }
-}
+  const sitemap: MetadataRoute.Sitemap = [
+    {
+      url: siteUrl,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 1,
+    },
+    {
+      url: `${siteUrl}/products`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${siteUrl}/blog`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/about`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${siteUrl}/contact`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${siteUrl}/testimonials`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${siteUrl}/wishlist`,
+      lastModified: now,
