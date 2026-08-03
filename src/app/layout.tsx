@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets.',
     images: [
       {
-        url: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
+        url: 'https://cdn.prontly.in/App%20icon/file_000000004a28720bab301fc1f3a5edb6.png',
         width: 1200,
         height: 630,
         alt: 'Prontly Store'
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Prontly Store',
     description: 'Premium Digital Asset Marketplace',
-    images: ['https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png'],
+    images: ['https://cdn.prontly.in/App%20icon/file_000000004a28720bab301fc1f3a5edb6.png'],
     creator: '@prontly'
   }
 };

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
-const DEFAULT_OG_IMAGE = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png';
+const DEFAULT_OG_IMAGE = 'https://cdn.prontly.in/App%20icon/file_000000004a28720bab301fc1f3a5edb6.png';
 
 interface GenerateMetaProps {
   title: string;
