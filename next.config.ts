@@ -1,12 +1,16 @@
 import type { NextConfig } from 'next';
+import { existsSync } from 'fs';
+
+// Local (phone/proot) builds need an explicit Turbopack root; Vercel does not.
+const localTurbopackRoot = existsSync('/public/Prontly--store/package.json')
+  ? { turbopack: { root: '/public' } }
+  : {};
 
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  turbopack: {
-    root: '/public',
-  },
+  ...localTurbopackRoot,
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
