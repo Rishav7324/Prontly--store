@@ -19,13 +19,11 @@ import {
   FileDown,
   ExternalLink,
   Zap,
-  Globe
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { generateInvoicePdf } from '@/app/actions/email-actions';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -77,7 +75,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       </div>
     );
@@ -88,12 +86,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-          <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-6">
-             <Receipt className="h-8 w-8 text-muted-foreground opacity-20" />
+          <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-5">
+             <Receipt className="h-6 w-6 text-muted-foreground opacity-40" />
           </div>
-          <h1 className="text-3xl font-bold font-headline mb-4">Record Not Found</h1>
-          <p className="text-muted-foreground mb-8 max-w-xs">The transaction with ID {id.slice(-8).toUpperCase()} could not be verified in your library.</p>
-          <Button asChild className="rounded-xl h-12 px-10"><Link href="/dashboard">Back to Workspace</Link></Button>
+          <h1 className="text-lg md:text-xl font-semibold mb-2">Record Not Found</h1>
+          <p className="text-xs text-muted-foreground mb-6 max-w-xs">The transaction with ID {id.slice(-8).toUpperCase()} could not be verified in your library.</p>
+          <Button asChild size="sm" className="h-9 rounded-lg px-6"><Link href="/dashboard">Back to Workspace</Link></Button>
         </div>
         <Footer />
       </div>
@@ -104,77 +102,76 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 pt-32 pb-24 max-w-6xl">
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="flex items-center gap-6">
-            <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/40 h-12 w-12 border border-stone-gray/5">
-              <Link href="/dashboard"><ChevronLeft className="h-5 w-5" /></Link>
+      <main className="flex-1 container mx-auto px-4 pt-28 pb-20 max-w-6xl">
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild className="rounded-lg h-9 w-9">
+              <Link href="/dashboard"><ChevronLeft className="h-4 w-4" /></Link>
             </Button>
             <div>
-              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1">
+              <div className="flex items-center gap-1.5 text-[10px] font-medium text-primary mb-0.5">
                 <ShieldCheck className="h-3 w-3" /> Verified Transaction
               </div>
-              <h1 className="text-3xl font-bold font-headline text-midnight-ink">Order Overview</h1>
-              <p className="text-xs font-mono text-muted-foreground mt-1">Ref: {id.toUpperCase()}</p>
+              <h1 className="text-lg md:text-xl font-semibold">Order Overview</h1>
+              <p className="text-xs font-mono text-muted-foreground mt-0.5">Ref: {id.toUpperCase()}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
-              className="h-12 px-6 rounded-xl gap-2.5 border-stone-gray/10 font-bold text-xs uppercase tracking-widest shadow-sm hover:bg-white"
+              size="sm"
+              className="h-8 rounded-lg gap-2"
               onClick={handleDownloadInvoice}
               disabled={isDownloading}
             >
-              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <FileDown className="h-4 w-4" />}
+              {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
               Export PDF Receipt
             </Button>
-            <Button variant="ghost" className="h-12 px-6 rounded-xl gap-2.5 font-bold text-xs uppercase tracking-widest bg-muted/30 hidden sm:flex" onClick={() => window.print()}>
-              <Printer className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="h-8 rounded-lg gap-2 hidden sm:flex" onClick={() => window.print()}>
+              <Printer className="h-3.5 w-3.5" />
               Print Record
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          <div className="lg:col-span-8 space-y-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-8 space-y-6">
             {/* Purchase Content */}
-            <Card className="bg-white border-stone-gray/10 rounded-[2.5rem] overflow-hidden shadow-sm">
-              <CardHeader className="bg-muted/20 border-b border-stone-gray/5 p-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10">
-                      <Package className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-xl font-headline">Assets & Licenses</CardTitle>
+            <Card className="rounded-xl shadow-sm p-4 overflow-hidden">
+              <CardHeader className="px-0 pt-0 pb-3 border-b border-border/60 flex-row items-center justify-between space-y-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Package className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-none px-3 py-1 font-black text-[9px] uppercase tracking-widest">
-                    {order.status}
-                  </Badge>
+                  <CardTitle className="text-sm font-semibold">Assets & Licenses</CardTitle>
                 </div>
+                <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-500 border-none px-2 py-0 text-[10px] font-medium rounded-md">
+                  {order.status}
+                </Badge>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-stone-gray/5">
+              <CardContent className="px-0 pb-0 pt-1">
+                <div className="divide-y divide-border/60 -mx-4">
                   {order.items?.map((item: any) => (
-                    <div key={item.productId} className="p-8 flex items-center justify-between gap-6 group hover:bg-muted/10 transition-all">
-                      <div className="flex items-center gap-6 min-w-0">
-                        <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center border border-stone-gray/5 shrink-0 group-hover:scale-105 transition-transform">
-                          <Receipt className="h-6 w-6 text-muted-foreground opacity-40" />
+                    <div key={item.productId} className="px-4 py-3.5 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+                          <Receipt className="h-4 w-4 text-muted-foreground opacity-50" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-base text-midnight-ink truncate">{item.productName}</p>
-                          <div className="flex flex-wrap items-center gap-3 mt-1">
-                             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 rounded border border-primary/10">
+                          <p className="text-xs font-semibold truncate">{item.productName}</p>
+                          <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                             <div className="flex items-center gap-1 px-1.5 py-0.5 bg-primary/5 rounded border border-primary/10">
                                 <Zap className="h-2.5 w-2.5 text-primary" />
-                                <span className="text-[9px] font-black uppercase text-primary tracking-widest">Perpetual License</span>
+                                <span className="text-[10px] font-medium text-primary">Perpetual License</span>
                              </div>
-                             <span className="text-[10px] text-muted-foreground font-medium italic">Instant Access Enabled</span>
+                             <span className="text-[10px] text-muted-foreground">Instant Access Enabled</span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="font-bold text-lg font-headline">₹{(item.price / 100).toLocaleString('en-IN')}</p>
-                        <Link href={`/products/${item.productId}`} className="text-[10px] text-primary uppercase font-black tracking-widest hover:underline mt-1.5 flex items-center justify-end gap-1 group-hover:translate-x-1 transition-transform">
-                          Inspect Specs <ExternalLink className="h-2.5 w-2.5" />
+                        <p className="text-sm font-semibold">₹{(item.price / 100).toLocaleString('en-IN')}</p>
+                        <Link href={`/products/${item.productId}`} className="text-[10px] text-primary hover:underline mt-0.5 inline-flex items-center gap-1">
+                          View Product <ExternalLink className="h-2.5 w-2.5" />
                         </Link>
                       </div>
                     </div>
@@ -183,43 +180,43 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="bg-white border-stone-gray/10 rounded-[2.5rem] p-8 shadow-sm">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray mb-6">Customer Ledger</h4>
-                <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="rounded-xl shadow-sm p-4">
+                <h3 className="text-[10px] font-medium text-muted-foreground mb-4">Customer Details</h3>
+                <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-black uppercase tracking-widest text-midnight-ink opacity-40">Identity</p>
-                    <p className="text-xl font-bold text-midnight-ink mt-1">{order.userName || 'Verified Creator'}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground">Identity</p>
+                    <p className="text-sm font-semibold mt-0.5">{order.userName || 'Verified Creator'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-black uppercase tracking-widest text-midnight-ink opacity-40">Contact Address</p>
-                    <p className="text-sm font-medium text-slate-blue mt-1">{order.userEmail}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground">Contact Address</p>
+                    <p className="text-xs mt-0.5 truncate">{order.userEmail}</p>
                   </div>
                 </div>
-                <div className="mt-8 pt-6 border-t border-stone-gray/5">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-3 w-3 text-primary" />
-                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">Global Order Nexus</span>
+                <div className="mt-4 pt-3 border-t border-border/60">
+                  <div className="flex items-center gap-1.5 text-primary">
+                    <ShieldCheck className="h-3 w-3" />
+                    <span className="text-[10px] font-medium">Global Order Nexus</span>
                   </div>
                 </div>
               </Card>
               
-              <Card className="bg-white border-stone-gray/10 rounded-[2.5rem] p-8 shadow-sm">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray mb-6">Execution Logs</h4>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0 border border-green-500/20">
-                      <ShieldCheck className="h-5 w-5 text-green-600" />
+              <Card className="rounded-xl shadow-sm p-4">
+                <h3 className="text-[10px] font-medium text-muted-foreground mb-4">Execution Logs</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-7 w-7 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-black text-green-600 uppercase text-[10px] tracking-widest">Delivery Synchronized</p>
-                      <p className="text-xs text-muted-foreground font-medium mt-1 leading-relaxed italic">
+                      <p className="text-[10px] font-medium text-green-600 dark:text-green-500">Delivery Synchronized</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                         Assets processed on {order.paidAt ? format(order.paidAt.toDate ? order.paidAt.toDate() : new Date(order.paidAt), 'PPP p') : 'Recently'}.
                       </p>
                     </div>
                   </div>
-                  <div className="p-4 bg-muted/30 rounded-xl border border-dashed border-stone-gray/10">
-                     <p className="text-[9px] font-medium text-slate-blue leading-relaxed">
+                  <div className="p-3 bg-muted/40 rounded-lg border border-dashed border-border/60">
+                     <p className="text-[10px] text-muted-foreground leading-relaxed">
                         Securely stored on Cloudflare Global R2 Edge. Perpetual download access is now active in your digital workspace.
                      </p>
                   </div>
@@ -228,61 +225,59 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          <div className="lg:col-span-4 space-y-8">
-            <Card className="bg-midnight-ink text-white rounded-[2.5rem] overflow-hidden shadow-2xl relative group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
-                 <Receipt className="h-40 w-48" />
+          <div className="lg:col-span-4 space-y-4">
+            <Card className="bg-midnight-ink text-white border-transparent rounded-xl shadow-md overflow-hidden relative">
+              <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
+                 <Receipt className="h-32 w-32 -translate-y-4 translate-x-4" />
               </div>
-              <CardHeader className="bg-white/5 border-b border-white/5 p-8 relative z-10">
-                <CardTitle className="text-xl font-headline text-white/90">Economic Summary</CardTitle>
+              <CardHeader className="bg-white/5 border-b border-white/10 p-4 relative z-10">
+                <CardTitle className="text-sm font-semibold text-white/90">Economic Summary</CardTitle>
               </CardHeader>
-              <CardContent className="p-8 space-y-8 relative z-10">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center text-sm font-medium">
+              <CardContent className="p-4 space-y-6 relative z-10">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-xs">
                     <span className="text-white/40">Gross Subtotal</span>
                     <span className="font-mono">₹{(order.subtotal / 100).toLocaleString('en-IN')}</span>
                   </div>
                   {order.discountAmount > 0 && (
-                    <div className="flex justify-between items-center text-sm font-bold text-green-400">
+                    <div className="flex justify-between items-center text-xs font-medium text-green-400">
                       <span>Incentive ({order.couponCode || 'PROMO'})</span>
                       <span className="font-mono">-₹{(order.discountAmount / 100).toLocaleString('en-IN')}</span>
                     </div>
                   )}
-                  <div className="pt-8 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="font-black uppercase text-[10px] tracking-[0.25em] text-white/60">Net Value</span>
-                    <div className="text-right">
-                      <p className="text-4xl font-bold font-headline">₹{((order.totalAmount || order.total) / 100).toLocaleString('en-IN')}</p>
-                    </div>
+                  <div className="pt-4 border-t border-white/10 flex justify-between items-baseline">
+                    <span className="text-[10px] font-medium text-white/60">Net Value</span>
+                    <span className="text-xl md:text-2xl font-semibold tracking-tight">₹{((order.totalAmount || order.total) / 100).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Button className="w-full h-14 bg-white text-midnight-ink hover:bg-white/90 rounded-2xl gap-3 font-bold text-base transition-all hover:scale-[1.02] shadow-xl shadow-black/20" asChild>
+                <div className="space-y-3">
+                  <Button className="w-full h-9 bg-white text-midnight-ink hover:bg-white/90 rounded-lg gap-2 font-medium transition-all active:scale-[0.98]" asChild>
                     <Link href="/dashboard/downloads">
-                      <Download className="h-5 w-5" />
+                      <Download className="h-3.5 w-3.5" />
                       Open Digital Vault
                     </Link>
                   </Button>
-                  <p className="text-[8px] text-center text-white/30 uppercase font-black tracking-widest leading-loose">
+                  <p className="text-[10px] text-center text-white/30 leading-relaxed">
                     Professional Digital License • Perpetual Usage • Instant Global Fulfillment
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-stone-gray/10 rounded-[2rem] p-8 shadow-sm">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-ghost-gray mb-6">Market Compliance</h4>
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                     <ShieldCheck className="h-4 w-4 text-primary" />
-                     <span className="text-[11px] font-bold text-midnight-ink">PCI-DSS Secure Processor</span>
+            <Card className="rounded-xl shadow-sm p-4">
+               <h3 className="text-[10px] font-medium text-muted-foreground mb-4">Market Compliance</h3>
+               <div className="space-y-3">
+                  <div className="flex items-center gap-2.5">
+                     <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                     <span className="text-xs font-medium">PCI-DSS Secure Processor</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                     <Zap className="h-4 w-4 text-primary" />
-                     <span className="text-[11px] font-bold text-midnight-ink">Direct Electronic Delivery</span>
+                  <div className="flex items-center gap-2.5">
+                     <Zap className="h-3.5 w-3.5 text-primary" />
+                     <span className="text-xs font-medium">Direct Electronic Delivery</span>
                   </div>
-                  <div className="pt-6 mt-6 border-t border-stone-gray/5">
-                     <p className="text-[9px] text-slate-blue leading-relaxed font-medium italic">
+                  <div className="pt-3 mt-3 border-t border-border/60">
+                     <p className="text-[10px] text-muted-foreground leading-relaxed italic">
                         "Your transaction history is cryptographically logged and synchronized across the Prontly ecosystem."
                      </p>
                   </div>
@@ -296,4 +291,3 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     </div>
   );
 }
-

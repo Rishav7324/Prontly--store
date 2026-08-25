@@ -112,7 +112,7 @@ export function MarketplaceClient({ initialProducts, initialCategories }: Market
   };
 
   return (
-    <div className="flex flex-col gap-12 lg:flex-row">
+    <div className="flex flex-col gap-6 md:gap-8 lg:gap-12 lg:flex-row min-w-0 max-w-full overflow-x-hidden">
       {/* 1. SIDEBAR NAVIGATION */}
       <aside className="w-full lg:w-72 space-y-12 flex-shrink-0">
         <div className="space-y-10">

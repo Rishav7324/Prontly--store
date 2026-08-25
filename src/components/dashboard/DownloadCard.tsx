@@ -6,7 +6,7 @@ import type { DownloadRecord } from '@/types/download';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO, isValid } from 'date-fns';
-import { FileText, Package, Clock, Calendar } from 'lucide-react';
+import { Package, Clock, Calendar } from 'lucide-react';
 
 interface DownloadCardProps {
   record: DownloadRecord;
@@ -42,45 +42,45 @@ export function DownloadCard({ record }: DownloadCardProps) {
   };
 
   return (
-    <Card className="bg-card/40 border-white/5 rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex gap-6">
-          <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-muted border border-white/5 shrink-0">
+    <Card className="rounded-xl shadow-sm p-4 overflow-hidden border-border/60 hover:border-primary/30 transition-colors">
+      <CardContent className="p-0">
+        <div className="flex gap-4 min-w-0">
+          <div className="relative h-20 w-20 rounded-lg overflow-hidden bg-muted shrink-0">
             {record.productImage ? (
               <Image 
                 src={record.productImage} 
                 alt={record.productName} 
                 fill 
-                className="object-cover transition-transform group-hover:scale-110" 
+                className="object-cover" 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
-                <Package className="h-8 w-8" />
+                <Package className="h-7 w-7" />
               </div>
             )}
           </div>
 
-          <div className="flex-1 min-w-0 space-y-4">
+          <div className="flex-1 min-w-0 space-y-3">
             <div>
-              <h3 className="font-bold text-lg truncate text-foreground group-hover:text-primary transition-colors">
+              <h3 className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
                 {record.productName}
               </h3>
-              <div className="flex flex-wrap gap-2 mt-1">
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] uppercase font-black tracking-widest px-2 py-0">
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] font-medium px-2 py-0 rounded-md">
                   {(record.fileFormat || 'SOURCE').toUpperCase()}
                 </Badge>
-                <Badge variant="outline" className="border-white/10 text-muted-foreground text-[10px] font-bold">
+                <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-medium px-2 py-0 rounded-md">
                   {formatFileSize(record.fileSize)}
                 </Badge>
-                <Badge variant="outline" className="border-white/10 text-muted-foreground text-[10px] font-bold">
+                <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-medium px-2 py-0 rounded-md">
                   v{record.fileVersion || '1.0'}
                 </Badge>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
-                <span>{record.downloadCount} of {record.downloadLimit} Used</span>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[10px] font-medium text-muted-foreground">
+                <span>{record.downloadCount} of {record.downloadLimit} used</span>
                 {record.lastDownloadedAt && (
                   <span className="flex items-center gap-1">
                     <Clock className="h-2.5 w-2.5" /> 
@@ -88,9 +88,9 @@ export function DownloadCard({ record }: DownloadCardProps) {
                   </span>
                 )}
               </div>
-              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <div className="h-1 bg-muted rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-1000 ${
+                  className={`h-full rounded-full transition-all duration-500 ${
                     progressPercent >= 100 ? "bg-red-500" : progressPercent >= 60 ? "bg-amber-500" : "bg-primary"
                   }`}
                   style={{ width: `${Math.min(100, progressPercent)}%` }}
@@ -98,14 +98,14 @@ export function DownloadCard({ record }: DownloadCardProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
-              <Calendar className="h-3 w-3" />
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
+              <Calendar className="h-2.5 w-2.5" />
               Purchased {formatFriendlyDate(record.purchasedAt, 'PPP')}
             </div>
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-white/5">
+        <div className="mt-4 pt-4 border-t border-border/60">
           <DownloadButton
             productId={record.productId}
             orderId={record.orderId}

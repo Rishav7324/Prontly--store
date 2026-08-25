@@ -4,14 +4,24 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  turbopack: {
+    root: '/public',
   },
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
     },
   },
+  serverExternalPackages: [
+    'genkit',
+    '@genkit-ai/core',
+    '@genkit-ai/google-genai',
+    'firebase-admin',
+    '@google-cloud/firestore',
+    '@opentelemetry/instrumentation',
+    'require-in-the-middle',
+    'import-in-the-middle',
+  ],
 
   images: {
     remotePatterns: [

@@ -5,7 +5,7 @@ import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,6 @@ import {
   ChevronLeft, 
   Globe, 
   Camera, 
-  Upload,
   CheckCircle2,
   AlertCircle,
   Download,
@@ -100,12 +99,12 @@ export default function UserSettingsPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: "Visual ID Updated", description: `Compressed to ${Math.round(optimized.optimizedSize / 1024)}KB.` });
+        toast({ title: "Photo Updated", description: `Compressed to ${Math.round(optimized.optimizedSize / 1024)}KB.` });
       } else {
         throw new Error(result.error || 'Upload failed');
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Upload Fault", description: error.message });
+      toast({ variant: "destructive", title: "Upload Failed", description: error.message });
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -143,15 +142,15 @@ export default function UserSettingsPage() {
   };
 
   if (authLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-        <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-4 font-headline">Identity Required</h1>
-        <Button asChild className="rounded-xl px-8"><Link href="/login">Authenticate Now</Link></Button>
+        <AlertCircle className="h-8 w-8 text-muted-foreground mb-3" />
+        <h1 className="text-lg md:text-xl font-semibold mb-2">Identity Required</h1>
+        <Button asChild size="sm" className="h-9 rounded-lg px-6"><Link href="/login">Sign In</Link></Button>
       </div>
     );
   }
@@ -175,50 +174,50 @@ Regards,`;
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-16 max-w-4xl">
-        <div className="mb-12 flex items-center gap-6">
-          <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/5 hover:bg-white/10 h-12 w-12">
-            <Link href="/dashboard"><ChevronLeft className="h-6 w-6" /></Link>
+      <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
+        <div className="mb-8 flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="rounded-lg h-9 w-9">
+            <Link href="/dashboard"><ChevronLeft className="h-4 w-4" /></Link>
           </Button>
           <div>
-            <h2 className="text-3xl font-bold font-headline">Account Center</h2>
-            <p className="text-muted-foreground text-sm mt-1">Manage your identity and preferences across the Prontly ecosystem.</p>
+            <h1 className="text-lg md:text-xl font-semibold">Account Center</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Manage your identity and preferences.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-6">
           {/* Identity Visual Section */}
-          <Card className="rounded-[2.5rem] border-white/5 bg-card/30 overflow-hidden">
-            <CardContent className="p-10">
-              <div className="flex flex-col md:flex-row items-center gap-10">
-                <div className="relative group">
-                  <Avatar className="h-32 w-32 border-4 border-primary/20 shadow-2xl transition-transform group-hover:scale-105">
+          <Card className="rounded-xl shadow-sm p-4">
+            <CardContent className="p-0">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="relative group shrink-0">
+                  <Avatar className="h-20 w-20 border-2 border-primary/20 shadow-sm transition-transform group-hover:scale-105">
                     <AvatarImage src={formData.photoURL} />
-                    <AvatarFallback className="text-4xl font-bold text-primary bg-primary/10">
+                    <AvatarFallback className="text-2xl font-semibold text-primary bg-primary/10">
                       {formData.displayName?.charAt(0) || user.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <label className="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer shadow-xl hover:bg-primary/90 transition-all">
-                    {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                  <label className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer shadow-md hover:bg-primary/90 transition-all">
+                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
                   </label>
                 </div>
-                <div className="flex-1 space-y-4 text-center md:text-left">
+                <div className="flex-1 space-y-3 text-center md:text-left min-w-0">
                   <div>
-                    <h3 className="text-2xl font-bold font-headline">{formData.displayName || 'Unnamed Creator'}</h3>
-                    <p className="text-muted-foreground">{user.email}</p>
+                    <h2 className="text-base font-semibold truncate">{formData.displayName || 'Unnamed Creator'}</h2>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary uppercase font-black text-[10px] tracking-widest px-3 py-1">
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary text-[10px] font-medium px-2 py-0 rounded-md">
                       {profile?.role || 'Member'}
                     </Badge>
-                    <Badge variant="outline" className="bg-green-500/5 border-green-500/20 text-green-500 uppercase font-black text-[10px] tracking-widest px-3 py-1">
+                    <Badge variant="outline" className="bg-green-500/5 border-green-500/20 text-green-600 dark:text-green-500 text-[10px] font-medium px-2 py-0 rounded-md">
                       Verified Identity
                     </Badge>
                   </div>
                   {isUploading && (
-                    <div className="w-full max-w-xs space-y-2">
-                      <div className="flex justify-between text-[10px] uppercase font-bold text-primary tracking-widest">
+                    <div className="w-full max-w-xs space-y-1.5 mx-auto md:mx-0">
+                      <div className="flex justify-between text-[10px] font-medium text-primary">
                         <span>Optimizing...</span>
                         <span>{uploadProgress}%</span>
                       </div>
@@ -230,44 +229,42 @@ Regards,`;
             </CardContent>
           </Card>
 
-          <form onSubmit={handleSave} className="space-y-8">
-            <Card className="rounded-[2.5rem] border-white/5 bg-card/30 overflow-hidden">
-              <CardHeader className="p-10 pb-0">
-                <div className="flex items-center gap-3 text-primary mb-2">
-                  <User className="h-6 w-6" />
-                  <CardTitle className="text-2xl font-headline">Public Profile</CardTitle>
+          <form onSubmit={handleSave} className="space-y-6">
+            <Card className="rounded-xl shadow-sm p-4">
+              <CardContent className="p-0 space-y-6">
+                <div className="flex items-center gap-2 text-primary">
+                  <User className="h-4 w-4" />
+                  <h2 className="text-sm font-semibold">Public Profile</h2>
+                  <span className="text-xs text-muted-foreground hidden sm:inline">— appears on your reviews and receipts</span>
                 </div>
-                <CardDescription className="text-base">This information appears on your reviews and purchase receipts.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-10 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Full Display Name</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-medium text-muted-foreground">Display Name</Label>
                     <Input 
                       value={formData.displayName} 
                       onChange={(e) => setFormData({...formData, displayName: e.target.value})} 
-                      className="h-14 bg-background/50 border-white/10 rounded-2xl text-lg px-6"
+                      className="h-9 rounded-lg text-xs"
                       placeholder="e.g. John Doe"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Contact Phone</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-medium text-muted-foreground">Contact Phone</Label>
                     <div className="relative">
-                      <Phone className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input 
                         placeholder="+1 XXXXX XXXXX" 
                         value={formData.phone} 
                         onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                        className="h-14 bg-background/50 border-white/10 rounded-2xl text-lg pl-14"
+                        className="h-9 rounded-lg text-xs pl-9"
                       />
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Store Language</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-medium text-muted-foreground">Store Language</Label>
                     <div className="relative">
-                      <Globe className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                       <select 
-                        className="w-full h-14 bg-background/50 border border-white/10 rounded-2xl text-lg pl-14 pr-6 outline-none focus:ring-2 focus:ring-primary appearance-none"
+                        className="w-full h-9 border border-input rounded-lg text-xs pl-9 pr-3 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none"
                         value={formData.language}
                         onChange={(e) => setFormData({...formData, language: e.target.value})}
                       >
@@ -277,64 +274,64 @@ Regards,`;
                       </select>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Account Status</Label>
-                    <div className="h-14 bg-muted/40 border border-dashed rounded-2xl flex items-center px-6 gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      <span className="text-sm font-bold uppercase tracking-widest text-foreground">Active & Compliant</span>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-medium text-muted-foreground">Account Status</Label>
+                    <div className="h-9 bg-muted/40 border border-dashed border-border rounded-lg flex items-center px-3 gap-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      <span className="text-xs font-medium">Active & Compliant</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="ghost" type="button" asChild className="h-10 px-6 rounded-xl font-bold"><Link href="/dashboard">Discard</Link></Button>
-              <Button type="submit" disabled={isSaving} className="h-10 w-80 px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Sync Profile
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="ghost" type="button" asChild size="sm" className="h-9 rounded-lg"><Link href="/dashboard">Discard</Link></Button>
+              <Button type="submit" disabled={isSaving} size="sm" className="h-9 sm:w-64 rounded-lg">
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Save className="h-3.5 w-3.5 mr-2" />}
+                Save Changes
               </Button>
             </div>
           </form>
 
-          {/* Upgraded Privacy & Compliance Section */}
-          <Card className="rounded-[1rem] h-100 border-red-500/20 bg-red-500/[0.02] overflow-hidden">
-            <CardContent className="p-7 space-y-7">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 text-red-500">
-                  <Shield className="h-6 w-6" />
-                  <h3 className="text-1xl font-bold font-headline">Privacy & Compliance</h3>
+          {/* Privacy & Compliance Section */}
+          <Card className="rounded-xl shadow-sm p-4 border-red-500/20 bg-red-500/[0.02] overflow-hidden">
+            <CardContent className="p-0 space-y-5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-red-500">
+                  <Shield className="h-4 w-4" />
+                  <h2 className="text-sm font-semibold">Privacy & Compliance</h2>
                 </div>
-                <p className="text-sm text-muted-foreground">Manage your data rights and account lifecycle in accordance with global privacy standards.</p>
+                <p className="text-xs text-muted-foreground">Manage your data rights and account lifecycle in accordance with global privacy standards.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="p-8 rounded-1xl bg-white/5 border border-white/5 space-y-4">
-                   <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                     <Download className="h-5 w-5" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-lg bg-white/50 dark:bg-white/5 border border-border/60 space-y-3 p-4">
+                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                     <Download className="h-4 w-4" />
                    </div>
                    <div>
-                     <h4 className="font-bold text-foreground">Portable Data Export</h4>
+                     <h3 className="text-xs font-semibold">Portable Data Export</h3>
                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Download a structured archive of your transaction history and library index. Processed within 24 hours.</p>
                    </div>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-primary/5 hover:text-primary transition-all">Request JSON Archive</Button>
+                   <Button variant="outline" size="sm" className="w-full h-8 rounded-lg">Request JSON Archive</Button>
                 </div>
 
-                <div className="p-8 rounded-3xl bg-red-500/[0.03] border border-red-500/10 space-y-4">
-                   <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
-                     <AlertCircle className="h-5 w-5" />
+                <div className="rounded-lg bg-red-500/[0.03] border border-red-500/10 space-y-3 p-4">
+                   <div className="h-8 w-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
+                     <AlertCircle className="h-4 w-4" />
                    </div>
                    <div>
-                     <h4 className="font-bold text-red-500">Account Termination</h4>
-                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Permanently purge your identity from our systems. This will immediately revoke all perpetual licenses and R2 source file access.</p>
+                     <h3 className="text-xs font-semibold text-red-500">Account Termination</h3>
+                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Permanently purge your identity from our systems. This will immediately revoke all licenses and R2 source file access.</p>
                    </div>
-                   <Button variant="destructive" className="w-full h-10 rounded-xl font-bold stripe-shadow-sm" asChild>
+                   <Button variant="destructive" size="sm" className="w-full h-8 rounded-lg" asChild>
                      <a href={deletionMailto}>Request Deletion</a>
                    </Button>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-white/5 flex items-center gap-2 text-[10px] uppercase font-black tracking-widest text-muted-foreground opacity-50">
+              <div className="pt-4 border-t border-border/60 flex items-center gap-2 text-[10px] font-medium text-muted-foreground opacity-70">
                 <ShieldCheck className="h-3 w-3" />
                 DPDPA 2023 & GDPR Compliant Infrastructure
               </div>

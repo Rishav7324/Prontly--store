@@ -1,160 +1,234 @@
 /**
  * @fileOverview Premium branded HTML email templates for Prontly Store.
- * Designed for high deliverability and professional visual identity.
+ * Compact modern design matching the 2026 UI system (Inter, tight radius, subtle borders).
  */
 
-const BRAND_COLOR = '#5b52d6';
-const BG_COLOR = '#F8FAFC';
-const CARD_BG = '#FFFFFF';
-const TEXT_COLOR = '#1A1A2E';
-const MUTED_TEXT = '#64748B';
+const BRAND = '#2563eb';      // blue-600
+const INK = '#18181b';        // zinc-900
+const SOFT = '#52525b';       // zinc-600
+const MUTED = '#a1a1aa';      // zinc-400
+const LINE = '#e4e4e7';       // zinc-200
+const BG = '#fafafa';         // zinc-50
+const CARD = '#ffffff';
+const GREEN = '#16a34a';
 const LOGO_URL = 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png';
+const SITE = 'https://store.prontly.in';
 
-/**
- * Base layout wrapper for all emails to ensure consistent branding across all senders.
- */
-function baseLayout(content: string, previewText: string) {
+function btn(url: string, label: string) {
   return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="x-apple-disable-message-reformatting">
-  <title>Prontly Store</title>
-  <style>
-    @media only screen and (max-width: 620px) {
-      .container { width: 100% !important; padding: 10px !important; }
-      .card { border-radius: 16px !important; padding: 32px !important; }
-    }
-  </style>
-</head>
-<body style="margin:0;padding:0;background-color:${BG_COLOR};font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;-webkit-font-smoothing:antialiased;">
-  <span style="display:none;font-size:1px;color:${BG_COLOR};line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${previewText}</span>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BG_COLOR};">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px auto">
     <tr>
-      <td align="center" style="padding:40px 0;">
-        <table class="container" width="600" cellpadding="0" cellspacing="0" border="0">
-          <!-- Logo Section -->
-          <tr>
-            <td align="center" style="padding-bottom:32px;">
-              <img src="${LOGO_URL}" alt="Prontly Logo" width="64" height="64" style="display:block; border-radius:16px; margin-bottom:12px;">
-              <div style="font-size:18px;font-weight:bold;letter-spacing:1px;color:${TEXT_COLOR};">PRONTLY <span style="color:${BRAND_COLOR};">STORE</span></div>
-            </td>
-          </tr>
-          <!-- Main Content Card -->
-          <tr>
-            <td class="card" style="background-color:${CARD_BG};border-radius:24px;padding:48px;box-shadow:0 10px 40px rgba(0,0,0,0.05);border:1px solid #E2E8F0;">
-              ${content}
-            </td>
-          </tr>
-          <!-- Professional Footer -->
-          <tr>
-            <td align="center" style="padding-top:32px;">
-              <p style="margin:0;font-size:12px;color:${MUTED_TEXT};line-height:1.6;font-weight:500;">
-                &copy; ${new Date().getFullYear()} Prontly Store. Built for modern creators.<br>
-                This email was sent from a secure, verified system.
-              </p>
-              <div style="margin-top:16px;">
-                <a href="https://store.prontly.in/privacy" style="color:${BRAND_COLOR};text-decoration:none;font-size:11px;font-weight:bold;margin:0 8px;text-transform:uppercase;letter-spacing:1px;">Privacy</a>
-                <a href="https://store.prontly.in/terms" style="color:${BRAND_COLOR};text-decoration:none;font-size:11px;font-weight:bold;margin:0 8px;text-transform:uppercase;letter-spacing:1px;">Terms</a>
-                <a href="https://store.prontly.in/delivery-policy" style="color:${BRAND_COLOR};text-decoration:none;font-size:11px;font-weight:bold;margin:0 8px;text-transform:uppercase;letter-spacing:1px;">Support</a>
-              </div>
-            </td>
-          </tr>
-        </table>
+      <td align="center">
+        <a href="${url}" style="display:inline-block;background:${INK};color:#ffffff;font-size:13px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:8px;">${label}</a>
       </td>
     </tr>
-  </table>
+  </table>`;
+}
+
+/** Base layout wrapper — compact card, consistent branding. */
+function baseLayout(content: string, previewText: string) {
+  const year = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<title>Prontly Store</title>
+<style>
+@media only screen and (max-width:600px){
+.container{width:100%!important}
+.card{border-radius:12px!important;padding:24px!important}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:${BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+<span style="display:none;font-size:1px;color:${BG};line-height:1px;max-height:0;overflow:hidden;">${previewText}</span>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BG};">
+<tr><td align="center" style="padding:32px 12px;">
+<table class="container" width="560" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="padding-bottom:20px;">
+      <img src="${LOGO_URL}" alt="Prontly" width="36" height="36" style="display:block;border-radius:9px;margin:0 auto 8px;">
+      <span style="font-size:14px;font-weight:700;color:${INK};">Prontly <span style="color:${BRAND}">Store</span></span>
+    </td>
+  </tr>
+  <tr>
+    <td class="card" style="background-color:${CARD};border-radius:12px;padding:32px;border:1px solid ${LINE};">${content}</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding-top:20px;">
+      <p style="margin:0 0 8px;font-size:11px;color:${MUTED};line-height:1.6;">
+        &copy; ${year} Prontly Store &middot;
+        <a href="${SITE}/privacy" style="color:${MUTED};text-decoration:none;">Privacy</a> &middot;
+        <a href="${SITE}/terms" style="color:${MUTED};text-decoration:none;">Terms</a> &middot;
+        <a href="${SITE}/contact" style="color:${MUTED};text-decoration:none;">Support</a>
+      </p>
+      <p style="margin:0;font-size:10px;color:${MUTED};">Sent by Prontly &mdash; digital assets for professional creators.</p>
+    </td>
+  </tr>
+</table>
+</td></tr>
+</table>
 </body>
 </html>`;
 }
 
+function row(label: string, value: string, opts?: { strong?: boolean; green?: boolean }) {
+  const color = opts?.green ? GREEN : opts?.strong ? INK : SOFT;
+  const weight = opts?.strong ? '700' : '500';
+  return `<tr>
+<td style="padding:10px 0;border-bottom:1px solid ${LINE};font-size:12px;color:${SOFT};">${label}</td>
+<td style="padding:10px 0;border-bottom:1px solid ${LINE};font-size:12px;color:${color};font-weight:${weight};text-align:right;">${value}</td>
+</tr>`;
+}
+
+/* ─────────────────────────── WELCOME ─────────────────────────── */
 export function welcomeTemplate(name: string) {
   const content = `
-    <h1 style="margin:0 0 16px;font-size:28px;font-weight:800;color:${TEXT_COLOR};text-align:center;">Welcome to the fold, ${name}! 🎉</h1>
-    <p style="margin:0 0 24px;font-size:16px;color:${MUTED_TEXT};line-height:1.7;text-align:center;">You've joined a community of elite creators who demand high-performance digital assets.</p>
-    <div style="background-color:#F1F5F9;border-radius:16px;padding:24px;margin-bottom:32px;border-left:4px solid ${BRAND_COLOR};">
-      <p style="margin:0 0 8px;font-weight:bold;color:${TEXT_COLOR};font-size:14px;text-transform:uppercase;letter-spacing:1px;">Next Steps:</p>
-      <ul style="margin:0;padding-left:20px;color:${MUTED_TEXT};font-size:14px;line-height:1.8;">
-        <li>Browse our curated AI prompt engineering guides</li>
-        <li>Access your instant downloads in the Dashboard</li>
-        <li>Stay tuned for exclusive subscriber-only product drops</li>
-      </ul>
-    </div>
-    <div align="center">
-      <a href="https://store.prontly.in/products" style="background-color:${BRAND_COLOR};color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:14px;font-weight:bold;display:inline-block;box-shadow:0 10px 30px rgba(91,82,214,0.3);">Browse Digital Inventory</a>
-    </div>
-  `;
-  return baseLayout(content, `Welcome to Prontly Store, ${name}! Your journey begins.`);
+<h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:${INK};text-align:center;">Welcome, ${name}! 🎉</h1>
+<p style="margin:0 0 20px;font-size:13px;color:${SOFT};line-height:1.7;text-align:center;">You've joined a community of creators who use high-performance digital assets.</p>
+<div style="background:${BG};border-radius:8px;padding:16px;margin-bottom:20px;">
+  <p style="margin:0 0 6px;font-weight:700;color:${INK};font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Next steps</p>
+  <ol style="margin:0;padding-left:18px;color:${SOFT};font-size:12px;line-height:2;">
+    <li>Browse AI prompts, templates and automation systems</li>
+    <li>Instant downloads land in your dashboard library</li>
+    <li>Lifetime updates on every purchase</li>
+  </ol>
+</div>
+${btn(`${SITE}/products`, 'Browse catalog')}`;
+  return baseLayout(content, `Welcome to Prontly Store, ${name}!`);
 }
 
+/* ─────────────────────────── OTP / SECURITY ─────────────────────────── */
 export function otpTemplate(otp: string, name: string) {
   const content = `
-    <h1 style="margin:0 0 16px;font-size:24px;font-weight:800;color:${TEXT_COLOR};text-align:center;">Security Verification</h1>
-    <p style="margin:0 0 32px;font-size:15px;color:${MUTED_TEXT};line-height:1.6;text-align:center;">Hi ${name}, use the secure verification code below to authorize your account recovery request.</p>
-    <div align="center" style="margin-bottom:32px;">
-      <div style="background-color:#F1F5F9;border:2px solid ${BRAND_COLOR};border-radius:20px;padding:24px 40px;display:inline-block;">
-        <span style="font-size:48px;font-weight:900;letter-spacing:12px;color:${BRAND_COLOR};font-family:'Courier New', Courier, monospace;">${otp}</span>
-      </div>
-    </div>
-    <div style="background-color:#FFF7ED;border-radius:12px;padding:16px;margin-bottom:24px;">
-      <p style="margin:0;font-size:12px;color:#9A3412;text-align:center;line-height:1.6;font-weight:500;">
-        <strong>Security Notice:</strong> This code will expire in 10 minutes. If you did not request this reset, please change your password immediately or contact our security team at security@store.prontly.in.
-      </p>
-    </div>
-  `;
-  return baseLayout(content, `${otp} is your Prontly Store security code.`);
+<h1 style="margin:0 0 6px;font-size:20px;font-weight:800;color:${INK};text-align:center;">Security code</h1>
+<p style="margin:0 0 24px;font-size:13px;color:${SOFT};line-height:1.6;text-align:center;">Hi ${name}, use this code to complete your password reset.</p>
+<div align="center" style="margin-bottom:24px;">
+  <div style="background:${BG};border:1px solid ${LINE};border-radius:10px;padding:18px 32px;display:inline-block;">
+    <span style="font-size:38px;font-weight:800;letter-spacing:10px;color:${BRAND};font-family:'JetBrains Mono',monospace;">${otp}</span>
+  </div>
+</div>
+<p style="margin:0;background:#fff7ed;border-radius:8px;padding:12px 14px;font-size:11px;color:#9a3412;line-height:1.6;text-align:center;">
+<strong>Expires in 10 minutes.</strong> Didn't request this? Your account is safe — ignore this email or contact security@store.prontly.in.
+</p>`;
+  return baseLayout(content, `${otp} is your Prontly verification code.`);
 }
 
+/* ─────────────────────────── ORDER CONFIRMATION ─────────────────────────── */
 export function invoiceTemplate(data: any) {
-  const itemsHtml = data.items.map((item: any) => `
-    <tr>
-      <td style="padding:16px 0;border-bottom:1px solid #F1F5F9;">
-        <div style="font-weight:bold;color:${TEXT_COLOR};font-size:15px;">${item.productName}</div>
-        <div style="font-size:11px;color:${MUTED_TEXT};text-transform:uppercase;margin-top:4px;letter-spacing:1px;font-weight:600;">Perpetual Digital License</div>
-      </td>
-      <td align="right" style="padding:16px 0;border-bottom:1px solid #F1F5F9;font-weight:bold;color:${TEXT_COLOR};font-size:15px;">
-        ₹${(item.price / 100).toLocaleString('en-IN')}
-      </td>
-    </tr>
-  `).join('');
+  const itemsHtml = (data.items || []).map((item: any) => `
+<tr>
+  <td style="padding:12px 0;border-bottom:1px solid ${LINE};">
+    <div style="font-weight:600;color:${INK};font-size:13px;">${item.productName}</div>
+    <div style="font-size:10px;color:${MUTED};margin-top:2px;">Digital license &times;${item.quantity || 1}</div>
+  </td>
+  <td align="right" valign="top" style="padding:12px 0;border-bottom:1px solid ${LINE};font-weight:600;color:${INK};font-size:13px;">
+    ₹${((item.price || 0) / 100).toLocaleString('en-IN')}
+  </td>
+</tr>`).join('');
+
+  const discountRow = data.discountAmount > 0
+    ? row('Discount', `−₹${(data.discountAmount / 100).toLocaleString('en-IN')}`, { green: true })
+    : '';
 
   const content = `
-    <div style="border-bottom:1px solid #F1F5F9;padding-bottom:24px;margin-bottom:24px;">
-      <table width="100%">
-        <tr>
-          <td>
-            <h1 style="margin:0;font-size:22px;font-weight:800;color:${TEXT_COLOR};">Order Confirmed</h1>
-            <p style="margin:4px 0 0;font-size:12px;color:${MUTED_TEXT};font-weight:600;">TRANS ID: ${data.id.slice(-8).toUpperCase()}</p>
-          </td>
-          <td align="right">
-            <div style="background-color:#ECFDF5;color:#059669;font-size:11px;font-weight:800;padding:6px 16px;border-radius:30px;display:inline-block;text-transform:uppercase;letter-spacing:1px;">Payment Verified</div>
-          </td>
-        </tr>
-      </table>
-    </div>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-      ${itemsHtml}
-    </table>
-    <table width="100%" style="margin-bottom:32px;">
-      <tr>
-        <td align="right" style="color:${MUTED_TEXT};font-size:14px;padding-bottom:8px;font-weight:500;">Gross Subtotal</td>
-        <td align="right" width="120" style="color:${TEXT_COLOR};font-size:14px;font-weight:bold;padding-bottom:8px;">₹${(data.subtotal / 100).toLocaleString('en-IN')}</td>
-      </tr>
-      ${data.discount > 0 ? `
-      <tr>
-        <td align="right" style="color:#059669;font-size:14px;padding-bottom:8px;font-weight:600;">Promotional Discount</td>
-        <td align="right" style="color:#059669;font-size:14px;font-weight:bold;padding-bottom:8px;">-₹${(data.discount / 100).toLocaleString('en-IN')}</td>
-      </tr>` : ''}
-      <tr>
-        <td align="right" style="font-size:20px;font-weight:800;color:${TEXT_COLOR};border-top:2px solid ${BRAND_COLOR};padding-top:16px;">Net Total Paid</td>
-        <td align="right" style="font-size:20px;font-weight:800;color:${BRAND_COLOR};border-top:2px solid ${BRAND_COLOR};padding-top:16px;">₹${(data.subtotal / 100).toLocaleString('en-IN')}</td>
-      </tr>
-    </table>
-    <div align="center">
-      <a href="https://store.prontly.in/dashboard" style="background-color:${BRAND_COLOR};color:#ffffff;text-decoration:none;padding:18px 40px;border-radius:16px;font-weight:bold;display:inline-block;box-shadow:0 10px 30px rgba(91,82,214,0.3);">Access Your Library</a>
-    </div>
-  `;
-  return baseLayout(content, `Success! Your order #${data.id.slice(-8).toUpperCase()} has been fulfilled.`);
+<table width="100%" style="margin-bottom:16px;">
+<tr>
+  <td>
+    <h1 style="margin:0;font-size:20px;font-weight:800;color:${INK};">Order confirmed ✓</h1>
+    <p style="margin:4px 0 0;font-size:11px;color:${MUTED};font-family:monospace;">#${data.id.slice(-8).toUpperCase()}</p>
+  </td>
+  <td align="right">
+    <span style="background:#f0fdf4;color:${GREEN};font-size:10px;font-weight:700;padding:4px 12px;border-radius:999px;display:inline-block;">PAID</span>
+  </td>
+</tr>
+</table>
+<p style="margin:0 0 16px;font-size:13px;color:${SOFT};line-height:1.6;">Thanks for your purchase! Instant download links are live in your library.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">${itemsHtml}</table>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+  ${row('Subtotal', `₹${((data.subtotal || 0) / 100).toLocaleString('en-IN')}`)}
+  ${discountRow}
+  <tr><td colspan="2" style="padding-top:10px;"></td></tr>
+  ${row('Total paid', `₹${(((data.totalAmount ?? data.subtotal) || 0) / 100).toLocaleString('en-IN')}`, { strong: true })}
+</table>
+${btn(`${SITE}/dashboard/downloads`, 'Go to my downloads')}
+<p style="margin:12px 0 0;font-size:11px;color:${MUTED};text-align:center;">Download limits: 5 per product · links refresh anytime from your library.</p>`;
+  return baseLayout(content, `Order #${data.id.slice(-8).toUpperCase()} confirmed — downloads ready.`);
+}
+
+/* ─────────────────────────── DELIVERY / DOWNLOADS READY ─────────────────────────── */
+export function deliveryTemplate(data: any) {
+  const itemsHtml = (data.items || [])
+    .map((i: any) => `<li style="margin-bottom:4px;"><strong style="color:${INK};">${i.productName}</strong></li>`)
+    .join('');
+  const content = `
+<h1 style="margin:0 0 6px;font-size:20px;font-weight:800;color:${INK};text-align:center;">Your files are ready 📦</h1>
+<p style="margin:0 0 18px;font-size:13px;color:${SOFT};line-height:1.6;text-align:center;">Order <span style="font-family:monospace;">#${data.id.slice(-8).toUpperCase()}</span> has been fulfilled.</p>
+<ul style="margin:0 0 20px;padding-left:18px;font-size:12px;color:${SOFT};line-height:1.9;">${itemsHtml}</ul>
+${btn(`${SITE}/dashboard/downloads`, 'Open my downloads')}
+<p style="margin:14px 0 0;font-size:11px;color:${MUTED};text-align:center;">Each file can be downloaded up to 5 times. Need a limit refresh? Reply to this email.</p>`;
+  return baseLayout(content, 'Your Prontly download is ready.');
+}
+
+/* ─────────────────────────── REFUND ─────────────────────────── */
+export function refundTemplate(data: any) {
+  const amount = ((data.totalAmount ?? data.subtotal) || 0) / 100;
+  const content = `
+<h1 style="margin:0 0 6px;font-size:20px;font-weight:800;color:${INK};text-align:center;">Refund processed</h1>
+<p style="margin:0 0 20px;font-size:13px;color:${SOFT};line-height:1.6;text-align:center;">We've refunded your order — no hard feelings.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+  ${row('Order', `<span style="font-family:monospace;">#${data.id.slice(-8).toUpperCase()}</span>`)}
+  ${row('Refund amount', `₹${amount.toLocaleString('en-IN')}`, { strong: true, green: true })}
+  ${row('Status', 'Processing with bank')}
+</table>
+<p style="margin:0 0 18px;font-size:12px;color:${SOFT};line-height:1.7;">
+Banks typically take <strong>5–7 working days</strong> to credit refunds back to the original payment method.
+Your access to refunded files has been revoked.
+</p>
+${btn(`${SITE}/products`, 'Browse store')}`;
+  return baseLayout(content, `Refund of ₹${amount.toLocaleString('en-IN')} processed.`);
+}
+
+/* ─────────────────────────── NEWSLETTER BROADCAST ─────────────────────────── */
+export function newsletterTemplate(input: { heading: string; bodyHtml: string; ctaLabel?: string; ctaUrl?: string }) {
+  const cta = input.ctaUrl && input.ctaLabel
+    ? btn(input.ctaUrl, input.ctaLabel)
+    : '';
+  const content = `
+<h1 style="margin:0 0 12px;font-size:20px;font-weight:800;color:${INK};text-align:center;">${input.heading}</h1>
+<div style="font-size:13px;color:${SOFT};line-height:1.8;">${input.bodyHtml}</div>
+${cta}
+<p style="margin:16px 0 0;font-size:11px;color:${MUTED};text-align:center;">
+You're receiving this because you subscribed at store.prontly.in.<br>
+<a href="{{unsubscribe}}" style="color:${MUTED};text-decoration:underline;">Unsubscribe</a>
+</p>`;
+  return baseLayout(content, input.heading);
+}
+
+/* ─────────────────────────── CONTACT FORM ACK ─────────────────────────── */
+export function contactAckTemplate(name: string) {
+  const content = `
+<h1 style="margin:0 0 6px;font-size:20px;font-weight:800;color:${INK};text-align:center;">Message received ✉️</h1>
+<p style="margin:0 0 18px;font-size:13px;color:${SOFT};line-height:1.7;text-align:center;">
+Hi ${name}, thanks for reaching out! Our team will reply within <strong>24 hours</strong>.
+</p>
+${btn(`${SITE}/products`, 'Explore products while you wait')}`;
+  return baseLayout(content, 'We got your message — reply within 24 hours.');
+}
+
+/* ─────────────────────────── ADMIN ALERT (internal) ─────────────────────────── */
+export function newOrderAlertTemplate(order: any) {
+  const amount = ((order.totalAmount ?? order.subtotal) || 0) / 100;
+  const content = `
+<h1 style="margin:0 0 12px;font-size:18px;font-weight:800;color:${INK};">New paid order 💰</h1>
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;">
+  ${row('Order', `<span style="font-family:monospace;">#${order.id.slice(-8).toUpperCase()}</span>`)}
+  ${row('Customer', order.userEmail || '—')}
+  ${row('Items', String((order.items || []).length))}
+  ${row('Value', `₹${amount.toLocaleString('en-IN')}`, { strong: true })}
+</table>
+${btn(`${SITE}/admin/orders`, 'Open admin orders')}`;
+  return baseLayout(content, `New order ₹${amount.toLocaleString('en-IN')} just came in.`);
 }

@@ -6,16 +6,14 @@ import { collection, query, orderBy, doc, addDoc, updateDoc, deleteDoc, serverTi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { 
   Plus, 
   Search, 
   Layers, 
   Edit, 
-  Trash2, 
-  MoreVertical,
-  ArrowRight
+  Trash2
 } from 'lucide-react';
 import {
   Table,
@@ -158,15 +156,15 @@ export default function AdminCategories() {
   };
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-4">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Categories</h1>
-          <p className="text-muted-foreground">Organize your digital products into logical groups.</p>
+          <h1 className="text-lg md:text-xl font-semibold">Categories</h1>
+          <p className="text-xs text-muted-foreground">Organize your digital products into logical groups.</p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => {
+            <Button size="sm" className="h-8 rounded-lg" onClick={() => {
               setEditingCategory(null);
               setFormData({ name: '', slug: '', iconEmoji: '📦', description: '' });
             }}>
@@ -179,54 +177,58 @@ export default function AdminCategories() {
               <DialogTitle>{editingCategory ? 'Edit Category' : 'Create New Category'}</DialogTitle>
               <DialogDescription>Define a name and identifier for your product category.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Category Name</Label>
+            <form onSubmit={handleSubmit} className="space-y-3 py-2">
+              <div className="grid gap-1.5">
+                <Label htmlFor="name" className="text-[10px] font-medium text-muted-foreground">Category Name</Label>
                 <Input 
                   id="name" 
+                  className="h-9 rounded-lg"
                   value={formData.name} 
                   onChange={handleNameChange} 
                   placeholder="e.g. AI Prompts"
                   required
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="slug">URL Slug</Label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="slug" className="text-[10px] font-medium text-muted-foreground">URL Slug</Label>
                 <Input 
                   id="slug" 
+                  className="h-9 rounded-lg"
                   value={formData.slug} 
                   onChange={(e) => setFormData({...formData, slug: e.target.value})} 
                   placeholder="ai-prompts"
                   required
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="iconEmoji">Icon (Emoji)</Label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="iconEmoji" className="text-[10px] font-medium text-muted-foreground">Icon (Emoji)</Label>
                 <Input 
                   id="iconEmoji" 
+                  className="h-9 rounded-lg"
                   value={formData.iconEmoji} 
                   onChange={(e) => setFormData({...formData, iconEmoji: e.target.value})} 
                   placeholder="📦"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="description" className="text-[10px] font-medium text-muted-foreground">Description</Label>
                 <Input 
                   id="description" 
+                  className="h-9 rounded-lg"
                   value={formData.description} 
                   onChange={(e) => setFormData({...formData, description: e.target.value})} 
                   placeholder="Short description..."
                 />
               </div>
               <DialogFooter>
-                <Button type="submit">{editingCategory ? 'Save Changes' : 'Create Category'}</Button>
+                <Button type="submit" size="sm" className="h-8 rounded-lg">{editingCategory ? 'Save Changes' : 'Create Category'}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </header>
 
-      <Card>
+      <Card className="rounded-xl shadow-sm overflow-hidden">
         <CardHeader className="p-4 border-b">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -234,56 +236,58 @@ export default function AdminCategories() {
               placeholder="Search categories..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-9 rounded-lg"
             />
           </div>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 space-y-4">
+            <div className="p-4 space-y-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 w-full animate-pulse bg-muted rounded" />
+                <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
           ) : filteredCategories && filteredCategories.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Icon</TableHead>
-                  <TableHead>Category Name</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Products</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCategories.map((category: any) => (
-                  <TableRow key={category.id}>
-                    <TableCell className="text-2xl">{category.iconEmoji || '📦'}</TableCell>
-                    <TableCell className="font-bold">{category.name}</TableCell>
-                    <TableCell className="font-code text-xs text-muted-foreground">/{category.slug}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{category.productCount || 0} items</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(category.id, category.name)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[640px]">
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="pl-4 w-14">Icon</TableHead>
+                    <TableHead>Category Name</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead>Products</TableHead>
+                    <TableHead className="text-right pr-4">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredCategories.map((category: any) => (
+                    <TableRow key={category.id}>
+                      <TableCell className="pl-4 px-3 py-2 text-base">{category.iconEmoji || '📦'}</TableCell>
+                      <TableCell className="text-xs font-medium px-3 py-2">{category.name}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground px-3 py-2">/{category.slug}</TableCell>
+                      <TableCell className="px-3 py-2">
+                        <Badge variant="secondary" className="text-[10px] font-medium">{category.productCount || 0} items</Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-4 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => handleEdit(category)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete(category.id, category.name)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="flex h-60 flex-col items-center justify-center text-center p-8">
-              <Layers className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-              <h3 className="text-xl font-bold font-headline">No categories yet</h3>
-              <p className="text-muted-foreground mb-6">Categorize your products to help customers find what they need.</p>
+              <Layers className="h-10 w-10 text-muted-foreground mb-3 opacity-20" />
+              <h3 className="text-sm font-semibold">No categories yet</h3>
+              <p className="text-xs text-muted-foreground mt-1">Categorize your products to help customers find what they need.</p>
             </div>
           )}
         </CardContent>

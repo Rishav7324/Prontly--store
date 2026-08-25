@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '@/lib/firebase-admin';
 import { z } from 'zod';
-import { checkDownloadEligibility, incrementDownloadCount, logDownloadAttempt } from '@/lib/firebase/downloads';
 import { checkDownloadRateLimits } from '@/lib/redis/downloadRateLimit';
 import { generateSignedDownloadUrl } from '@/lib/r2/signedUrl';
 import type { GenerateDownloadUrlResponse } from '@/types/download';
+import { isDatabaseConfigured } from '@/lib/db';
 
 const bodySchema = z.object({
   orderId: z.string().min(1).max(100),
@@ -54,11 +54,14 @@ export async function POST(
   });
 
   if (!rateLimit.allowed) {
-    await logDownloadAttempt({
+    const { logDownloadAttempt: logAttempt } = isDatabaseConfigured()
+      ? await import('@/lib/db/downloads')
+      : await import('@/lib/firebase/downloads');
+    await logAttempt({
       userId: uid, productId: body.productId, orderId: body.orderId,
       ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
       success: false, failureReason: "rate_limit_exceeded",
-    });
+    } as any);
     return NextResponse.json(
       {
         success: false,
@@ -72,17 +75,26 @@ export async function POST(
     );
   }
 
-  // 4. Eligibility Check
+  // 4. Eligibility Check — try SQL first, fallback Firestore
   let record;
   try {
-    record = await checkDownloadEligibility(uid, body.productId, body.orderId);
+    if (isDatabaseConfigured()) {
+      const { checkDownloadEligibility } = await import('@/lib/db/downloads');
+      record = await checkDownloadEligibility(uid, body.productId, body.orderId);
+    } else {
+      const { checkDownloadEligibility } = await import('@/lib/firebase/downloads');
+      record = await checkDownloadEligibility(uid, body.productId, body.orderId);
+    }
   } catch (err: any) {
     const code = err.message || "NOT_ELIGIBLE";
-    await logDownloadAttempt({
+    const { logDownloadAttempt: logAttempt2 } = isDatabaseConfigured()
+      ? await import('@/lib/db/downloads')
+      : await import('@/lib/firebase/downloads');
+    await logAttempt2({
       userId: uid, productId: body.productId, orderId: body.orderId,
       ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
       success: false, failureReason: code.toLowerCase(),
-    });
+    } as any);
     return NextResponse.json(
       { success: false, error: code, code: code as any },
       { status: 403 }
@@ -105,11 +117,14 @@ export async function POST(
     ({ url: signedUrl, expiresAt } = await generateSignedDownloadUrl(cleanKey, record.fileName));
   } catch (e: any) {
     console.error('[R2_SIGN_ERROR]:', e.message);
-    await logDownloadAttempt({
+    const { logDownloadAttempt: logAttempt3 } = isDatabaseConfigured()
+      ? await import('@/lib/db/downloads')
+      : await import('@/lib/firebase/downloads');
+    await logAttempt3({
       userId: uid, productId: body.productId, orderId: body.orderId,
       ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
       success: false, failureReason: "file_not_found",
-    });
+    } as any);
     return NextResponse.json(
       { success: false, error: 'File not available. Contact support.', code: 'FILE_NOT_FOUND' },
       { status: 404 }
@@ -117,13 +132,16 @@ export async function POST(
   }
 
   // 6. Finalize: Increment Count & Log
+  const { incrementDownloadCount, logDownloadAttempt: logAttempt4 } = isDatabaseConfigured()
+    ? await import('@/lib/db/downloads')
+    : await import('@/lib/firebase/downloads');
   await Promise.all([
     incrementDownloadCount(uid, body.productId),
-    logDownloadAttempt({
+    logAttempt4({
       userId: uid, productId: body.productId, orderId: body.orderId,
       ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
       success: true, signedUrlExpiry: expiresAt as any,
-    }),
+    } as any),
   ]);
 
   return NextResponse.json({

@@ -4,7 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { generateMeta } from '@/lib/seo/generate-meta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, ShieldCheck, Cpu, Globe, Rocket, Users } from 'lucide-react';
+import { Zap, ShieldCheck, Cpu, Globe, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,24 +19,24 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-16 max-w-7xl">
-        <header className="max-w-3xl mb-16">
-          <Badge variant="outline" className="mb-6 border-primary/50 text-primary py-1 px-4 text-sm font-medium rounded-full bg-primary/5">
+
+      <main className="flex-1 container mx-auto px-4 pt-28 pb-14 max-w-6xl">
+        <header className="max-w-2xl mb-10">
+          <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary bg-primary/5 px-2 py-0">
             Our Mission
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold font-headline mb-8 leading-tight tracking-tight text-midnight-ink">
+          <h1 className="text-lg md:text-xl font-semibold font-headline mb-3 leading-snug tracking-tight text-midnight-ink">
             Accelerating the <span className="text-primary">Creative Class.</span>
           </h1>
-          <p className="text-xl text-slate-blue leading-relaxed font-medium">
+          <p className="text-sm text-slate-blue leading-relaxed">
             Prontly is a specialized digital marketplace dedicated to high-performance assets. We bridge the gap between complex AI systems and professional creative workflows.
           </p>
         </header>
 
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-24">
-          <div className="lg:col-span-8 space-y-10">
-            <div className="prose-content">
-              <h2 className="text-3xl font-bold font-headline text-midnight-ink mb-6">The Prontly Standard</h2>
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+          <div className="lg:col-span-8 space-y-8">
+            <div className="prose-content rounded-xl shadow-sm border p-4 bg-card">
+              <h2 className="text-base md:text-lg font-semibold font-headline text-midnight-ink mb-3">The Prontly Standard</h2>
               <p>
                 In an era dominated by noise, Prontly stands for technical precision. We noticed that while digital assets are abundant, verified, production-ready tools are rare. Most creators spend more time "fixing" assets than using them.
               </p>
@@ -45,49 +45,49 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { 
-                  title: "Verified Quality", 
+                {
+                  title: "Verified Quality",
                   desc: "Every asset is tested for cross-platform compatibility and production accuracy.",
                   icon: ShieldCheck
                 },
-                { 
-                  title: "Edge Delivery", 
+                {
+                  title: "Edge Delivery",
                   desc: "Instant fulfillment via Cloudflare Global R2 ensures you get your files in seconds.",
                   icon: Zap
                 },
-                { 
-                  title: "Expert Curation", 
+                {
+                  title: "Expert Curation",
                   desc: "Our catalog is managed by engineers and designers, not algorithms.",
                   icon: Users
                 },
-                { 
-                  title: "Statutory Trust", 
+                {
+                  title: "Statutory Trust",
                   desc: "Full compliance with DPDPA 2023 and Indian consumer protection standards.",
                   icon: Globe
                 }
               ].map((item, i) => (
-                <div key={i} className="p-8 rounded-[2rem] bg-muted/20 border border-stone-gray/10 group hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-sm">
-                  <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
-                    <item.icon className="h-6 w-6" />
+                <div key={i} className="rounded-xl shadow-sm p-4 border bg-card group hover:border-primary/20 transition-colors">
+                  <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary mb-3">
+                    <item.icon className="h-4 w-4" />
                   </div>
-                  <h4 className="text-lg font-bold text-midnight-ink mb-2">{item.title}</h4>
-                  <p className="text-sm text-slate-blue leading-relaxed font-medium">{item.desc}</p>
+                  <h4 className="text-sm font-semibold text-midnight-ink mb-1">{item.title}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <aside className="lg:col-span-4">
-            <div className="sticky top-32 p-8 rounded-[2.5rem] bg-midnight-ink text-white space-y-8 relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12 transition-transform duration-1000">
-                <Cpu className="h-48 w-48" />
+            <div className="sticky top-28 rounded-xl shadow-sm border bg-midnight-ink text-white p-4 space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 -rotate-12 pointer-events-none">
+                <Cpu className="h-24 w-24" />
               </div>
-              <div className="relative z-10 space-y-4">
-                <h3 className="text-2xl font-bold font-headline leading-tight">Ready to build your next breakthrough?</h3>
-                <p className="text-sm text-white/60 leading-relaxed font-medium">Join 5,000+ professional creators who trust Prontly for their technical infrastructure.</p>
-                <Button asChild size="lg" className="w-full bg-white text-midnight-ink hover:bg-white/90 h-14 rounded-xl font-bold text-sm">
+              <div className="relative z-10 space-y-3">
+                <h3 className="text-sm md:text-base font-semibold leading-snug">Ready to build your next breakthrough?</h3>
+                <p className="text-xs text-white/60 leading-relaxed">Join 5,000+ professional creators who trust Prontly for their technical infrastructure.</p>
+                <Button asChild className="w-full bg-white text-midnight-ink hover:bg-white/90 h-9 rounded-lg font-medium text-xs">
                   <Link href="/products">Explore Catalog</Link>
                 </Button>
               </div>
@@ -95,10 +95,10 @@ export default function AboutPage() {
           </aside>
         </section>
 
-        <section className="py-20 border-t border-stone-gray/10">
-          <div className="text-center max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl md:text-5xl font-bold font-headline text-midnight-ink">Global Infrastructure. Local Roots.</h2>
-            <p className="text-lg text-slate-blue font-medium">
+        <section className="py-10 border-t">
+          <div className="text-center max-w-xl mx-auto space-y-2">
+            <h2 className="text-lg md:text-xl font-semibold font-headline text-midnight-ink">Global Infrastructure. Local Roots.</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               We operate out of Patna, Bihar, utilizing world-class cloud architecture to serve a global audience of modern creators.
             </p>
           </div>

@@ -28,6 +28,17 @@ export async function logAdminAction({
   resourceId,
   details
 }: LogActionProps) {
+  // Try SQL API first (server will handle dual-mode), fallback to Firestore
+  if (typeof window !== 'undefined') {
+    try {
+      const res = await fetch('/api/admin/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminId, adminEmail, action, resourceType, resourceId, details }),
+      });
+      if (res.ok) return;
+    } catch {}
+  }
   try {
     await addDoc(collection(db, 'admin_logs'), {
       adminId,

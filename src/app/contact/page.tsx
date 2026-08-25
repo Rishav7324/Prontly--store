@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Mail, MessageSquare, MapPin, Clock, Send, ShieldCheck, ExternalLink } from 'lucide-react';
+import { Mail, MessageSquare, MapPin, Clock, Send, ShieldCheck } from 'lucide-react';
 
 export async function generateMetadata(): Promise<Metadata> {
   return generateMeta({
@@ -21,108 +21,104 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-16 max-w-7xl">
-        <header className="max-w-3xl mb-16">
-          <Badge variant="outline" className="mb-6 border-primary/50 text-primary py-1 px-4 text-sm font-medium rounded-full bg-primary/5">
+
+      <main className="flex-1 container mx-auto px-4 pt-28 pb-14 max-w-6xl">
+        <header className="max-w-2xl mb-10">
+          <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary px-2 py-0">
             Support Center
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold font-headline mb-8 leading-tight tracking-tight text-midnight-ink">
+          <h1 className="text-lg md:text-xl font-semibold font-headline mb-3 leading-snug tracking-tight text-midnight-ink">
             Get in <span className="text-primary">Touch.</span>
           </h1>
-          <p className="text-xl text-slate-blue leading-relaxed font-medium">
+          <p className="text-sm text-slate-blue leading-relaxed">
             Have a question about an asset or need technical assistance? Our team typically responds to all inquiries within 24 hours.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Contact Form */}
           <div className="lg:col-span-7">
-            <div className="p-8 md:p-12 rounded-[2.5rem] bg-white border border-stone-gray/10 shadow-xl">
-              <form className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-ghost-gray ml-1">Full Name</Label>
-                    <Input placeholder="John Doe" className="h-14 bg-muted/20 border-stone-gray/10 rounded-2xl px-6 text-lg" />
+            <div className="rounded-xl shadow-sm p-4 md:p-6 bg-card border">
+              <form className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-medium text-muted-foreground">Full Name</Label>
+                    <Input placeholder="John Doe" className="h-9 rounded-lg text-xs" />
                   </div>
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-ghost-gray ml-1">Email Address</Label>
-                    <Input type="email" placeholder="name@domain.com" className="h-14 bg-muted/20 border-stone-gray/10 rounded-2xl px-6 text-lg" />
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-medium text-muted-foreground">Email Address</Label>
+                    <Input type="email" placeholder="name@domain.com" className="h-9 rounded-lg text-xs" />
                   </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-ghost-gray ml-1">Subject</Label>
-                  <Input placeholder="Regarding License #..." className="h-14 bg-muted/20 border-stone-gray/10 rounded-2xl px-6 text-lg" />
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-ghost-gray ml-1">Your Message</Label>
-                  <Textarea placeholder="How can we assist your workflow?" className="min-h-[200px] bg-muted/20 border-stone-gray/10 rounded-2xl p-6 text-lg resize-none" />
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-medium text-muted-foreground">Subject</Label>
+                  <Input placeholder="Regarding License #..." className="h-9 rounded-lg text-xs" />
                 </div>
 
-                <Button className="w-full h-16 rounded-2xl text-lg font-bold shadow-2xl shadow-primary/20 transition-all hover:scale-[1.01] group">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-medium text-muted-foreground">Your Message</Label>
+                  <Textarea placeholder="How can we assist your workflow?" className="min-h-[140px] rounded-lg text-xs resize-none" />
+                </div>
+
+                <Button className="w-full h-9 rounded-lg text-xs font-medium group">
                   Dispatch Message
-                  <Send className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  <Send className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </Button>
-                
-                <div className="flex items-center justify-center gap-2 pt-4 opacity-40">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Secure SSL Submission</span>
+
+                <div className="flex items-center justify-center gap-1.5 pt-2 opacity-60">
+                  <ShieldCheck className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-[10px] font-medium text-muted-foreground">Secure SSL Submission</span>
                 </div>
               </form>
             </div>
           </div>
 
           {/* Contact Details */}
-          <div className="lg:col-span-5 space-y-10">
-            <div className="space-y-10">
-              <div className="flex gap-6 items-start">
-                <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center shrink-0 border border-primary/10">
-                  <Mail className="h-6 w-6 text-primary" />
+          <div className="lg:col-span-5 space-y-4">
+            <div className="rounded-xl shadow-sm border bg-card divide-y divide-border/60">
+              {[
+                {
+                  icon: Mail,
+                  label: "Email",
+                  value: "support@prontly.in",
+                  desc: "For all technical and licensing inquiries."
+                },
+                {
+                  icon: MapPin,
+                  label: "Headquarters",
+                  value: "Patna, Bihar",
+                  desc: "Digital Fulfillment Node — Bihar, India"
+                },
+                {
+                  icon: Clock,
+                  label: "Working Hours",
+                  value: "Mon — Fri",
+                  desc: "10:00 AM — 18:00 PM IST"
+                }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-3 items-start p-4 first:rounded-t-xl last:rounded-b-xl hover:bg-muted/20 transition-colors">
+                  <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center shrink-0 border border-primary/10">
+                    <item.icon className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <p className="text-[10px] font-medium text-muted-foreground">{item.label}</p>
+                    <p className="text-sm font-semibold text-midnight-ink truncate">{item.value}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">Electronic Mail</h4>
-                  <p className="text-xl font-bold text-midnight-ink">support@prontly.in</p>
-                  <p className="text-sm text-slate-blue font-medium">For all technical and licensing inquiries.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 items-start">
-                <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center shrink-0 border border-primary/10">
-                  <MapPin className="h-6 w-6 text-primary" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">Headquarters</h4>
-                  <p className="text-xl font-bold text-midnight-ink">Patna, Bihar</p>
-                  <p className="text-sm text-slate-blue font-medium leading-relaxed">
-                    Digital Fulfillment Node<br />
-                    Bihar, India
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 items-start">
-                <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center shrink-0 border border-primary/10">
-                  <Clock className="h-6 w-6 text-primary" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray">Active Cycles</h4>
-                  <p className="text-xl font-bold text-midnight-ink">Mon — Fri</p>
-                  <p className="text-sm text-slate-blue font-medium">10:00 AM — 18:00 PM IST</p>
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="p-8 rounded-[2rem] border border-stone-gray/10 bg-muted/20 space-y-6">
-              <div className="flex items-center gap-3">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                <h4 className="text-lg font-bold text-midnight-ink">Emergency Recovery</h4>
+            <div className="rounded-xl shadow-sm border bg-card p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                <h4 className="text-sm font-semibold text-midnight-ink">Emergency Recovery</h4>
               </div>
-              <p className="text-sm text-slate-blue leading-relaxed font-medium">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 If you have lost access to your account or are unable to retrieve your purchased digital library, please include your Order ID and original email address in your request.
               </p>
-              <Button variant="outline" className="w-full h-12 rounded-xl border-stone-gray/20 font-bold text-xs uppercase" asChild>
+              <Button variant="outline" className="w-full h-9 rounded-lg text-xs font-medium" asChild>
                 <a href="mailto:support@prontly.in">Launch Priority Email</a>
               </Button>
             </div>

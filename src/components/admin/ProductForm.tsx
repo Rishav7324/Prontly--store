@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Key } from 'react';
+import { useState, useRef, Key } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -15,16 +15,11 @@ import {
   Loader2, 
   Upload, 
   Trash2, 
-  Image as ImageIcon, 
   Sparkles, 
   CheckCircle2, 
   Lock, 
   Globe, 
-  Zap, 
-  ShieldCheck, 
-  Search, 
-  FileCode, 
-  Info 
+  Zap
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFileAction } from '@/app/actions/r2-actions';
@@ -197,92 +192,99 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-40 animate-in fade-in duration-500">
-      <div className="lg:col-span-8 space-y-8">
-        <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-4 sm:p-8 border-b border-white/5 bg-muted/20 flex flex-row items-center justify-between">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-32 animate-in fade-in duration-500">
+      <div className="lg:col-span-8 space-y-6">
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardHeader className="px-0 pt-0 pb-3 flex flex-row items-center justify-between space-y-0 border-b border-border/60">
             <div>
-              <CardTitle className="text-1xl font-headline text-midnight-ink">Product Specifications</CardTitle>
-              <CardDescription>Primary asset identity and description.</CardDescription>
+              <CardTitle className="text-sm font-semibold">Product Specifications</CardTitle>
+              <CardDescription className="text-xs mt-0.5">Primary asset identity and description.</CardDescription>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={handleAiGenerate} disabled={isGenerating} className="gap-2 rounded-xl h-10 border-primary/20 text-primary hover:bg-primary/5 transition-all">
-              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <Button type="button" variant="outline" size="sm" onClick={handleAiGenerate} disabled={isGenerating} className="h-8 rounded-lg gap-1.5 text-xs font-medium text-primary hover:bg-primary/5">
+              {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
               AI Assistant
             </Button>
           </CardHeader>
-          <CardContent className="p-4 sm:p-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="grid gap-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Asset Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value, slug: isSlugLocked ? formData.slug : generateSlug(e.target.value)})} required className="h-14 bg-background/50 rounded-2xl text-lg font-bold" />
+          <CardContent className="px-0 pb-0 pt-4 space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground">Asset Name</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value, slug: isSlugLocked ? formData.slug : generateSlug(e.target.value)})} required className="h-9 rounded-lg text-xs font-medium" />
               </div>
-              <div className="grid gap-2">
-                <Label className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+              <div className="space-y-1.5">
+                <Label className="flex justify-between items-center text-[10px] font-medium text-muted-foreground">
                   SEO Slug
-                  <button type="button" onClick={() => setIsSlugLocked(!isSlugLocked)} className="text-[9px] text-primary flex items-center gap-1 hover:underline">
+                  <button type="button" onClick={() => setIsSlugLocked(!isSlugLocked)} className="text-[10px] font-medium text-primary flex items-center gap-1 hover:underline normal-case">
                     {isSlugLocked ? <Lock className="h-3 w-3" /> : <Globe className="h-3 w-3" />}
                     {isSlugLocked ? 'Unlock' : 'Lock'}
                   </button>
                 </Label>
-                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: generateSlug(e.target.value)})} readOnly={isSlugLocked} className={cn("h-14 bg-background/50 rounded-2xl font-mono text-sm", isSlugLocked && "opacity-50")} />
+                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: generateSlug(e.target.value)})} readOnly={isSlugLocked} className={cn("h-9 rounded-lg font-mono text-xs", isSlugLocked && "opacity-50")} />
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Card Summary (Short Description)</Label>
-              <Textarea value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} maxLength={200} className="h-24 bg-background/50 rounded-xl resize-none" placeholder="Enter a punchy 200-character overview..." />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Card Summary (Short Description)</Label>
+              <Textarea value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} maxLength={200} className="min-h-20 h-20 rounded-lg resize-none text-xs" placeholder="Enter a punchy 200-character overview..." />
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Workflows & Documentation</Label>
-              <RichTextEditor content={formData.description} onChange={(c) => setFormData({...formData, description: c})} />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Description (Rich Text)</Label>
+              <RichTextEditor
+                content={formData.description}
+                onChange={(c) => setFormData({...formData, description: c})}
+                placeholder="Describe what's included, benefits, specs…"
+                uploadSlug={formData.slug || undefined}
+              />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-card/30 rounded-[2rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-4 sm:p-8 border-b border-white/5 bg-muted/20"><CardTitle className="text-xl font-headline text-midnight-ink">Visuals & Files</CardTitle></CardHeader>
-          <CardContent className="p-4 sm:p-8 space-y-8">
-            <div className="grid gap-4">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Gallery Images (Max 5)</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardHeader className="px-0 pt-0 pb-3 space-y-0 border-b border-border/60">
+            <CardTitle className="text-sm font-semibold">Visuals & Files</CardTitle>
+          </CardHeader>
+          <CardContent className="px-0 pb-0 pt-4 space-y-6">
+            <div className="space-y-2.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Gallery Images (Max 5)</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {formData.images.map((img: string | StaticImport, i: Key | null | undefined) => (
-                  <div key={i} className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group bg-muted shadow-lg">
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border/60 group bg-muted shadow-sm">
                     <Image src={img} alt="Preview" fill className="object-cover" />
                     <button type="button" onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_: any, idx: any) => idx !== i) }))} className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 ))}
                 {formData.images.length < 5 && (
-                  <label className="aspect-square border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 border-white/10 transition-colors">
-                    <Upload className="h-5 w-5 text-muted-foreground mb-1" />
-                    <span className="text-[8px] font-bold uppercase text-muted-foreground">Upload</span>
+                  <label className="aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                    <Upload className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-[10px] font-medium text-muted-foreground">Upload</span>
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
                   </label>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Main Asset File (Private)</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground">Main Asset File (Private)</Label>
                 <div className="flex gap-2">
-                  <div className="h-12 flex-1 bg-muted/30 border border-white/5 rounded-xl flex items-center px-4 font-mono text-[9px] text-muted-foreground truncate">
-                    {formData.fileKey ? 'SYNCED: ' + formData.fileKey.split('/').pop() : 'AWAITING_UPLOAD'}
+                  <div className="h-9 flex-1 min-w-0 bg-muted/40 border border-border/60 rounded-lg flex items-center px-3 font-mono text-[10px] text-muted-foreground truncate">
+                    {formData.fileKey ? formData.fileKey.split('/').pop() : 'Awaiting upload'}
                   </div>
-                  <Button type="button" variant="outline" className="h-12 px-4 rounded-xl relative overflow-hidden border-white/10">
-                    <Upload className="h-4 w-4" />
+                  <Button type="button" variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg relative overflow-hidden shrink-0">
+                    <Upload className="h-3.5 w-3.5" />
                     <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'source')} />
                   </Button>
                 </div>
               </div>
-              <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preview Asset (Public)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground">Preview Asset (Public)</Label>
                 <div className="flex gap-2">
-                  <div className="h-12 flex-1 bg-muted/30 border border-white/5 rounded-xl flex items-center px-4 font-mono text-[9px] text-muted-foreground truncate">
-                    {formData.previewFileKey ? 'SYNCED: ' + formData.previewFileKey.split('/').pop() : 'OPTIONAL'}
+                  <div className="h-9 flex-1 min-w-0 bg-muted/40 border border-border/60 rounded-lg flex items-center px-3 font-mono text-[10px] text-muted-foreground truncate">
+                    {formData.previewFileKey ? formData.previewFileKey.split('/').pop() : 'Optional'}
                   </div>
-                  <Button type="button" variant="outline" className="h-12 px-4 rounded-xl relative overflow-hidden border-white/10">
-                    <Upload className="h-4 w-4" />
+                  <Button type="button" variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg relative overflow-hidden shrink-0">
+                    <Upload className="h-3.5 w-3.5" />
                     <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'preview')} />
                   </Button>
                 </div>
@@ -292,16 +294,16 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         </Card>
       </div>
 
-      <div className="lg:col-span-4 space-y-8">
-        <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
-          <CardHeader className="p-6 border-b border-white/5 bg-primary/5">
-            <CardTitle className="text-lg font-headline text-primary flex items-center gap-2"><Zap className="h-4 w-4" /> Pricing & Meta</CardTitle>
+      <div className="lg:col-span-4 space-y-6">
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardHeader className="px-0 pt-0 pb-3 space-y-0 border-b border-border/60">
+            <CardTitle className="text-sm font-semibold text-primary flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> Pricing & Meta</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Category</Label>
+          <CardContent className="px-0 pb-0 pt-4 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Category</Label>
               <Select value={formData.categoryId} onValueChange={(val) => setFormData({...formData, categoryId: val})}>
-                <SelectTrigger className="h-12 bg-background/50 rounded-xl"><SelectValue placeholder="Select Category" /></SelectTrigger>
+                <SelectTrigger className="h-9 rounded-lg text-xs"><SelectValue placeholder="Select Category" /></SelectTrigger>
                 <SelectContent>
                   {categories?.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -310,76 +312,78 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               </Select>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Price (INR)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground">Price (INR)</Label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
-                  <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} className="h-12 bg-background/50 rounded-xl pl-8 font-bold" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">₹</span>
+                  <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} className="h-9 rounded-lg pl-7 font-medium text-xs" />
                 </div>
               </div>
-              <div className="grid gap-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Strike Price</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground">Strike Price</Label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
-                  <Input type="number" value={formData.compareAtPrice} onChange={(e) => setFormData({...formData, compareAtPrice: Number(e.target.value)})} className="h-12 bg-background/50 rounded-xl pl-8 text-muted-foreground" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">₹</span>
+                  <Input type="number" value={formData.compareAtPrice} onChange={(e) => setFormData({...formData, compareAtPrice: Number(e.target.value)})} className="h-9 rounded-lg pl-7 text-muted-foreground text-xs" />
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Asset Format & Version</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Asset Format & Version</Label>
               <div className="flex gap-2">
-                <Input value={formData.fileFormat} onChange={(e) => setFormData({...formData, fileFormat: e.target.value.toUpperCase()})} className="h-12 bg-background/50 rounded-xl font-mono text-xs" placeholder="ZIP, PDF..." />
-                <Input value={formData.fileVersion} onChange={(e) => setFormData({...formData, fileVersion: e.target.value})} className="h-12 bg-background/50 rounded-xl font-mono text-xs" placeholder="v1.0" />
+                <Input value={formData.fileFormat} onChange={(e) => setFormData({...formData, fileFormat: e.target.value.toUpperCase()})} className="h-9 rounded-lg font-mono text-xs" placeholder="ZIP, PDF..." />
+                <Input value={formData.fileVersion} onChange={(e) => setFormData({...formData, fileVersion: e.target.value})} className="h-9 rounded-lg font-mono text-xs" placeholder="v1.0" />
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Search Tags</Label>
-              <Input value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} className="h-12 bg-background/50 rounded-xl text-xs" placeholder="ai, guide, toolkit..." />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Search Tags</Label>
+              <Input value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} className="h-9 rounded-lg text-xs" placeholder="ai, guide, toolkit..." />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
-          <CardHeader className="p-6 border-b border-white/5 bg-muted/30">
-            <CardTitle className="text-lg font-headline text-midnight-ink flex items-center gap-2"><Globe className="h-4 w-4" /> SEO Terminal</CardTitle>
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardHeader className="px-0 pt-0 pb-3 space-y-0 border-b border-border/60">
+            <CardTitle className="text-sm font-semibold flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> SEO</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-5">
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Meta Title Override</Label>
-              <Input value={formData.seo?.title} onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} className="h-10 bg-background/50 rounded-lg text-xs" />
+          <CardContent className="px-0 pb-0 pt-4 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Meta Title Override</Label>
+              <Input value={formData.seo?.title} onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} className="h-9 rounded-lg text-xs" />
             </div>
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Meta Description</Label>
-              <Textarea value={formData.seo?.description} onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} className="h-20 bg-background/50 rounded-lg text-xs resize-none" />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-medium text-muted-foreground">Meta Description</Label>
+              <Textarea value={formData.seo?.description} onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} className="h-16 rounded-lg text-xs resize-none" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-card/30 rounded-[2.5rem] shadow-xl overflow-hidden">
-          <CardHeader className="p-6 border-b border-white/5 bg-muted/30"><CardTitle className="text-lg font-headline text-midnight-ink">Publishing</CardTitle></CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-midnight-ink">Active Visibility</p>
-                <p className="text-[10px] text-muted-foreground uppercase">Show in catalog</p>
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardHeader className="px-0 pt-0 pb-3 space-y-0 border-b border-border/60">
+            <CardTitle className="text-sm font-semibold">Publishing</CardTitle>
+          </CardHeader>
+          <CardContent className="px-0 pb-0 pt-4 space-y-3">
+            <div className="flex items-center justify-between rounded-lg bg-white/40 dark:bg-white/5 border border-border/60 p-3">
+              <div className="space-y-0.5">
+                <p className="text-xs font-semibold">Active Visibility</p>
+                <p className="text-[10px] font-medium text-muted-foreground">Show in catalog</p>
               </div>
               <Switch checked={formData.isPublished} onCheckedChange={(val) => setFormData({...formData, isPublished: val})} />
             </div>
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-primary">Featured Product</p>
-                <p className="text-[10px] text-primary/60 uppercase">Homepage placement</p>
+            <div className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/15 p-3">
+              <div className="space-y-0.5">
+                <p className="text-xs font-semibold text-primary">Featured Product</p>
+                <p className="text-[10px] font-medium text-primary/70">Homepage placement</p>
               </div>
               <Switch checked={formData.isFeatured} onCheckedChange={(val) => setFormData({...formData, isFeatured: val})} />
             </div>
           </CardContent>
         </Card>
 
-        <Button type="submit" disabled={isSaving} className="w-full h-16 rounded-2xl text-lg font-bold shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 group">
-          {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-3" /> : <CheckCircle2 className="h-5 w-5 mr-3" />}
+        <Button type="submit" disabled={isSaving} size="sm" className="w-full h-10 rounded-lg font-medium active:scale-[0.99] transition-transform sticky bottom-4">
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
           {id ? 'Synchronize Record' : 'Deploy Product'}
         </Button>
       </div>

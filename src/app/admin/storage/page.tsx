@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -75,101 +75,97 @@ export default function AdminStorage() {
 
   const getFileIcon = (key: string) => {
     const ext = key.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext!)) return <ImageIcon className="h-4 w-4 text-blue-500" />;
-    if (['zip', 'rar', '7z'].includes(ext!)) return <FileArchive className="h-4 w-4 text-orange-500" />;
-    return <File className="h-4 w-4 text-muted-foreground" />;
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext!)) return <ImageIcon className="h-3.5 w-3.5 text-blue-500" />;
+    if (['zip', 'rar', '7z'].includes(ext!)) return <FileArchive className="h-3.5 w-3.5 text-orange-500" />;
+    return <File className="h-3.5 w-3.5 text-muted-foreground" />;
   };
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Storage Manager</h1>
-          <p className="text-muted-foreground">Browse and manage assets in your Cloudflare R2 bucket.</p>
+          <h1 className="text-lg md:text-xl font-semibold">Storage</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Browse and manage assets in your Cloudflare R2 bucket.</p>
         </div>
-        <Button onClick={fetchFiles} disabled={loading} variant="outline" className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        <Button onClick={fetchFiles} disabled={loading} variant="outline" className="gap-1.5 h-8 rounded-lg text-xs">
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{files.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Managed via R2 bucket</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="rounded-xl shadow-sm p-4 border-primary/20 bg-primary/5">
+          <CardContent className="p-0 space-y-1">
+            <span className="text-[10px] font-medium text-muted-foreground">Total Assets</span>
+            <div className="text-lg md:text-xl font-semibold tabular-nums">{files.length}</div>
+            <p className="text-[10px] font-medium text-muted-foreground">Managed via R2 bucket</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Storage Region</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold uppercase">Auto</div>
-            <p className="text-xs text-muted-foreground mt-1">Cloudflare Global Edge</p>
+        <Card className="rounded-xl shadow-sm p-4 border-0">
+          <CardContent className="p-0 space-y-1">
+            <span className="text-[10px] font-medium text-muted-foreground">Storage Region</span>
+            <div className="text-lg md:text-xl font-semibold">Auto</div>
+            <p className="text-[10px] font-medium text-muted-foreground">Cloudflare Global Edge</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="p-4 border-b">
+      <Card className="rounded-xl shadow-sm p-0 overflow-hidden border-0">
+        <div className="p-4 border-b bg-card">
           <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input 
               placeholder="Search files..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
+              className="pl-8 h-9 rounded-lg text-xs"
             />
           </div>
-        </CardHeader>
+        </div>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 space-y-4">
+            <div className="p-4 space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 w-full animate-pulse bg-muted rounded" />
+                <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
           ) : filteredFiles.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Last Modified</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-xs">File Name</TableHead>
+                  <TableHead className="text-xs">Size</TableHead>
+                  <TableHead className="text-xs">Last Modified</TableHead>
+                  <TableHead className="text-right text-xs">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFiles.map((file) => (
                   <TableRow key={file.key}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2.5">
                         {getFileIcon(file.key)}
-                        <span className="font-medium text-sm truncate max-w-[300px]">{file.key}</span>
+                        <span className="font-medium text-xs truncate max-w-[300px]">{file.key}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-xs text-muted-foreground tabular-nums">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {format(new Date(file.lastModified), 'MMM dd, yyyy HH:mm')}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => copyToClipboard(file.url)}>
-                          {copiedKey === file.url ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyToClipboard(file.url)}>
+                          {copiedKey === file.url ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                         </Button>
-                        <Button variant="ghost" size="icon" asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" asChild>
                           <a href={file.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
+                            <ExternalLink className="h-3.5 w-3.5" />
                           </a>
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(file.key)}>
-                          <Trash2 className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive" onClick={() => handleDelete(file.key)}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </TableCell>
@@ -178,10 +174,10 @@ export default function AdminStorage() {
               </TableBody>
             </Table>
           ) : (
-            <div className="flex h-60 flex-col items-center justify-center text-center p-8">
-              <Database className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-              <h3 className="text-xl font-bold font-headline">No files found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or upload new assets.</p>
+            <div className="flex h-48 flex-col items-center justify-center text-center p-6 gap-1">
+              <Database className="h-10 w-10 text-muted-foreground mb-2 opacity-20" />
+              <h3 className="text-sm font-semibold">No files found</h3>
+              <p className="text-xs text-muted-foreground">Try adjusting your search or upload new assets.</p>
             </div>
           )}
         </CardContent>

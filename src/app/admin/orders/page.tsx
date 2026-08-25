@@ -6,7 +6,7 @@ import { collection, doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { 
   Search, 
   MoreVertical, 
@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { generateInvoicePdf } from '@/app/actions/email-actions';
+import { generateInvoicePdf, sendRefundEmail } from '@/app/actions/email-actions';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -76,7 +76,14 @@ export default function AdminOrders() {
   const updateOrderStatus = async (id: string, newStatus: string) => {
     if (!db) return;
     const ref = doc(db, 'orders', id);
-    await updateDoc(ref, { status: newStatus });
+    await updateDoc(ref, { status: newStatus, ...(newStatus === 'refunded' ? { refundedAt: new Date() } : {}) });
+    // Fire refund email to customer when admin marks refunded (best-effort)
+    if (newStatus === 'refunded') {
+      const order = allOrders?.find((o: any) => o.id === id);
+      if (order) {
+        void sendRefundEmail(order).catch(() => {});
+      }
+    }
     toast({ title: "Audit Update", description: `Record ${id.slice(-8)} transition to ${newStatus}.` });
   };
 
@@ -106,55 +113,49 @@ export default function AdminOrders() {
   }, [allOrders]);
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Order Registry</h1>
-          <p className="text-muted-foreground">Monitoring the flow of verified digital transactions.</p>
-        </div>
+    <div className="space-y-4">
+      <header>
+        <h1 className="text-lg md:text-xl font-semibold">Orders</h1>
+        <p className="text-xs text-muted-foreground">Monitoring the flow of verified digital transactions.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-green-500/10 border-green-500/20 rounded-3xl">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase font-black tracking-widest text-green-600">Net Volume</p>
-                <h3 className="text-2xl font-bold font-headline mt-1">₹{lifetimeStats.total.toLocaleString('en-IN')}</h3>
-              </div>
-              <CheckCircle2 className="h-8 w-8 text-green-500 opacity-20" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardContent className="p-0 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-medium text-muted-foreground">Net Volume</p>
+              <h3 className="text-xl md:text-2xl font-semibold mt-1">₹{lifetimeStats.total.toLocaleString('en-IN')}</h3>
             </div>
+            <CheckCircle2 className="h-8 w-8 text-green-500 opacity-20" />
           </CardContent>
         </Card>
-        <Card className="bg-blue-500/10 border-blue-500/20 rounded-3xl">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase font-black tracking-widest text-blue-600">Fulfillment Count</p>
-                <h3 className="text-2xl font-bold font-headline mt-1">{lifetimeStats.count}</h3>
-              </div>
-              <ShoppingBag className="h-8 w-8 text-blue-500 opacity-20" />
+        <Card className="rounded-xl shadow-sm p-4">
+          <CardContent className="p-0 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-medium text-muted-foreground">Fulfillment Count</p>
+              <h3 className="text-xl md:text-2xl font-semibold mt-1">{lifetimeStats.count}</h3>
             </div>
+            <ShoppingBag className="h-8 w-8 text-blue-500 opacity-20" />
           </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-[2.5rem] border-white/5 bg-card/30 overflow-hidden">
-        <CardHeader className="p-4 border-b border-white/5">
-          <div className="flex flex-col md:flex-row gap-4 justify-between">
+      <Card className="rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="p-4 border-b">
+          <div className="flex flex-col md:flex-row gap-3 justify-between">
             <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input 
                 placeholder="Search by ID, name or email..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-background/50 rounded-xl h-11 border-white/5"
+                className="pl-9 h-9 rounded-lg"
               />
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <select 
-                className="bg-background/50 border-white/5 border rounded-xl px-4 py-2 text-xs outline-none focus:ring-1 focus:ring-primary h-11 min-w-[140px]"
+                className="bg-background border rounded-lg px-3 h-9 text-xs outline-none focus:ring-1 focus:ring-primary min-w-[140px]"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -169,86 +170,88 @@ export default function AdminOrders() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 space-y-4">
+            <div className="p-4 space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 w-full animate-pulse bg-muted rounded-2xl" />
+                <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
           ) : processedOrders.length > 0 ? (
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="border-white/5">
-                  <TableHead className="pl-8">Reference</TableHead>
-                  <TableHead>Purchaser</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Audit State</TableHead>
-                  <TableHead className="text-right pr-8">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {processedOrders.map((order: any) => (
-                  <TableRow key={order.id} className="border-white/5 hover:bg-white/5 transition-colors group">
-                    <TableCell className="pl-8 font-mono text-primary uppercase text-[10px] font-bold tracking-widest">#{order.id?.slice(-8)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm leading-none">{order.userName || 'Anonymous'}</span>
-                        <span className="text-[10px] text-muted-foreground mt-1">{order.userEmail}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-[10px] text-muted-foreground font-mono">
-                      {order.createdAt ? format(new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt), 'MMM dd, HH:mm') : 'N/A'}
-                    </TableCell>
-                    <TableCell className="font-bold text-sm">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</TableCell>
-                    <TableCell>
-                      <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className={cn(
-                        "text-[9px] uppercase font-black px-2 py-0.5 border-none",
-                        order.status === 'paid' ? "bg-green-500/10 text-green-500" : "bg-muted text-muted-foreground"
-                      )}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white/5">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 bg-card border-white/10 rounded-2xl p-2 shadow-2xl">
-                          <DropdownMenuLabel className="text-[10px] uppercase font-black tracking-widest p-3">Audit guidelines</DropdownMenuLabel>
-                          <DropdownMenuItem asChild className="rounded-xl focus:bg-primary/10 focus:text-primary p-3">
-                            <Link href={`/admin/orders/${order.id}`} className="cursor-pointer flex items-center">
-                              <Eye className="mr-3 h-4 w-4" /> Inspect Record
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDownloadInvoice(order)} 
-                            disabled={downloadingId === order.id} 
-                            className="rounded-xl focus:bg-primary/10 focus:text-primary p-3 cursor-pointer"
-                          >
-                            {downloadingId === order.id ? <Loader2 className="mr-3 h-4 w-4 animate-spin" /> : <Download className="mr-3 h-4 w-4" />}
-                            Export Invoice
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/5" />
-                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'paid')} className="rounded-xl focus:bg-green-500/10 focus:text-green-500 p-3 cursor-pointer">
-                            <CheckCircle2 className="mr-3 h-4 w-4" /> Validate Payment
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'refunded')} className="rounded-xl focus:bg-destructive/10 focus:text-destructive p-3 cursor-pointer">
-                            <XCircle className="mr-3 h-4 w-4" /> Mark Refunded
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[640px]">
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="pl-4">Reference</TableHead>
+                    <TableHead>Purchaser</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right pr-4">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {processedOrders.map((order: any) => (
+                    <TableRow key={order.id} className="transition-colors">
+                      <TableCell className="pl-4 px-3 py-2 font-mono text-xs font-medium">#…{order.id?.slice(-8)}</TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-medium leading-none">{order.userName || 'Anonymous'}</span>
+                          <span className="text-[10px] text-muted-foreground mt-1">{order.userEmail}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-[10px] text-muted-foreground font-mono whitespace-nowrap">
+                        {order.createdAt ? format(new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt), 'MMM dd, HH:mm') : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-xs font-medium tabular-nums px-3 py-2">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</TableCell>
+                      <TableCell className="px-3 py-2">
+                        <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className={cn(
+                          "text-[10px] font-medium px-1.5 py-0 border-none",
+                          order.status === 'paid' ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
+                        )}>
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-4 px-3 py-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuLabel className="text-[10px] font-medium text-muted-foreground p-2">Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild className="rounded-md text-xs cursor-pointer">
+                              <Link href={`/admin/orders/${order.id}`} className="flex items-center gap-2">
+                                <Eye className="h-4 w-4" /> Inspect Record
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDownloadInvoice(order)} 
+                              disabled={downloadingId === order.id} 
+                              className="rounded-md text-xs cursor-pointer"
+                            >
+                              {downloadingId === order.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                              Export Invoice
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'paid')} className="rounded-md text-xs cursor-pointer focus:bg-green-500/10 focus:text-green-600">
+                              <CheckCircle2 className="mr-2 h-4 w-4" /> Mark Paid
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'refunded')} className="rounded-md text-xs cursor-pointer focus:bg-destructive/10 focus:text-destructive">
+                              <XCircle className="mr-2 h-4 w-4" /> Mark Refunded
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="flex h-60 flex-col items-center justify-center text-center p-8">
-              <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4 opacity-10" />
-              <h3 className="text-xl font-bold font-headline">Registry Empty</h3>
-              <p className="text-muted-foreground text-sm">No transaction records found matching your current parameters.</p>
+              <ShoppingBag className="h-10 w-10 text-muted-foreground mb-3 opacity-20" />
+              <h3 className="text-sm font-semibold">Registry Empty</h3>
+              <p className="text-xs text-muted-foreground mt-1">No transaction records found matching your current parameters.</p>
             </div>
           )}
         </CardContent>

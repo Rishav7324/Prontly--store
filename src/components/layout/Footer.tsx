@@ -2,94 +2,82 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Twitter, Instagram, Mail, Github, Linkedin, Globe, ShieldCheck, CreditCard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ShieldCheck, Globe, CreditCard } from 'lucide-react';
+
+const columns = [
+  {
+    title: 'Marketplace',
+    links: [
+      ['All Products', '/products'],
+      ['Categories', '/products?view=categories'],
+      ['Blog', '/blog'],
+      ['Wishlist', '/wishlist'],
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      ['About', '/about'],
+      ['Contact', '/contact'],
+      ['Privacy', '/privacy'],
+      ['Terms', '/terms'],
+    ],
+  },
+  {
+    title: 'Policies',
+    links: [
+      ['Delivery Policy', '/delivery-policy'],
+      ['Refund Policy', '/refund-policy'],
+      ['Cookie Settings', '/cookies'],
+    ],
+  },
+];
 
 export function Footer() {
   return (
-    <footer className="border-t bg-white py-12">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
-          {/* Column 1: Brand & Identity */}
-          <div className="md:col-span-5 space-y-6">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-primary shadow-sm">
-                <Image 
-                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
-                  alt="Prontly Logo" 
-                  fill 
-                  className="object-cover"
-                />
+    <footer className="border-t bg-white w-full max-w-[100vw] overflow-x-hidden">
+      <div className="container-page py-8 md:py-10">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-6 md:gap-8 mb-8">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-5 space-y-4 min-w-0">
+            <Link href="/" className="flex items-center gap-2 group w-fit">
+              <div className="relative h-7 w-7 rounded-lg overflow-hidden shadow-sm transition-transform group-hover:scale-105">
+                <Image src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" alt="Prontly" fill className="object-cover" />
               </div>
-              <span className="font-bold text-xl tracking-tight text-midnight-ink">Prontly Store</span>
+              <span className="font-semibold text-sm tracking-tight">Prontly</span>
             </Link>
-            <p className="text-slate-blue text-base leading-relaxed max-w-sm font-medium">
-              High-quality digital assets for professional creators. 
-              Engineering tools that accelerate your production workflow.
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+              High-quality digital assets for professional creators. Tools that accelerate your production workflow.
             </p>
-            
-            <div className="flex gap-3">
-              {[
-                { icon: Twitter, href: "#" },
-                { icon: Linkedin, href: "#" },
-                { icon: Instagram, href: "#" },
-                { icon: Github, href: "#" },
-              ].map((social, i) => (
-                <Button key={i} variant="ghost" size="icon" className="h-10 w-10 rounded-xl border border-stone-gray/10 text-slate-blue hover:text-primary hover:bg-muted transition-all">
-                  <social.icon className="h-4 w-4" />
-                </Button>
+            <div className="flex flex-wrap gap-3 pt-1">
+              {[['Secure', ShieldCheck], ['Instant', Globe], ['Verified', CreditCard]].map(([label, Icon]: any) => (
+                <span key={label} className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted rounded-md px-2 py-1">
+                  <Icon className="h-3 w-3 text-accent" /> {label}
+                </span>
               ))}
             </div>
-
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg border border-green-100">
-                  <ShieldCheck className="h-4 w-4 text-green-600" />
-                  <span className="text-[10px] font-bold text-green-700 uppercase tracking-wider">Secure Checkout</span>
-               </div>
-               <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-100">
-                  <Globe className="h-4 w-4 text-blue-600" />
-                  <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Instant Delivery</span>
-               </div>
-            </div>
           </div>
 
-          {/* Navigation Links */}
-          <div className="md:col-span-7 grid grid-cols-2 gap-8 md:pl-12">
-            <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-widest text-midnight-ink">Marketplace</h4>
-              <ul className="space-y-3">
-                <li><Link href="/products" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">All Products</Link></li>
-                <li><Link href="/products?view=categories" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Categories</Link></li>
-                <li><Link href="/blog" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Blog & Guides</Link></li>
-                <li><Link href="/wishlist" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">My Wishlist</Link></li>
+          {/* Links */}
+          {columns.map((col) => (
+            <div key={col.title} className="md:col-span-2 min-w-0">
+              <h4 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">{col.title}</h4>
+              <ul className="space-y-2">
+                {col.links.map(([label, href]) => (
+                  <li key={href}>
+                    <Link href={href} className="text-xs text-muted-foreground hover:text-foreground transition-colors">{label}</Link>
+                  </li>
+                ))}
               </ul>
             </div>
-
-            <div className="space-y-4">
-              <h4 className="text-xs font-black uppercase tracking-widest text-midnight-ink">Company</h4>
-              <ul className="space-y-3">
-                <li><Link href="/about" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">About Us</Link></li>
-                <li><Link href="/contact" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Contact & Support</Link></li>
-                <li><Link href="/privacy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Terms of Service</Link></li>
-                <li><Link href="/delivery-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Delivery Policy</Link></li>
-                <li><Link href="/refund-policy" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">Refund Policy</Link></li>
-              </ul>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className="pt-8 border-t border-stone-gray/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[11px] text-slate-400 font-medium">
-            © {new Date().getFullYear()} Prontly. All rights reserved.
+        <div className="pt-5 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-[10px] text-muted-foreground">© {new Date().getFullYear()} Prontly. All rights reserved.</p>
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <CreditCard className="h-3 w-3" /> Verified payments
           </p>
-          <div className="flex items-center gap-6">
-             <div className="flex items-center gap-2 opacity-50">
-                <CreditCard className="h-4 w-4 text-midnight-ink" />
-                <span className="text-[10px] font-bold text-midnight-ink uppercase tracking-wider">Verified Payments</span>
-             </div>
-             <Link href="/cookies" className="text-[11px] text-slate-400 hover:text-primary transition-colors font-medium">Cookie Settings</Link>
-          </div>
         </div>
       </div>
     </footer>

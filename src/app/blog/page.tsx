@@ -48,29 +48,30 @@ export default async function BlogListingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 container mx-auto px-4 pt-28 pb-12">
-        <header className="max-w-2xl mb-10">
-          <Badge variant="outline" className="mb-3 border-primary/50 text-primary">Insights & Updates</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold font-headline mb-4">The Prontly Blog</h1>
-          <p className="text-lg text-muted-foreground">Expert guides, industry news, and tips to master your digital workflow.</p>
+        <header className="max-w-xl mb-8">
+          <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary px-2 py-0">Insights & Updates</Badge>
+          <h1 className="text-lg md:text-xl font-semibold font-headline mb-1.5">The Prontly Blog</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Expert guides, industry news, and tips to master your digital workflow.</p>
         </header>
 
         {posts && posts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0 max-w-full">
             {posts.map((post: any) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className="group">
-                <Card className="h-full overflow-hidden border-white/5 bg-card/50 transition-all hover:border-primary/30 rounded-2xl">
-                  <div className="relative aspect-video overflow-hidden bg-muted">
-                    <Image 
-                      src={post.featuredImage || `https://picsum.photos/seed/${post.id}/800/450`} 
-                      alt={post.title} 
-                      fill 
+                <Card className="h-full overflow-hidden border bg-card transition-all hover:border-primary/30 hover:shadow-md rounded-xl shadow-sm">
+                  <div className="relative aspect-video overflow-hidden bg-muted border-b">
+                    <Image
+                      src={post.featuredImage || `https://picsum.photos/seed/${post.id}/800/450`}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
-                  <CardHeader className="space-y-1.5 p-5">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <CardHeader className="space-y-1.5 p-4 pb-0">
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {post.publishedAt ? format(new Date(post.publishedAt), 'MMM dd, yyyy') : 'Recently'}
@@ -80,17 +81,17 @@ export default async function BlogListingPage() {
                         5 min read
                       </div>
                     </div>
-                    <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
+                    <CardTitle className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {post.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4 px-5 pb-5">
-                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                  <CardContent className="space-y-3 p-4">
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                       {post.excerpt}
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {post.tags?.slice(0, 3).map((tag: string) => (
-                        <Badge key={tag} variant="secondary" className="text-[10px] uppercase font-bold px-2 py-0">
+                        <Badge key={tag} variant="secondary" className="text-[10px] font-medium px-1.5 py-0">
                           {tag}
                         </Badge>
                       ))}
@@ -101,9 +102,9 @@ export default async function BlogListingPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-muted/20 rounded-3xl border border-dashed">
-            <h3 className="text-2xl font-bold">New Insights Coming Soon</h3>
-            <p className="text-muted-foreground">We are curating expert guides for you. Check back shortly.</p>
+          <div className="text-center py-14 bg-muted/20 rounded-xl border border-dashed shadow-sm p-6">
+            <h3 className="text-sm font-semibold mb-1">New Insights Coming Soon</h3>
+            <p className="text-xs text-muted-foreground">We are curating expert guides for you. Check back shortly.</p>
           </div>
         )}
       </main>

@@ -1,20 +1,15 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
   History, 
-  ShieldAlert, 
-  User, 
-  Clock, 
-  ExternalLink,
-  Filter
+  User
 } from "lucide-react";
 import {
   Table,
@@ -44,85 +39,85 @@ export default function AdminLogsPage() {
 
   const getActionBadge = (action: string) => {
     switch (action) {
-      case 'CREATE': return <Badge className="bg-green-500">CREATE</Badge>;
-      case 'UPDATE': return <Badge className="bg-blue-500">UPDATE</Badge>;
-      case 'DELETE': return <Badge variant="destructive">DELETE</Badge>;
-      default: return <Badge variant="outline">{action}</Badge>;
+      case 'CREATE': return <Badge className="text-[10px] font-medium bg-green-500/10 text-green-600 border-none">CREATE</Badge>;
+      case 'UPDATE': return <Badge className="text-[10px] font-medium bg-blue-500/10 text-blue-600 border-none">UPDATE</Badge>;
+      case 'DELETE': return <Badge className="text-[10px] font-medium bg-destructive/10 text-destructive border-none">DELETE</Badge>;
+      default: return <Badge variant="outline" className="text-[10px] font-medium">{action}</Badge>;
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <header>
-        <h1 className="text-3xl font-bold font-headline">Audit Logs</h1>
-        <p className="text-muted-foreground">Detailed history of administrative actions for security compliance.</p>
+        <h1 className="text-lg md:text-xl font-semibold">Audit Logs</h1>
+        <p className="text-xs text-muted-foreground">Detailed history of administrative actions for security compliance.</p>
       </header>
 
-      <Card>
+      <Card className="rounded-xl shadow-sm overflow-hidden">
         <CardHeader className="p-4 border-b">
-          <div className="flex flex-col md:flex-row gap-4 justify-between">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search logs by email, action, or resource..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input 
+              placeholder="Search logs by email, action, or resource..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 h-9 rounded-lg"
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 space-y-4">
+            <div className="p-4 space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 w-full animate-pulse bg-muted rounded" />
+                <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
           ) : filteredLogs && filteredLogs.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Admin</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Resource</TableHead>
-                  <TableHead>Details</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log: any) => (
-                  <TableRow key={log.id} className="hover:bg-muted/5 transition-colors">
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                      {log.timestamp ? format(new Date(log.timestamp.toDate()), 'MMM dd, HH:mm:ss') : 'Just now'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm font-medium">{log.adminEmail}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getActionBadge(log.action)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-primary">{log.resourceType}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">ID: {log.resourceId?.slice(-8)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <p className="text-xs text-muted-foreground truncate" title={JSON.stringify(log.details)}>
-                        {Object.entries(log.details || {}).map(([key, val]) => `${key}: ${val}`).join(', ')}
-                      </p>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[640px]">
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="pl-4">Time</TableHead>
+                    <TableHead>Admin</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Resource</TableHead>
+                    <TableHead>Details</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.map((log: any) => (
+                    <TableRow key={log.id} className="transition-colors">
+                      <TableCell className="pl-4 px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
+                        {log.timestamp ? format(new Date(log.timestamp.toDate()), 'MMM dd, HH:mm:ss') : 'Just now'}
+                      </TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs font-medium">{log.adminEmail}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-2">{getActionBadge(log.action)}</TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-medium text-primary">{log.resourceType}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">ID: …{log.resourceId?.slice(-8)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-xs px-3 py-2">
+                        <p className="text-xs text-muted-foreground truncate" title={JSON.stringify(log.details)}>
+                          {Object.entries(log.details || {}).map(([key, val]) => `${key}: ${val}`).join(', ')}
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="flex h-60 flex-col items-center justify-center text-center p-8">
-              <History className="h-12 w-12 text-muted-foreground mb-4 opacity-20" />
-              <h3 className="text-xl font-bold font-headline">No logs found</h3>
-              <p className="text-muted-foreground">Admin actions will appear here as they occur.</p>
+              <History className="h-10 w-10 text-muted-foreground mb-3 opacity-20" />
+              <h3 className="text-sm font-semibold">No logs found</h3>
+              <p className="text-xs text-muted-foreground mt-1">Admin actions will appear here as they occur.</p>
             </div>
           )}
         </CardContent>

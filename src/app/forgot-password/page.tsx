@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, ShieldCheck, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
@@ -43,11 +43,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm space-y-5 py-10">
         <div className="flex flex-col items-center text-center">
-          <Link href="/" className="flex items-center gap-3 mb-10 group">
-            <div className="relative h-14 w-14 overflow-hidden rounded-[1.25rem] bg-white/5 shadow-2xl transition-all group-hover:scale-105">
+          <Link href="/" className="mb-4 flex items-center gap-2">
+            <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-muted shadow-sm">
               <Image 
                 src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
                 alt="Prontly Logo" 
@@ -55,61 +55,63 @@ export default function ForgotPasswordPage() {
                 className="object-cover"
               />
             </div>
-            <span className="font-headline text-3xl font-bold tracking-tighter uppercase">Prontly</span>
+            <span className="font-headline text-lg font-bold tracking-tight text-midnight-ink">Prontly</span>
           </Link>
-          <h1 className="text-4xl font-bold font-headline">Account Recovery</h1>
-          <p className="text-muted-foreground mt-3 text-lg">
-            {sent ? "Instructions sent!" : "Enter your email to receive a secure reset link."}
+          <h1 className="text-xl font-bold font-headline text-midnight-ink">Account recovery</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {sent ? "Instructions sent!" : "We'll email you a secure reset link."}
           </p>
         </div>
 
-        <Card className="border-white/5 bg-card/30 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-xl">
-          <CardHeader className="p-10 pb-6 text-center">
-            <div className="inline-flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-3 mx-auto">
-              <ShieldCheck className="h-4 w-4" /> Identity Protection
-            </div>
+        <Card className="rounded-xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
+          <CardHeader className="p-5 pb-3">
+            <CardTitle className="text-sm font-semibold">Reset password</CardTitle>
           </CardHeader>
-
-          <CardContent className="p-10 pt-0">
+          <CardContent className="px-5 pb-5 pt-0">
             {sent ? (
-              <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
-                <div className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="h-10 w-10 text-green-500" />
+              <div className="animate-in fade-in zoom-in space-y-4 text-center duration-300">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                  <CheckCircle2 className="h-6 w-6 text-green-500" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-foreground font-medium">We've sent a link to <span className="text-primary font-bold">{email}</span></p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">Please check your inbox (and spam folder) for instructions to finalize your new password.</p>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-foreground">
+                    We've sent a link to <span className="font-semibold text-primary">{email}</span>
+                  </p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Please check your inbox (and spam folder) for instructions to finalize your new password.
+                  </p>
                 </div>
-                <Button variant="outline" className="w-full h-14 rounded-2xl" onClick={() => setSent(false)}>
+                <Button variant="outline" className="h-10 w-full rounded-lg text-sm font-medium" onClick={() => setSent(false)}>
                   Didn't get it? Try again
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleRequestReset} className="space-y-6">
-                <div className="space-y-3">
-                  <Label className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground ml-1">Email Address</Label>
+              <form onSubmit={handleRequestReset} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="reset-email" className="text-xs">Email address</Label>
                   <Input 
+                    id="reset-email"
                     type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="h-16 bg-background/50 border-white/10 rounded-2xl px-6 text-lg"
+                    className="h-10"
                   />
                 </div>
-                <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" /> : 'Send Reset Link'}
+                <Button type="submit" className="h-10 w-full rounded-lg text-sm font-medium" disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send reset link'}
                 </Button>
               </form>
             )}
 
             {error && (
-              <div className="mt-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-destructive text-sm font-medium">
-                <AlertCircle className="h-4 w-4" /> {error}
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs font-medium text-destructive">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {error}
               </div>
             )}
           </CardContent>
 
-          <CardFooter className="bg-muted/30 p-8 flex justify-center border-t border-white/5">
-            <Link href="/login" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-              <ArrowLeft className="h-3 w-3" /> Return to Login
+          <CardFooter className="flex justify-center border-t border-stone-gray/5 bg-porcelain-white/50 p-4">
+            <Link href="/login" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary">
+              <ArrowLeft className="h-3 w-3" /> Back to sign in
             </Link>
           </CardFooter>
         </Card>

@@ -20,7 +20,6 @@ import {
   Check,
   Twitter,
   Layers,
-  ExternalLink,
   ArrowLeft,
   Loader2,
   Zap,
@@ -46,7 +45,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Navbar } from "../layout/Navbar";
 import { Footer } from "../layout/Footer";
 
@@ -80,43 +78,38 @@ const ProductShare = ({ product }: { product: any }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 px-4 gap-2.5 border-stone-gray/20 text-slate-blue text-[10px] uppercase font-bold tracking-widest hover:bg-white hover:border-primary/30 transition-all rounded-xl shadow-sm group">
-          <Share2 className="h-3.5 w-3.5 group-hover:text-primary transition-colors" />
-          Share Asset
+        <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 gap-2 text-xs font-medium hover:bg-muted">
+          <Share2 className="h-3.5 w-3.5" />
+          Share
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-[2rem] border-stone-gray/10 bg-white p-8">
-        <DialogHeader className="space-y-3">
-          <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
-            <Share2 className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <DialogTitle className="text-2xl font-headline font-bold text-midnight-ink">Distribute Intelligence</DialogTitle>
-            <DialogDescription className="text-slate-blue text-sm">Synchronize this professional tool with your creative network.</DialogDescription>
-          </div>
+      <DialogContent className="sm:max-w-md rounded-xl p-4">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-lg md:text-xl font-semibold">Distribute Intelligence</DialogTitle>
+          <DialogDescription className="text-xs">Synchronize this professional tool with your creative network.</DialogDescription>
         </DialogHeader>
         
-        <div className="py-6">
-           <div className="flex items-center gap-2 p-1.5 bg-muted/30 rounded-2xl border border-stone-gray/5">
+        <div className="py-4 space-y-4">
+           <div className="flex items-center gap-2 p-1 bg-muted/40 rounded-lg border border-border/60">
               <Input
                 readOnly
                 defaultValue={shareUrl}
-                className="h-10 bg-transparent border-none focus-visible:ring-0 font-mono text-[10px] px-3 text-slate-600"
+                className="h-8 bg-transparent border-none focus-visible:ring-0 font-mono text-[10px] px-2"
               />
-              <Button size="sm" className="px-4 h-10 rounded-xl bg-midnight-ink font-bold gap-2" onClick={handleCopy}>
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              <Button size="sm" className="h-8 rounded-lg gap-1.5 font-medium" onClick={handleCopy}>
+                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 {copied ? 'Copied' : 'Copy'}
               </Button>
            </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" className="rounded-xl h-12 gap-2 border-stone-gray/10 text-slate-blue font-bold text-xs hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600" onClick={() => handleShare('x')}>
-            <Twitter className="h-4 w-4" /> X.com
-          </Button>
-          <Button variant="outline" className="rounded-xl h-12 gap-2 border-stone-gray/10 text-slate-blue font-bold text-xs hover:bg-green-50 hover:border-green-200 hover:text-green-600" onClick={() => handleShare('whatsapp')}>
-            <MessageSquare className="h-4 w-4" /> WhatsApp
-          </Button>
+           <div className="grid grid-cols-2 gap-2">
+             <Button variant="outline" size="sm" className="h-9 rounded-lg gap-2 text-xs font-medium hover:text-blue-600 hover:border-blue-200" onClick={() => handleShare('x')}>
+               <Twitter className="h-3.5 w-3.5" /> X.com
+             </Button>
+             <Button variant="outline" size="sm" className="h-9 rounded-lg gap-2 text-xs font-medium hover:text-green-600 hover:border-green-200" onClick={() => handleShare('whatsapp')}>
+               <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+             </Button>
+           </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -124,12 +117,12 @@ const ProductShare = ({ product }: { product: any }) => {
 };
 
 const ProductBreadcrumbs = ({ category, name }: { category: string, name: string }) => (
-  <nav className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-ghost-gray mb-4 overflow-hidden whitespace-nowrap">
+  <nav className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground mb-4 overflow-hidden whitespace-nowrap">
     <Link href="/products" className="hover:text-primary transition-colors shrink-0">Catalog</Link>
-    <ChevronRight className="h-2 w-2 shrink-0 opacity-40" />
+    <ChevronRight className="h-2.5 w-2.5 shrink-0 opacity-50" />
     <Link href={`/products?category=${category}`} className="hover:text-primary transition-colors shrink-0">{category}</Link>
-    <ChevronRight className="h-2 w-2 shrink-0 opacity-40" />
-    <span className="text-midnight-ink truncate max-w-[180px]">{name}</span>
+    <ChevronRight className="h-2.5 w-2.5 shrink-0 opacity-50" />
+    <span className="text-foreground truncate max-w-[180px]">{name}</span>
   </nav>
 );
 
@@ -175,36 +168,36 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="container mx-auto px-4 pt-20 pb-12 flex-1 max-w-7xl">
+      <main className="container mx-auto px-4 pt-16 md:pt-20 pb-10 flex-1 max-w-6xl overflow-x-hidden min-w-0">
         <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
           {/* Visual Showcase */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] border border-stone-gray/10 bg-porcelain-white shadow-2xl group">
+          <div className="lg:col-span-7 space-y-3">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm group">
               <Image 
                 src={selectedImage || 'https://picsum.photos/seed/placeholder/1200/800'} 
                 alt={product.name} 
                 fill 
-                className="object-cover transition-transform duration-1000 group-hover:scale-105" 
+                className="object-cover transition-transform duration-700 group-hover:scale-105" 
                 priority
               />
-              <div className="absolute top-4 left-4">
-                 <Badge className="bg-white/80 backdrop-blur-md text-midnight-ink border-none px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl">
+              <div className="absolute top-3 left-3">
+                 <Badge className="bg-white/80 backdrop-blur-md text-midnight-ink border-none px-2 py-0.5 rounded-full text-[10px] font-medium shadow-sm">
                    {product.categorySlug}
                  </Badge>
               </div>
             </div>
             
             {product.images?.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar snap-x">
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar snap-x">
                 {product.images.map((img: string, i: number) => (
                   <button 
                     key={i} 
                     onClick={() => setSelectedImage(img)}
                     className={cn(
-                      "relative h-16 w-20 rounded-xl border transition-all shrink-0 overflow-hidden snap-start shadow-sm",
-                      selectedImage === img ? "border-primary ring-2 ring-primary/5 scale-105" : "border-stone-gray/10 opacity-70 hover:opacity-100"
+                      "relative h-14 w-18 min-w-14 rounded-lg border transition-all shrink-0 overflow-hidden snap-start",
+                      selectedImage === img ? "border-primary ring-2 ring-primary/20" : "border-border/60 opacity-70 hover:opacity-100"
                     )}
                   >
                     <Image src={img} alt={`${product.name} thumbnail ${i + 1}`} fill className="object-cover" />
@@ -214,116 +207,117 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
             )}
           </div>
 
-          {/* Configuration Terminal */}
+          {/* Configuration Panel */}
           <div className="lg:col-span-5">
-            <div className="sticky top-24 space-y-6">
+            <div className="sticky top-24 space-y-5">
               <div className="space-y-4">
                 <div>
-                  <h1 className="text-2xl md:text-4xl font-bold text-midnight-ink leading-tight tracking-tight font-headline">
+                  <h1 className="text-lg md:text-xl font-semibold leading-snug break-words">
                     {product.name}
                   </h1>
-                  <div className="flex items-center gap-4 mt-3 py-3 border-y border-stone-gray/5">
+                  <div className="flex items-center gap-3 mt-2.5 py-2.5 border-y border-border/60 text-xs">
                     <div className="flex items-center gap-1 text-yellow-500">
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      <span className="font-bold text-midnight-ink text-sm font-headline">{product.averageRating || '5.0'}</span>
-                      <span className="text-ghost-gray text-[9px] font-black uppercase tracking-widest ml-1">({product.reviewCount || 0})</span>
+                      <Star className="h-3 w-3 fill-current" />
+                      <span className="font-semibold">{product.averageRating || '5.0'}</span>
+                      <span className="text-muted-foreground ml-0.5">({product.reviewCount || 0})</span>
                     </div>
-                    <div className="h-4 w-px bg-stone-gray/10" />
-                    <div className="flex items-center gap-1.5 text-primary">
-                      <Layers className="h-3.5 w-3.5" />
-                      <span className="font-bold text-midnight-ink text-sm font-mono">{product.salesCount || 0}</span>
-                      <span className="text-ghost-gray text-[9px] font-black uppercase tracking-widest ml-1">Sales</span>
+                    <div className="h-3 w-px bg-border/60" />
+                    <div className="flex items-center gap-1 text-primary">
+                      <Layers className="h-3 w-3" />
+                      <span className="font-semibold">{product.salesCount || 0}</span>
+                      <span className="text-muted-foreground ml-0.5">Sales</span>
                     </div>
-                    {liveLoading && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-primary opacity-20" />}
+                    {liveLoading && <Loader2 className="ml-auto h-3 w-3 animate-spin text-primary opacity-30" />}
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-midnight-ink font-headline tracking-tighter">
+                <div className="space-y-1.5">
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-xl md:text-2xl font-semibold tracking-tight">
                       ₹{(product.price / 100).toLocaleString('en-IN')}
                     </span>
                     {product.compareAtPrice > product.price && (
-                      <span className="text-base text-ghost-gray line-through decoration-rose-500/30">
+                      <span className="text-xs text-muted-foreground line-through decoration-rose-500/40">
                         ₹{(product.compareAtPrice / 100).toLocaleString('en-IN')}
                       </span>
                     )}
                   </div>
-                  <p className="text-slate-blue text-sm leading-relaxed font-medium">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {product.shortDescription || "Unlock premium asset specifications with perpetual licensing. Verified for professional creative performance."}
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2.5 pt-2">
+                <div className="flex flex-col gap-2 pt-1">
                   <Button 
-                    size="lg" 
-                    className="w-full h-12 rounded-xl bg-midnight-ink hover:bg-black text-white font-bold shadow-xl shadow-black/20 transition-all hover:scale-[1.01] active:scale-95"
+                    size="sm" 
+                    className="w-full h-9 rounded-lg bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-900 text-sm font-medium active:scale-[0.98] transition-all"
                     onClick={handleBuyNow}
                   >
-                    Execute Acquisition
+                    Buy Now
                   </Button>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button 
                       variant="outline" 
-                      className="h-11 rounded-lg border-stone-gray/20 text-midnight-ink hover:bg-white hover:border-primary transition-all font-bold text-xs"
+                      size="sm"
+                      className="h-9 rounded-lg text-xs font-medium"
                       onClick={handleAddToCart}
                     >
-                      <ShoppingCart className="mr-2 h-3.5 w-3.5" />
+                      <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
                       Add to Cart
                     </Button>
                     <Button 
                       variant="outline"
+                      size="sm"
                       className={cn(
-                        "h-11 rounded-lg border-stone-gray/20 transition-all font-bold text-xs",
-                        isWishlisted ? "text-rose-500 bg-rose-50/50 border-rose-200" : "text-midnight-ink hover:bg-white hover:border-primary"
+                        "h-9 rounded-lg text-xs font-medium",
+                        isWishlisted ? "text-rose-500 bg-rose-50/60 border-rose-200" : ""
                       )}
                       onClick={() => toggleItem(product.id)}
                     >
-                      <Heart className={cn("mr-2 h-3.5 w-3.5", isWishlisted && "fill-current")} />
+                      <Heart className={cn("mr-1.5 h-3.5 w-3.5", isWishlisted && "fill-current")} />
                       {isWishlisted ? "Saved" : "Wishlist"}
                     </Button>
                   </div>
                 </div>
 
                 {/* Compact Expandable Description */}
-                <div className="pt-6 space-y-2 border-t border-stone-gray/10">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-[9px] font-black uppercase text-ghost-gray tracking-[0.2em] flex items-center gap-2">
-                      <Info className="h-3 w-3 text-primary" />
-                      Specifications
-                    </h2>
-                  </div>
+                <div className="pt-5 space-y-2 border-t border-border/60">
+                  <h2 className="text-[10px] font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Info className="h-3 w-3 text-primary" />
+                    Specifications
+                  </h2>
                   
                   <div className="relative">
                     <div 
                       className={cn(
-                        "prose-content text-sm leading-relaxed text-slate-blue overflow-hidden transition-all duration-700",
-                        isDescExpanded ? "max-h-[5000px]" : "max-h-[140px]"
+                        "prose-content text-xs leading-relaxed overflow-hidden transition-all duration-500",
+                        isDescExpanded ? "max-h-[5000px]" : "max-h-[120px]"
                       )}
                       dangerouslySetInnerHTML={{ __html: product.description || '' }} 
                     />
                     
                     {!isDescExpanded && (
-                      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                      <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-background to-transparent pointer-events-none" />
                     )}
                   </div>
 
                   <Button 
                     variant="ghost" 
+                    size="sm"
                     onClick={() => setIsDescExpanded(!isDescExpanded)}
-                    className="w-full h-8 gap-2 text-[8px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-all"
+                    className="w-full h-8 rounded-lg gap-1.5 text-xs font-medium text-primary hover:bg-primary/5"
                   >
                     {isDescExpanded ? (
-                      <><Minus className="h-3 w-3" /> Condense</>
+                      <><Minus className="h-3 w-3" /> Show Less</>
                     ) : (
                       <><Plus className="h-3 w-3" /> Reveal Full Specs</>
                     )}
                   </Button>
                 </div>
 
-                <div className="pt-4 space-y-3 border-t border-stone-gray/10">
+                <div className="pt-4 space-y-3 border-t border-border/60">
                    <div className="flex items-center justify-between">
-                     <h3 className="text-[9px] font-black uppercase text-ghost-gray tracking-[0.2em]">Metadata</h3>
+                     <h3 className="text-[10px] font-medium text-muted-foreground">Metadata</h3>
                      <ProductShare product={product} />
                    </div>
                    
@@ -334,11 +328,11 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                        { label: 'License', val: 'Perpetual', icon: ShieldCheck },
                        { label: 'Delivery', val: 'Instant', icon: Clock },
                      ].map((item, i) => (
-                       <div key={i} className="p-2.5 rounded-xl border border-stone-gray/5 bg-muted/20 flex flex-col gap-1 group hover:bg-white hover:border-primary/20 transition-all">
-                         <item.icon className="h-3 w-3 text-primary" />
-                         <div>
-                           <p className="text-[7px] text-ghost-gray font-black uppercase tracking-widest">{item.label}</p>
-                           <p className="text-[10px] font-bold text-midnight-ink">{item.val}</p>
+                       <div key={i} className="p-2.5 rounded-lg border border-border/60 bg-muted/30 flex items-start gap-2 hover:bg-card hover:border-primary/25 transition-colors">
+                         <item.icon className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                         <div className="min-w-0">
+                           <p className="text-[10px] font-medium text-muted-foreground">{item.label}</p>
+                           <p className="text-xs font-semibold truncate">{item.val}</p>
                          </div>
                        </div>
                      ))}
@@ -349,25 +343,20 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
           </div>
         </div>
 
-        <section className="py-12 border-t border-stone-gray/5">
-          <header className="mb-8">
-             <Badge variant="outline" className="border-primary/20 text-primary uppercase font-black text-[9px] tracking-widest mb-1.5 px-2.5 py-0.5">Community Feed</Badge>
-             <h2 className="text-xl md:text-2xl font-bold font-headline text-midnight-ink">Audit Log & Reviews.</h2>
+        <section className="py-10 border-t border-border/60">
+          <header className="mb-6 flex items-end justify-between">
+             <h2 className="text-base md:text-lg font-semibold">Reviews</h2>
+             <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 text-[10px] font-medium px-2 py-0.5 rounded-md">Community Feed</Badge>
           </header>
           <ReviewSystem productId={product.id} productName={product.name} />
         </section>
 
         {suggestedProducts.length > 0 && (
-          <section className="space-y-8 border-t border-stone-gray/5 pt-12 pb-16">
-            <div className="flex items-end justify-between">
-              <div className="space-y-1">
-                <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 font-black uppercase text-[9px] tracking-[0.2em] px-2.5 py-0.5">
-                  Discovery Nexus
-                </Badge>
-                <h2 className="text-2xl md:text-3xl font-bold font-headline text-midnight-ink tracking-tight">Expand Your Workflow.</h2>
-              </div>
-              <Button variant="ghost" asChild className="text-primary font-black uppercase text-[9px] tracking-widest hover:bg-primary/5 rounded-lg h-8 px-4 transition-all">
-                <Link href="/products" className="flex items-center gap-2">
+          <section className="space-y-6 border-t border-border/60 pt-10 pb-14">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base md:text-lg font-semibold">More like this</h2>
+              <Button variant="ghost" asChild size="sm" className="h-8 rounded-lg text-primary font-medium">
+                <Link href="/products" className="flex items-center gap-1.5 text-xs">
                   Full Catalog <ArrowRight className="h-3 w-3" />
                 </Link>
               </Button>
@@ -376,10 +365,10 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
           </section>
         )}
 
-        <div className="flex justify-center py-8 border-t border-stone-gray/5 mt-8">
-          <Button variant="ghost" asChild className="text-ghost-gray font-black uppercase tracking-widest text-[9px] hover:text-primary rounded-full px-8 h-10 bg-muted/30">
-            <Link href="/products" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" /> Return to Catalog
+        <div className="flex justify-center py-8 border-t border-border/60 mt-6">
+          <Button variant="ghost" asChild size="sm" className="h-9 rounded-lg text-muted-foreground hover:text-primary">
+            <Link href="/products" className="flex items-center gap-2 text-xs font-medium">
+              <ArrowLeft className="h-3.5 w-3.5" /> Return to Catalog
             </Link>
           </Button>
         </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth } from '@/lib/firebase-admin';
-import { getUserDownloads } from '@/lib/firebase/downloads';
+import { isDatabaseConfigured } from '@/lib/db';
 
 /**
  * @fileOverview Secure User Library API
@@ -24,7 +24,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Fetch user entitlements from the 'downloads' collection
+    const { getUserDownloads } = isDatabaseConfigured()
+      ? await import('@/lib/db/downloads')
+      : await import('@/lib/firebase/downloads');
     const downloads = await getUserDownloads(uid);
 
     // Normalize and sanitize data for the client

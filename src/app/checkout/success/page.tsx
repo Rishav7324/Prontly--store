@@ -1,84 +1,123 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, FileDown, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-/**
- * @fileOverview Specialized Order Success Terminal
- * Features a mobile "Half-Screen" layout and desktop "Square Popup" visual style.
- * Integrates DotLottie animation for a professional fulfillment experience.
- */
+interface OrderItem {
+  productId?: string;
+  productName?: string;
+  price?: number;
+  quantity?: number;
+}
+
+interface OrderData {
+  id?: string;
+  totalAmount?: number;
+  status?: string;
+  items?: OrderItem[];
+  invoicePdfBase64?: string | null;
+}
+
+function downloadInvoice(base64: string, orderId: string) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `invoice-${orderId}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const db = useFirestore();
+  const orderRef = useMemoFirebase(
+    () => (db && orderId ? (doc(db, 'orders', orderId) as any) : null),
+    [db, orderId]
+  );
+  const { data: order, loading } = useDoc<OrderData>(orderRef);
 
-  if (!mounted) return null;
+  if (loading || !order) {
+    return (
+      <div className="flex h-[70vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background relative overflow-hidden">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
-      
-      <main className="container mx-auto px-4 z-10 flex items-center justify-center h-full">
-        {/* Success Container: Adaptive Layout */}
-        <div className={cn(
-          "bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] border border-stone-gray/10 flex flex-col items-center justify-center text-center transition-all duration-1000 ease-out animate-in fade-in zoom-in-95",
-          // Mobile: Half screen fixed at bottom
-          "fixed bottom-0 left-0 right-0 h-[60vh] rounded-t-[3rem] p-10",
-          // Desktop: Square popup centered
-          "sm:relative sm:bottom-auto sm:w-[500px] sm:h-[500px] sm:rounded-[4rem] sm:p-12"
-        )}>
-          {/* Lottie Animation Success Visual */}
-          <div className="relative h-48 w-48 mb-4 pointer-events-none flex items-center justify-center">
-            <DotLottieReact
-              src="https://lottie.host/7db04fd3-72d7-48d9-94ed-b35c3f31c42f/YKy5xvFHcB.lottie"
-              loop
-              autoplay
-            />
-          </div>
+    <main className="flex min-h-[calc(100vh-4rem)] items-start sm:items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md rounded-xl border border-border/60 bg-card shadow-sm">
+        <div className="p-5 flex flex-col items-center text-center">
+          <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-500" />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-accent mb-1">
-                <ShieldCheck className="h-3.5 w-3.5" /> Fulfillment Confirmed
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold font-headline tracking-tight text-midnight-ink">Order Successful.</h1>
-            <div className="inline-block">
-                <p className="text-slate-blue text-[10px] font-black uppercase tracking-widest bg-muted/50 py-1.5 px-4 rounded-lg">
-                    REF: {orderId?.slice(-8).toUpperCase() || 'VERIFIED'}
-                </p>
-            </div>
-          </div>
-
-          <p className="mt-8 text-muted-foreground text-sm leading-relaxed max-w-[300px] font-medium italic">
-            "Your assets have been synchronized to your vault. Access is now active."
+          <h1 className="mt-3 text-lg font-semibold tracking-tight">Payment Successful</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Thank you for your purchase. Your assets are ready.
           </p>
 
-          <div className="mt-10 grid grid-cols-1 gap-4 w-full">
-            <Button asChild size="lg" className="h-14 rounded-2xl font-bold shadow-xl shadow-accent/20 text-base group">
-              <Link href="/dashboard/downloads">
-                Access Digital Vault
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+          <div className="mt-4 w-full rounded-lg bg-muted/40 px-4 py-3 space-y-1">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Order ID</span>
+              <span className="font-mono font-medium">{(order.id || orderId)?.slice(-8)}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Total Paid</span>
+              <span className="font-semibold">
+                ₹{((order.totalAmount || 0) / 100).toLocaleString('en-IN')}
+              </span>
+            </div>
+          </div>
+
+          {order.items && order.items.length > 0 && (
+            <ul className="mt-4 w-full divide-y divide-border/60 text-left">
+              {order.items.map((item, index) => (
+                <li key={item.productId || index} className="py-2 flex items-baseline justify-between gap-3 text-xs">
+                  <span className="truncate font-medium">{item.productName}</span>
+                  <span className="shrink-0 text-muted-foreground">× {item.quantity ?? 1}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-5 grid w-full grid-cols-1 gap-2">
+            <Button asChild className="h-10 rounded-lg w-full sm:w-auto font-medium">
+              <Link href="/dashboard/downloads">Go to My Downloads</Link>
             </Button>
-            
-            <Button variant="ghost" asChild className="h-10 text-[10px] font-black uppercase tracking-[0.2em] text-ghost-gray hover:text-accent">
-              <Link href="/dashboard">Return to Workspace</Link>
+
+            {order.invoicePdfBase64 ? (
+              <Button
+                variant="outline"
+                className="h-10 rounded-lg w-full sm:w-auto"
+                onClick={() => downloadInvoice(order.invoicePdfBase64 as string, orderId || '')}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                View invoice
+              </Button>
+            ) : null}
+
+            <Button variant="ghost" asChild className="h-10 rounded-lg w-full sm:w-auto text-xs">
+              <Link href="/products">Back to store</Link>
             </Button>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
 
@@ -86,11 +125,13 @@ export default function OrderSuccessPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <Suspense fallback={
-        <div className="flex h-screen items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-accent" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        }
+      >
         <SuccessContent />
       </Suspense>
     </div>

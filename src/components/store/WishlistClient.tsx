@@ -30,51 +30,51 @@ export function WishlistClient() {
 
   return (
     <>
-      <header className="max-w-3xl mb-12">
-        <div className="flex items-center gap-3 mb-4">
-          <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/5 h-10 w-10">
-            <Link href="/products"><ArrowLeft className="h-5 w-5" /></Link>
+      <header className="mb-6 max-w-3xl">
+        <div className="mb-3 flex items-center gap-2.5">
+          <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full bg-muted/50">
+            <Link href="/products"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
-          <Badge variant="outline" className="border-primary/50 text-primary uppercase tracking-widest px-3 py-1 font-bold text-[10px]">
+          <Badge variant="outline" className="border-primary/30 px-2 py-0.5 text-[10px] font-medium text-primary">
             Personal Collection
           </Badge>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold font-headline leading-tight">Your Wishlist.</h1>
-        <p className="text-lg md:text-xl text-muted-foreground mt-2">Saved assets waiting to elevate your next project.</p>
+        <h1 className="text-xl font-bold font-headline tracking-tight">Your Wishlist</h1>
+        <p className="mt-1 text-xs text-muted-foreground">Saved assets waiting for your next project.</p>
       </header>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-8">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-64 sm:h-80 bg-muted animate-pulse rounded-[1.5rem] sm:rounded-[2rem]" />
+            <div key={i} className="h-48 animate-pulse rounded-xl bg-muted" />
           ))}
         </div>
       ) : products && products.length > 0 ? (
-        <div className="space-y-12">
+        <div className="space-y-6">
           <ProductGrid products={products} />
-          <div className="p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] bg-primary/5 border border-primary/10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-            <div className="space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold font-headline flex items-center justify-center md:justify-start gap-3">
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-primary/10 bg-primary/5 p-5 text-center md:flex-row md:text-left">
+            <div className="space-y-1">
+              <h3 className="flex items-center justify-center gap-2 text-sm font-semibold font-headline md:justify-start">
+                <Sparkles className="h-4 w-4 text-primary" />
                 Ready to build?
               </h3>
-              <p className="text-sm sm:text-base text-muted-foreground">Move your saved assets to the cart and start creating today.</p>
+              <p className="text-xs text-muted-foreground">Move your saved assets to the cart and start creating today.</p>
             </div>
-            <Button size="lg" className="w-full md:w-auto rounded-2xl px-10 h-14 font-bold shadow-xl shadow-primary/20" asChild>
+            <Button className="h-10 w-full shrink-0 rounded-lg px-5 text-sm font-medium shadow-sm md:w-auto" asChild>
               <Link href="/checkout">Proceed to Checkout</Link>
             </Button>
           </div>
         </div>
       ) : (
-        <div className="py-20 sm:py-32 flex flex-col items-center justify-center text-center space-y-8 bg-muted/5 border-dashed border-2 border-white/5 rounded-[2.5rem] sm:rounded-[4rem]">
-          <div className="h-20 w-20 sm:h-24 sm:w-24 bg-white/5 rounded-full flex items-center justify-center">
-            <Heart className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground opacity-20" />
+        <div className="flex flex-col items-center justify-center space-y-4 rounded-xl border border-dashed border-stone-gray/20 bg-muted/5 py-14 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Heart className="h-5 w-5 text-muted-foreground opacity-40" />
           </div>
-          <div className="space-y-2 px-4">
-            <h2 className="text-2xl sm:text-3xl font-bold font-headline">Empty for now</h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto">Explore our high-performance prompts and templates to fill your wishlist.</p>
+          <div className="space-y-1 px-4">
+            <h2 className="text-lg font-semibold font-headline">Empty for now</h2>
+            <p className="mx-auto max-w-xs text-xs text-muted-foreground">Explore our prompts and templates to fill your wishlist.</p>
           </div>
-          <Button asChild size="lg" className="rounded-2xl h-14 px-12 font-bold shadow-lg">
+          <Button asChild className="h-10 rounded-lg px-6 text-sm font-medium shadow-sm">
             <Link href="/products">Browse Marketplace</Link>
           </Button>
         </div>

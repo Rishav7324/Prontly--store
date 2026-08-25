@@ -10,19 +10,14 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Cormorant Garamond', 'serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+        headline: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
         script: ['"Story Script"', 'cursive'],
       },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        eggshell: '#fdfcfc',
-        powder: '#f5f3f1',
-        chalk: '#e5e5e5',
-        gravel: '#777169',
-        obsidian: '#000000',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
@@ -54,14 +49,6 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        'midnight-ink': '#061b31',
-        'slate-blue': '#50617a',
-        'ghost-gray': '#64748d',
-        'platinum-white': '#ffffff',
-        'porcelain-white': '#f8fafd',
-        'powder-blue': '#e5edf5',
-        'stone-gray': '#d8d6df',
-        'deep-violet': '#533afd',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -3,7 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { generateMeta } from '@/lib/seo/generate-meta';
 import { Badge } from '@/components/ui/badge';
-import { Star, Quote, Sparkles, Heart } from 'lucide-react';
+import { Sparkles, Heart, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,35 +19,37 @@ export default function TestimonialsPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
-      <main className="flex-1 container mx-auto px-4 py-20">
-        <header className="max-w-3xl mb-20">
-          <Badge variant="outline" className="mb-6 border-primary/50 text-primary py-1 px-4 text-sm font-medium rounded-full bg-primary/5">
-            <Sparkles className="h-3 w-3 mr-2" />
+
+      <main className="flex-1 container mx-auto px-4 pt-28 pb-14 max-w-5xl">
+        <header className="max-w-xl mb-10">
+          <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary bg-primary/5 px-2 py-0">
+            <Sparkles className="h-3 w-3 mr-1" />
             Verified Customer Stories
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold font-headline mb-8 leading-tight">
+          <h1 className="text-lg md:text-xl font-semibold font-headline mb-3 leading-snug tracking-tight">
             The Wall of <span className="text-primary">Love.</span>
           </h1>
-          <p className="text-xl text-muted-foreground leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Professional creators are accelerating their workflow with Prontly's digital assets. Be among the first to share your journey.
           </p>
         </header>
 
-        <div className="text-center py-40 bg-muted/5 border-dashed border-2 rounded-[3rem] border-white/5">
-          <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-          <h4 className="text-2xl font-bold font-headline mb-2">Real Stories Coming Soon</h4>
-          <p className="text-muted-foreground max-w-sm mx-auto">We're currently collecting feedback from our early adopters. Check back shortly to see the impact.</p>
-          <div className="mt-8">
-            <Link href="/products" className="text-primary font-bold hover:underline">Browse our latest assets →</Link>
+        <div className="text-center py-16 rounded-xl border border-dashed shadow-sm p-6">
+          <Heart className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-30" />
+          <h4 className="text-sm font-semibold mb-1">Real Stories Coming Soon</h4>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto">We're currently collecting feedback from our early adopters. Check back shortly to see the impact.</p>
+          <div className="mt-5">
+            <Link href="/products" className="inline-flex items-center gap-1.5 text-primary text-xs font-medium hover:underline">
+              Browse our latest assets <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
         </div>
 
-        <section className="mt-32 pt-20 border-t border-white/5 text-center">
-          <h2 className="text-3xl font-bold font-headline mb-6">Ready to create something great?</h2>
-          <Link 
-            href="/products" 
-            className="inline-flex h-14 items-center justify-center rounded-2xl bg-primary px-10 text-lg font-bold text-white shadow-xl shadow-primary/20 hover:scale-105 transition-all"
+        <section className="mt-12 pt-10 border-t text-center space-y-4">
+          <h2 className="text-base md:text-lg font-semibold font-headline">Ready to create something great?</h2>
+          <Link
+            href="/products"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-xs font-medium text-white shadow-sm hover:bg-primary/90 transition-colors"
           >
             Explore the Marketplace
           </Link>

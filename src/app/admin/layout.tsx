@@ -2,15 +2,40 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { Loader2, ShieldAlert, Menu, Zap, Bell, Search, Command } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useUser, useDoc, useAuth, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import {
+  Loader2,
+  ShieldAlert,
+  Menu,
+  Bell,
+  Search,
+  Package,
+  ShoppingBag,
+  Users,
+  Mail,
+  SendHorizontal,
+  FileText,
+  Settings,
+  Database,
+  ExternalLink,
+  LogOut
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   CommandDialog,
   CommandEmpty,
@@ -23,11 +48,12 @@ import {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
-  
+
   const userProfileQuery = useMemoFirebase(() => {
     return user && db ? doc(db, 'users', user.uid) : null;
   }, [db, user]);
@@ -47,8 +73,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background text-primary">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-accent" />
       </div>
     );
   }
@@ -57,20 +83,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (!user || !isAdmin) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center bg-background p-4 text-center">
-        <div className="mb-6 rounded-full bg-destructive/10 p-4">
-          <ShieldAlert className="h-12 w-12 text-destructive" />
+      <div className="flex h-screen flex-col items-center justify-center overflow-x-hidden bg-background p-4 text-center min-w-0">
+        <div className="mb-4 rounded-xl bg-destructive/10 p-3">
+          <ShieldAlert className="h-6 w-6 text-destructive" />
         </div>
-        <h1 className="mb-2 text-3xl font-bold font-headline text-midnight-ink">Access Denied</h1>
-        <p className="mb-8 max-w-md text-slate-blue">
-          You do not have the required permissions to access the admin dashboard. 
+        <h1 className="mb-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Access Denied</h1>
+        <p className="mb-5 max-w-xs text-xs text-muted-foreground">
+          You do not have the required permissions to access the admin dashboard.
         </p>
-        <div className="flex gap-4">
-          <Button asChild variant="outline" className="rounded-full">
+        <div className="flex gap-2">
+          <Button asChild variant="outline" className="h-9 rounded-lg px-3 text-xs font-medium">
             <Link href="/">Return to Store</Link>
           </Button>
           {!user && (
-            <Button asChild className="rounded-full">
+            <Button asChild className="h-9 rounded-lg px-3 text-xs font-medium">
               <Link href="/login">Sign In</Link>
             </Button>
           )}
@@ -84,73 +110,99 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     router.push(href);
   };
 
+  const handleSignOut = async () => {
+    if (auth) {
+      await signOut(auth);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <div className="hidden lg:block">
+    <div className="flex min-h-screen overflow-x-hidden bg-background text-foreground min-w-0">
+      <div className="hidden lg:block shrink-0">
         <AdminSidebar />
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b bg-card/50 px-4 backdrop-blur-xl lg:px-8">
-          <div className="flex items-center gap-4">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between gap-2 border-b bg-card/80 px-3 md:px-4 backdrop-blur-xl min-w-0 overflow-x-hidden">
+          <div className="flex min-w-0 items-center gap-2">
             <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="h-6 w-6" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md lg:hidden">
+                  <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72 bg-card border-r border-white/5">
+              <SheetContent side="left" className="w-64 border-r bg-card p-0">
                 <AdminSidebar onMobileSelect={() => setIsMobileOpen(false)} />
               </SheetContent>
             </Sheet>
-            
-            <Link href="/" className="flex items-center gap-2 lg:hidden">
-              <div className="relative h-8 w-8 overflow-hidden rounded-lg bg-white/5 shadow-lg">
-                <Image 
-                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
-                  alt="Prontly Logo" 
-                  fill 
+
+            <Link href="/" className="flex items-center lg:hidden">
+              <div className="relative h-7 w-7 overflow-hidden rounded-md bg-muted shadow-sm">
+                <Image
+                  src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png"
+                  alt="Prontly Logo"
+                  fill
                   className="object-cover"
                 />
               </div>
             </Link>
 
-            <div className="hidden lg:flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                className="relative h-9 w-64 justify-start bg-muted/30 border-none px-4 rounded-full text-xs text-muted-foreground hover:bg-muted/50 transition-all"
-                onClick={() => setIsCommandOpen(true)}
-              >
-                <Search className="mr-2 h-4 w-4" />
-                <span>Search Admin...</span>
-                <kbd className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                  <span className="text-xs">⌘</span>K
-                </kbd>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="relative hidden h-8 w-56 xl:w-72 items-center justify-start gap-2 rounded-lg border-none bg-muted/40 px-3 text-xs text-muted-foreground transition-colors hover:bg-muted/60 lg:flex"
+              onClick={() => setIsCommandOpen(true)}
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span>Search admin…</span>
+              <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:flex">
+                ⌘K
+              </kbd>
+            </Button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full relative">
-              <Bell className="h-5 w-5 text-muted-foreground" />
-              <div className="absolute top-2 right-2 h-1.5 w-1.5 bg-primary rounded-full animate-pulse" />
+          <div className="flex shrink-0 items-center gap-1">
+            <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-md">
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
             </Button>
-            <div className="h-8 w-[1px] bg-white/5 mx-2 hidden sm:block" />
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex flex-col items-end text-right">
-                <span className="text-sm font-bold leading-none">{profile?.displayName || 'Admin'}</span>
-                <span className="text-[10px] text-primary font-bold uppercase tracking-wider">{profile?.role}</span>
-              </div>
-              <Avatar className="h-9 w-9 border-2 border-primary/20">
-                <AvatarImage src={profile?.photoURL} />
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">{profile?.displayName?.charAt(0) || 'A'}</AvatarFallback>
-              </Avatar>
-            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 gap-2 rounded-full pl-1 pr-2">
+                  <Avatar className="h-6 w-6 border border-border">
+                    <AvatarImage src={profile?.photoURL} />
+                    <AvatarFallback className="bg-accent/10 text-[10px] font-semibold text-accent">
+                      {profile?.displayName?.charAt(0) || 'A'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden flex-col items-start leading-tight sm:flex">
+                    <span className="max-w-32 truncate text-xs font-medium">{profile?.displayName || 'Admin'}</span>
+                    <span className="text-[10px] capitalize text-muted-foreground leading-none">{profile?.role}</span>
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 rounded-lg">
+                <DropdownMenuLabel className="text-xs">
+                  <span className="block truncate font-medium">{profile?.displayName || 'Admin'}</span>
+                  <span className="block truncate text-[10px] font-normal text-muted-foreground">{user.email}</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="text-xs">
+                  <Link href="/" target="_blank">
+                    <ExternalLink className="mr-2 h-3.5 w-3.5" /> View Store
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-xs text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-3.5 w-3.5" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background/50 p-4 md:p-8 lg:p-10">
-          <div className="mx-auto max-w-7xl">
+        <main className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-5">
+          <div className="mx-auto w-full max-w-7xl min-w-0">
             {children}
           </div>
         </main>
@@ -162,34 +214,34 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Management">
             <CommandItem onSelect={() => navigate('/admin/products')}>
-              <Zap className="mr-2 h-4 w-4" /> Products
+              <Package className="mr-2 h-4 w-4" /> Products
             </CommandItem>
             <CommandItem onSelect={() => navigate('/admin/orders')}>
-              <Zap className="mr-2 h-4 w-4" /> Orders
+              <ShoppingBag className="mr-2 h-4 w-4" /> Orders
             </CommandItem>
             <CommandItem onSelect={() => navigate('/admin/users')}>
-              <Zap className="mr-2 h-4 w-4" /> Customers
+              <Users className="mr-2 h-4 w-4" /> Customers
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Marketing">
             <CommandItem onSelect={() => navigate('/admin/emails')}>
-              <Zap className="mr-2 h-4 w-4" /> Email Templates
+              <Mail className="mr-2 h-4 w-4" /> Email Templates
             </CommandItem>
             <CommandItem onSelect={() => navigate('/admin/newsletter')}>
-              <Zap className="mr-2 h-4 w-4" /> Newsletter Broadcast
+              <SendHorizontal className="mr-2 h-4 w-4" /> Newsletter Broadcast
             </CommandItem>
             <CommandItem onSelect={() => navigate('/admin/blog')}>
-              <Zap className="mr-2 h-4 w-4" /> Blog Articles
+              <FileText className="mr-2 h-4 w-4" /> Blog Articles
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="System">
             <CommandItem onSelect={() => navigate('/admin/settings')}>
-              <Zap className="mr-2 h-4 w-4" /> Store Settings
+              <Settings className="mr-2 h-4 w-4" /> Store Settings
             </CommandItem>
             <CommandItem onSelect={() => navigate('/admin/storage')}>
-              <Zap className="mr-2 h-4 w-4" /> Cloud Storage
+              <Database className="mr-2 h-4 w-4" /> Cloud Storage
             </CommandItem>
           </CommandGroup>
         </CommandList>

@@ -103,7 +103,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           `}
         </Script>
       </head>
-      <body className="antialiased selection:bg-black selection:text-white">
+      <body className="antialiased overflow-x-hidden w-full max-w-[100vw] selection:bg-black selection:text-white">
         <noscript>
           <iframe 
             src="https://www.googletagmanager.com/ns.html?id=GTM-WSF78RMT"

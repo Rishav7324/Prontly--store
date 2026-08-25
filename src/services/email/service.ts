@@ -1,10 +1,11 @@
 /**
  * @fileOverview Centralized Email Dispatch Service for Prontly Store.
- * Implements a dynamic multi-sender routing logic using Resend.
+ * Provider: Brevo (migrated from Resend). Same public sendEmail() signature —
+ * call sites (email-actions.ts, OTP route) need zero changes.
  */
 
-import { Resend } from 'resend';
 import { EmailType, SENDER_MAP } from './types';
+import { sendTransactionalEmail, type BrevoAttachment } from '@/lib/brevo';
 
 interface SendEmailProps {
   /** The business context of the email (e.g., 'security', 'order') */
@@ -15,15 +16,14 @@ interface SendEmailProps {
   subject: string;
   /** Branded HTML content */
   html: string;
-  /** Optional attachments */
-  attachments?: any[];
+  /** Optional attachments: Resend-style { content: base64, filename } — mapped to Brevo format */
+  attachments?: { content: string; filename: string }[];
   /** Optional CC recipient(s) */
   cc?: string | string[];
 }
 
 /**
- * Dispatches a branded email with automated sender routing.
- * Ensures that transactional, marketing, and security emails come from professional dedicated inboxes.
+ * Dispatches a branded email with automated sender routing via Brevo.
  */
 export async function sendEmail({
   type,
@@ -34,41 +34,32 @@ export async function sendEmail({
   cc
 }: SendEmailProps) {
   try {
-    const apiKey = process.env.RESEND_API_KEY;
-    
-    if (!apiKey) {
-      console.warn(`Email Dispatch Skipped [${type}]: RESEND_API_KEY is missing from environment.`);
-      return { success: false, error: 'Email service unconfigured' };
-    }
-
-    const resend = new Resend(apiKey);
-
-    // Dynamic Sender Selection based on the EmailType
     const config = SENDER_MAP[type];
-    const fromAddress = `${config.displayName} <${config.from}>`;
+    const sender = { name: config.displayName, email: config.from };
 
-    const { data, error } = await resend.emails.send({
-      from: fromAddress,
+    // Map Resend-style attachments to Brevo-style
+    const brevoAttachments: BrevoAttachment[] | undefined = attachments?.map((a) => ({
+      name: a.filename,
+      content: a.content,
+    }));
+
+    const result = await sendTransactionalEmail({
       to,
       subject,
       html,
-      reply_to: config.replyTo,
-      attachments,
-      cc,
-      // Metadata for better delivery tracking
-      headers: {
-        'X-Entity-Ref-ID': `${type}-${Date.now()}`,
-        'X-Priority': type === 'security' || type === 'alert' ? '1 (Highest)' : '3 (Normal)',
-      }
+      sender,
+      replyTo: config.replyTo,
+      cc: cc ? (Array.isArray(cc) ? cc : [cc]) : undefined,
+      attachments: brevoAttachments,
     });
 
-    if (error) {
-      console.error(`Resend Provider Failure [${type}]:`, error);
-      return { success: false, error: error.message };
+    if (!result.success) {
+      console.error(`Brevo Provider Failure [${type}]:`, result.error);
+      return { success: false, error: result.error };
     }
 
-    console.log(`Email Dispatched [${type}]: ${data?.id}`);
-    return { success: true, messageId: data?.id };
+    console.log(`Email Dispatched [${type}]: ${result.messageId}`);
+    return { success: true, messageId: result.messageId };
   } catch (error: any) {
     console.error(`Email Service Exception [${type}]:`, error.message);
     return { success: false, error: error.message };

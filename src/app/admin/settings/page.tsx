@@ -80,7 +80,7 @@ export default function AdminSettings() {
           db, adminId: user.uid, adminEmail: user.email!,
           action: 'UPDATE', resourceType: 'SETTINGS', resourceId: 'main', details: { type: 'global_config' }
         });
-        toast({ title: "Configuration Deployed" });
+        toast({ title: "Settings saved" });
       })
       .catch(async () => {
         const permissionError = new FirestorePermissionError({
@@ -93,52 +93,58 @@ export default function AdminSettings() {
       .finally(() => setIsSaving(false));
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-6 pb-16">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Store Intelligence</h1>
-          <p className="text-muted-foreground">Global configuration for your digital marketplace.</p>
+          <h1 className="text-lg md:text-xl font-semibold">Store Settings</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Global configuration for your digital marketplace.</p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving} className="gap-2 h-12 px-8 rounded-xl font-bold">
-          {isSaving ? <Loader2 className="animate-spin" /> : <Save className="h-4 w-4" />}
-          Update Engine
+        <Button onClick={handleSave} disabled={isSaving} className="gap-1.5 h-8 rounded-lg px-3 text-xs">
+          {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+          Save Changes
         </Button>
       </header>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1 rounded-2xl h-auto flex flex-wrap">
-          <TabsTrigger value="general" className="gap-2 px-6 py-3 rounded-xl"><Globe className="h-4 w-4" /> General</TabsTrigger>
-          <TabsTrigger value="homepage" className="gap-2 px-6 py-3 rounded-xl"><Home className="h-4 w-4" /> Homepage</TabsTrigger>
-          <TabsTrigger value="payments" className="gap-2 px-6 py-3 rounded-xl"><CreditCard className="h-4 w-4" /> Payments</TabsTrigger>
-          <TabsTrigger value="email" className="gap-2 px-6 py-3 rounded-xl"><Server className="h-4 w-4" /> SMTP</TabsTrigger>
+      <Tabs defaultValue="general" className="space-y-4">
+        <TabsList className="bg-muted/50 p-1 rounded-lg h-auto flex flex-wrap">
+          <TabsTrigger value="general" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><Globe className="h-3.5 w-3.5" /> General</TabsTrigger>
+          <TabsTrigger value="homepage" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><Home className="h-3.5 w-3.5" /> Homepage</TabsTrigger>
+          <TabsTrigger value="payments" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><CreditCard className="h-3.5 w-3.5" /> Payments</TabsTrigger>
+          <TabsTrigger value="email" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><Server className="h-3.5 w-3.5" /> SMTP</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
-          <Card className="rounded-[2rem] border-white/5 bg-card/30">
-            <CardHeader><CardTitle>Identity Attributes</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-2">
-                <Label htmlFor="siteName">Public Brand Name</Label>
-                <Input id="siteName" value={formData.siteName} onChange={handleChange} className="h-12 bg-background/50 rounded-xl" />
+        <TabsContent value="general" className="space-y-4">
+          <Card className="rounded-xl shadow-sm p-4 border-0">
+            <CardHeader className="p-0 pb-3 space-y-0.5">
+              <CardTitle className="text-sm font-semibold">Store Identity</CardTitle>
+              <CardDescription className="text-xs">Basic branding shown across your storefront.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="siteName" className="text-[10px] font-medium text-muted-foreground">Site Name</Label>
+                <Input id="siteName" value={formData.siteName} onChange={handleChange} className="h-9 rounded-lg text-xs" />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="logoUrl">Logo Resource URL</Label>
-                <Input id="logoUrl" value={formData.logoUrl} onChange={handleChange} className="h-12 bg-background/50 rounded-xl" />
+              <div className="grid gap-1.5">
+                <Label htmlFor="logoUrl" className="text-[10px] font-medium text-muted-foreground">Logo URL</Label>
+                <Input id="logoUrl" value={formData.logoUrl} onChange={handleChange} className="h-9 rounded-lg text-xs" />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-6">
-          <Card className="rounded-[2rem] border-white/5 bg-card/30">
-            <CardHeader><CardTitle>Gateway Credentials</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid gap-2">
-                <Label htmlFor="razorpayKeyId">Razorpay Key ID</Label>
-                <Input id="razorpayKeyId" value={formData.razorpayKeyId} onChange={handleChange} className="h-12 bg-background/50 rounded-xl font-mono text-xs" />
+        <TabsContent value="payments" className="space-y-4">
+          <Card className="rounded-xl shadow-sm p-4 border-0">
+            <CardHeader className="p-0 pb-3 space-y-0.5">
+              <CardTitle className="text-sm font-semibold">Payment Gateway</CardTitle>
+              <CardDescription className="text-xs">Credentials for processing checkout payments.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="grid gap-1.5">
+                <Label htmlFor="razorpayKeyId" className="text-[10px] font-medium text-muted-foreground">Razorpay Key ID</Label>
+                <Input id="razorpayKeyId" value={formData.razorpayKeyId} onChange={handleChange} className="h-9 rounded-lg text-xs font-mono" />
               </div>
             </CardContent>
           </Card>

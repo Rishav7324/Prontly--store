@@ -37,34 +37,34 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!product && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 space-y-4">
-        <AlertCircle className="h-12 w-12 text-destructive opacity-50" />
-        <h2 className="text-xl font-bold text-midnight-ink">Product not found</h2>
-        <p className="text-muted-foreground text-sm">The asset with identifier "{slug}" could not be resolved.</p>
-        <Button asChild variant="outline" className="rounded-xl">
-          <Link href="/admin/products">Return to Catalog</Link>
+      <div className="flex flex-col items-center justify-center h-96 space-y-3">
+        <AlertCircle className="h-10 w-10 text-destructive opacity-40" />
+        <h2 className="text-lg md:text-xl font-semibold">Product not found</h2>
+        <p className="text-xs text-muted-foreground">The asset with identifier &quot;{slug}&quot; could not be resolved.</p>
+        <Button asChild variant="outline" className="h-8 rounded-lg text-xs">
+          <Link href="/admin/products">Back to Products</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/30 h-10 w-10">
+    <div className="space-y-6">
+      <header className="flex items-center gap-3">
+        <Button variant="outline" size="icon" asChild className="h-9 w-9 rounded-lg bg-background">
           <Link href="/admin/products"><ChevronLeft className="h-4 w-4" /></Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold font-headline text-midnight-ink">Modify Asset</h1>
-          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
-            Index UID: {product?.id}
+          <h1 className="text-lg md:text-xl font-semibold">Edit Product</h1>
+          <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 font-mono truncate">
+            ID: {product?.id}
           </p>
         </div>
       </header>
