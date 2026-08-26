@@ -20,6 +20,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",
     "@aws-sdk/s3-request-presigner": "^3.1116.0",
+    "@getbrevo/brevo": "^6.0.2",
     "@genkit-ai/google-genai": "^1.41.0",
     "@hookform/resolvers": "^5.9.1",
     "@lottiefiles/dotlottie-react": "^0.19.15",
