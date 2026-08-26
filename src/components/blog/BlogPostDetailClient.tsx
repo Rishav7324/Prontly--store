@@ -3,8 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,19 +25,32 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 export default function BlogPostDetailClient({ slug }: { slug: string }) {
-  const db = useFirestore();
   const [copied, setCopied] = useState(false);
 
-  const postQuery = useMemoFirebase(() => {
-    return db ? query(
-      collection(db, 'blog_posts'),
-      where('slug', '==', slug),
-      limit(1)
-    ) : null;
-  }, [db, slug]);
+  // Post — Neon via API
+  const { data: post, isLoading: loading } = useQuery({
+    queryKey: ['blog', 'post', slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/blog?slug=${encodeURIComponent(slug)}`);
+      const json = await res.json();
+      return json?.success ? json.data : null;
+    },
+    enabled: !!slug,
+  });
 
-  const { data: posts, loading } = useCollection(postQuery);
-  const post = posts?.[0] as any;
+  // Related posts — latest 3 others
+  const { data: allPosts } = useQuery({
+    queryKey: ['blog', 'list'],
+    queryFn: async () => {
+      const res = await fetch('/api/blog');
+      const json = await res.json();
+      return json?.success ? (json.data as any[]) : [];
+    },
+  });
+
+  const relatedPosts = (allPosts || [])
+    .filter((p: any) => p.slug !== slug)
+    .slice(0, 3);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -173,7 +185,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-3 w-3" />
                   <span>
-                    {post.publishedAt || post.createdAt ? format(new Date((post.publishedAt || post.createdAt).toDate()), 'MMM dd, yyyy') : 'Recently'}
+                    {post.publishedAt || post.createdAt ? format(new Date(post.publishedAt || post.createdAt), 'MMM dd, yyyy') : 'Recently'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -247,6 +259,37 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
                   </div>
                </aside>
             </div>
+
+            {/* RELATED ARTICLES */}
+            {relatedPosts.length > 0 && (
+              <section className="mt-14 pt-8 border-t">
+                <h2 className="text-base md:text-lg font-semibold mb-5">Related Articles</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {relatedPosts.map((rp: any) => (
+                    <Link
+                      key={rp.id}
+                      href={`/blog/${rp.slug}`}
+                      className="group rounded-xl overflow-hidden border bg-card shadow-sm hover:border-primary/25 transition-colors"
+                    >
+                      <div className="relative aspect-video w-full overflow-hidden">
+                        <Image
+                          src={rp.featuredImage || `https://picsum.photos/seed/${rp.id}/600/340`}
+                          alt={rp.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="p-3 space-y-1.5">
+                        <h3 className="text-sm font-semibold leading-snug line-clamp-2">{rp.title}</h3>
+                        <p className="text-[11px] text-muted-foreground">
+                          {rp.publishedAt || rp.createdAt ? format(new Date(rp.publishedAt || rp.createdAt), 'MMM dd, yyyy') : 'Recently'}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
           </article>
         </div>
       </main>

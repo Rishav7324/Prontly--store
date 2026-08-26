@@ -21,10 +21,29 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
-import { useUser, useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useUser, useAuth } from '@/firebase';
+import { useQuery } from '@tanstack/react-query';
 import { signOut } from 'firebase/auth';
 import { format } from 'date-fns';
+
+export interface OrderItem {
+  productName: string;
+  price: number;
+  quantity: number;
+  productId?: string;
+}
+
+export interface Order {
+  id: string;
+  status: 'pending' | 'paid' | 'delivered' | 'refunded' | 'failed';
+  subtotal: number;
+  discountAmount: number;
+  totalAmount: number;
+  createdAt: string;
+  paidAt?: string | null;
+  items: OrderItem[];
+  couponCode?: string;
+}
 
 /**
  * @fileOverview Main Customer Dashboard Terminal.
@@ -33,26 +52,29 @@ import { format } from 'date-fns';
 export default function Dashboard() {
   const { user, profile, loading: userLoading } = useUser();
   const auth = useAuth();
-  const db = useFirestore();
 
-  // Real-time Recent Transactions Feed
-  // Note: We avoid orderBy here to prevent mandatory composite index requirements in production
-  const ordersQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return query(
-      collection(db, 'orders'), 
-      where('userId', '==', user.uid),
-      limit(50)
-    );
-  }, [db, user]);
-
-  const { data: recentOrders, loading: ordersLoading } = useCollection(ordersQuery);
+  // Recent Transactions Feed (Neon via API)
+  const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
+    queryKey: ['user-orders', user?.uid],
+    enabled: !!user,
+    refetchInterval: 15000,
+    queryFn: async () => {
+      if (!auth?.currentUser) throw new Error('Not authenticated');
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/user/orders', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      const json = await res.json();
+      return json.data ?? [];
+    },
+  });
 
   const handleSignOut = async () => {
     if (auth) await signOut(auth);
   };
 
-  // Metrics are pre-aggregated on the server via transactions for 100% accuracy
+  // Metrics are pre-aggregated on the server for 100% accuracy
   const stats = useMemo(() => {
     return {
       spent: (profile?.totalSpent || 0) / 100,
@@ -60,14 +82,12 @@ export default function Dashboard() {
     };
   }, [profile]);
 
-  // Sort orders in memory to avoid indexing issues
+  // Sort orders in memory (API returns desc createdAt; defensive re-sort)
   const sortedOrders = useMemo(() => {
     if (!recentOrders) return [];
-    return [...recentOrders].sort((a: any, b: any) => {
-      const dateA = a.createdAt?.toMillis?.() || a.createdAt?.seconds || 0;
-      const dateB = b.createdAt?.toMillis?.() || b.createdAt?.seconds || 0;
-      return dateB - dateA;
-    }).slice(0, 10);
+    return [...recentOrders]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 10);
   }, [recentOrders]);
 
   if (userLoading) {
@@ -205,11 +225,11 @@ export default function Dashboard() {
                     <tbody className="divide-y divide-border/60">
                       {ordersLoading ? (
                         [1,2,3].map(i => <tr key={i} className="animate-pulse"><td colSpan={5} className="h-12 bg-muted/20"></td></tr>)
-                      ) : sortedOrders.map((order: any) => (
+                      ) : sortedOrders.map((order) => (
                         <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                           <td className="px-4 py-3 font-mono text-primary text-xs font-medium">#{order.id?.slice(-8)}</td>
                           <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                            {order.createdAt ? format(new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt), 'MMM dd, yyyy') : 'Recently'}
+                            {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, yyyy') : 'Recently'}
                           </td>
                           <td className="px-4 py-3">
                             <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-500 border-none text-[10px] font-medium px-2 py-0 rounded-md">

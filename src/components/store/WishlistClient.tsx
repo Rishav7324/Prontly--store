@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ProductGrid } from '@/components/store/ProductGrid';
 import { useWishlist } from '@/hooks/use-wishlist';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, documentId } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
 import { Heart, ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,19 +11,24 @@ import Link from 'next/link';
 
 export function WishlistClient() {
   const { itemIds } = useWishlist();
-  const db = useFirestore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const wishlistQuery = useMemoFirebase(() => {
-    if (!db || !itemIds || itemIds.length === 0) return null;
-    return query(collection(db, 'products'), where(documentId(), 'in', itemIds.slice(0, 30)));
-  }, [db, itemIds]);
+  const idsKey = mounted ? itemIds.join(',') : '';
 
-  const { data: products, loading } = useCollection(wishlistQuery);
+  // Fetch wishlist products by ids — Neon via API
+  const { data: products, isLoading: loading } = useQuery({
+    queryKey: ['products', 'wishlist', idsKey],
+    queryFn: async () => {
+      const res = await fetch(`/api/products?ids=${encodeURIComponent(idsKey)}`);
+      const json = await res.json();
+      return json?.success ? (json.data as any[]) : [];
+    },
+    enabled: mounted && itemIds.length > 0,
+  });
 
   if (!mounted) return null;
 

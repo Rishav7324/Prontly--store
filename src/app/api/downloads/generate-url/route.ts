@@ -1,32 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { verifyAuthToken } from '@/lib/auth/verify';
 import { z } from 'zod';
 import { checkDownloadRateLimits } from '@/lib/redis/downloadRateLimit';
 import { generateSignedDownloadUrl } from '@/lib/r2/signedUrl';
 import type { GenerateDownloadUrlResponse } from '@/types/download';
-import { isDatabaseConfigured } from '@/lib/db';
+import { getDb, getPgDb } from '@/lib/db';
+import {
+  downloads as downloadsTable,
+  downloadLogs,
+  products as productsTable,
+} from '@/lib/db/schema';
+import { and, eq, sql } from 'drizzle-orm';
 
 const bodySchema = z.object({
-  orderId: z.string().min(1).max(100),
+  orderId: z.string().min(1).max(200),
   productId: z.string().min(1).max(100),
 });
 
 /**
- * @fileOverview Secure Digital Asset Download Terminal
- * Cleans the fileKey to ensure R2 compatibility and handles rate limiting.
+ * Secure Digital Asset Download Terminal (Neon SQL + R2 signed URLs).
  */
 export async function POST(
   req: NextRequest
 ): Promise<NextResponse<GenerateDownloadUrlResponse>> {
-  // 1. Verify Auth Token using Admin SDK
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.replace("Bearer ", "") ?? "";
-
+  // 1. Auth
   let uid: string;
   try {
-    const auth = getAdminAuth();
-    const decoded = await auth.verifyIdToken(token);
-    uid = decoded.uid;
+    const user = await verifyAuthToken(req.headers.get('authorization'));
+    uid = user.uid;
   } catch (e: any) {
     console.error('[AUTH_VERIFY_FAILURE]:', e.message);
     return NextResponse.json(
@@ -35,7 +36,7 @@ export async function POST(
     );
   }
 
-  // 2. Validate Body
+  // 2. Validate
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await req.json());
@@ -46,109 +47,105 @@ export async function POST(
     );
   }
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+  const userAgent = req.headers.get('user-agent') ?? '';
 
-  // 3. Rate Limits (Redis)
-  const rateLimit = await checkDownloadRateLimits({
-    userId: uid, ip, productId: body.productId
-  });
-
-  if (!rateLimit.allowed) {
-    const { logDownloadAttempt: logAttempt } = isDatabaseConfigured()
-      ? await import('@/lib/db/downloads')
-      : await import('@/lib/firebase/downloads');
-    await logAttempt({
-      userId: uid, productId: body.productId, orderId: body.orderId,
-      ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
-      success: false, failureReason: "rate_limit_exceeded",
-    } as any);
-    return NextResponse.json(
-      {
+  const log = async (values: Partial<typeof downloadLogs.$inferInsert>) => {
+    try {
+      await getDb().insert(downloadLogs).values({
+        userId: uid,
+        productId: body.productId as any,
+        orderId: body.orderId,
+        ipAddress: ip,
+        userAgent,
         success: false,
-        error: rateLimit.reason ?? "Too many requests",
-        code: 'RATE_LIMIT_EXCEEDED'
-      },
-      {
-        status: 429,
-        headers: { "Retry-After": String(rateLimit.retryAfter ?? 3600) }
-      }
-    );
-  }
+        ...values,
+      });
+    } catch { /* logging must never break the request */ }
+  };
 
-  // 4. Eligibility Check — try SQL first, fallback Firestore
-  let record;
-  try {
-    if (isDatabaseConfigured()) {
-      const { checkDownloadEligibility } = await import('@/lib/db/downloads');
-      record = await checkDownloadEligibility(uid, body.productId, body.orderId);
-    } else {
-      const { checkDownloadEligibility } = await import('@/lib/firebase/downloads');
-      record = await checkDownloadEligibility(uid, body.productId, body.orderId);
-    }
-  } catch (err: any) {
-    const code = err.message || "NOT_ELIGIBLE";
-    const { logDownloadAttempt: logAttempt2 } = isDatabaseConfigured()
-      ? await import('@/lib/db/downloads')
-      : await import('@/lib/firebase/downloads');
-    await logAttempt2({
-      userId: uid, productId: body.productId, orderId: body.orderId,
-      ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
-      success: false, failureReason: code.toLowerCase(),
-    } as any);
+  // 3. Rate limits
+  const rateLimit = await checkDownloadRateLimits({ userId: uid, ip, productId: body.productId });
+  if (!rateLimit.allowed) {
+    await log({ failureReason: 'rate_limit_exceeded' });
     return NextResponse.json(
-      { success: false, error: code, code: code as any },
-      { status: 403 }
+      { success: false, error: rateLimit.reason ?? 'Too many requests', code: 'RATE_LIMIT_EXCEEDED' },
+      { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter ?? 3600) } }
     );
   }
 
-  // 5. Generate Signed R2 URL
+  // 4. Eligibility — resolve product id then check entitlement row
+  const db = getDb();
+  let pid: any = body.productId;
+  if (!/^[0-9a-f-]{36}$/i.test(body.productId)) {
+    const [p] = await db.select({ id: productsTable.id }).from(productsTable).where(eq(productsTable.firestoreId, body.productId)).limit(1);
+    if (!p) {
+      await log({ failureReason: 'not_eligible' });
+      return NextResponse.json({ success: false, error: 'NOT_ELIGIBLE', code: 'NOT_ELIGIBLE' }, { status: 403 });
+    }
+    pid = p.id;
+  }
+  const [record] = await db
+    .select()
+    .from(downloadsTable)
+    .where(and(eq(downloadsTable.userId, uid), eq(downloadsTable.productId, pid)))
+    .limit(1);
+
+  if (!record) {
+    await log({ failureReason: 'not_eligible' });
+    return NextResponse.json({ success: false, error: 'NOT_ELIGIBLE', code: 'NOT_ELIGIBLE' }, { status: 403 });
+  }
+  if (!record.isActive || !record.downloadAllowed) {
+    await log({ failureReason: 'download_revoked' });
+    return NextResponse.json({ success: false, error: 'DOWNLOAD_REVOKED', code: 'DOWNLOAD_REVOKED' }, { status: 403 });
+  }
+  if ((record.downloadCount ?? 0) >= (record.downloadLimit ?? 5)) {
+    await log({ failureReason: 'download_limit_reached' });
+    return NextResponse.json({ success: false, error: 'DOWNLOAD_LIMIT_REACHED', code: 'DOWNLOAD_LIMIT_REACHED' }, { status: 403 });
+  }
+
+  // 5. Signed R2 URL — fileKey is stored relative; tolerate legacy full URLs
   let signedUrl: string;
   let expiresAt: Date;
   try {
-    // CRITICAL FIX: Extract relative key from full URL if necessary
-    // Firestore might store "https://cdn.prontly.in/products/files/..."
-    // R2 needs only "products/files/..."
-    const cleanKey = record.fileKey.includes('https://') 
-      ? record.fileKey.split('/').slice(3).join('/') 
-      : record.fileKey;
-
-    console.log(`[GENERATE_URL]: Attempting sign for key: ${cleanKey}`);
-    
-    ({ url: signedUrl, expiresAt } = await generateSignedDownloadUrl(cleanKey, record.fileName));
+    const rawKey = record.fileKey || '';
+    const cleanKey = rawKey.includes('https://')
+      ? rawKey.split('/').slice(3).join('/')
+      : rawKey;
+    ({ url: signedUrl, expiresAt } = await generateSignedDownloadUrl(cleanKey, record.fileName || `${record.productSlug}.zip`));
   } catch (e: any) {
     console.error('[R2_SIGN_ERROR]:', e.message);
-    const { logDownloadAttempt: logAttempt3 } = isDatabaseConfigured()
-      ? await import('@/lib/db/downloads')
-      : await import('@/lib/firebase/downloads');
-    await logAttempt3({
-      userId: uid, productId: body.productId, orderId: body.orderId,
-      ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
-      success: false, failureReason: "file_not_found",
-    } as any);
+    await log({ failureReason: 'file_not_found' });
     return NextResponse.json(
       { success: false, error: 'File not available. Contact support.', code: 'FILE_NOT_FOUND' },
       { status: 404 }
     );
   }
 
-  // 6. Finalize: Increment Count & Log
-  const { incrementDownloadCount, logDownloadAttempt: logAttempt4 } = isDatabaseConfigured()
-    ? await import('@/lib/db/downloads')
-    : await import('@/lib/firebase/downloads');
-  await Promise.all([
-    incrementDownloadCount(uid, body.productId),
-    logAttempt4({
-      userId: uid, productId: body.productId, orderId: body.orderId,
-      ipAddress: ip, userAgent: req.headers.get("user-agent") ?? "",
-      success: true, signedUrlExpiry: expiresAt as any,
-    } as any),
-  ]);
+  // 6. Increment count + log success
+  try {
+    await Promise.all([
+      db
+        .update(downloadsTable)
+        .set({ downloadCount: sql`${downloadsTable.downloadCount} + 1`, lastDownloadedAt: new Date() })
+        .where(and(eq(downloadsTable.userId, uid), eq(downloadsTable.productId, pid))),
+      getDb().insert(downloadLogs).values({
+        userId: uid,
+        productId: pid,
+        orderId: body.orderId,
+        ipAddress: ip,
+        userAgent,
+        success: true,
+        signedUrlExpiry: expiresAt,
+      }),
+    ]);
+  } catch { /* non-fatal */ }
 
   return NextResponse.json({
     success: true,
     signedUrl,
-    fileName: record.fileName,
+    fileName: record.fileName ?? '',
     expiresAt: expiresAt.toISOString(),
-    remainingDownloads: Math.max(0, record.downloadLimit - record.downloadCount - 1),
+    remainingDownloads: Math.max(0, (record.downloadLimit ?? 5) - (record.downloadCount ?? 0) - 1),
   });
 }

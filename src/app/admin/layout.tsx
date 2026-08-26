@@ -4,8 +4,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useUser, useDoc, useAuth, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import {
@@ -47,18 +46,11 @@ import {
 } from "@/components/ui/command";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useUser();
+  const { user, profile, loading } = useUser();
   const auth = useAuth();
-  const db = useFirestore();
   const router = useRouter();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
-
-  const userProfileQuery = useMemoFirebase(() => {
-    return user && db ? doc(db, 'users', user.uid) : null;
-  }, [db, user]);
-
-  const { data: profile, loading: profileLoading } = useDoc(userProfileQuery);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -71,7 +63,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  if (authLoading || profileLoading) {
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-accent" />

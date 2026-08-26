@@ -1,8 +1,7 @@
 'use client';
 
 import { use, useMemo, useState, useEffect } from 'react';
-import { useDoc, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,6 @@ import {
   ArrowLeft,
   Loader2,
   Mail,
-  Calendar,
   TrendingUp,
   ShoppingBag,
   Sparkles,
@@ -42,34 +40,58 @@ import {
 import { listTemplates, sendTestEmail } from '@/app/actions/brevo-actions';
 import { toast } from '@/hooks/use-toast';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const db = useFirestore();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
-  const userRef = useMemoFirebase(() => (db ? doc(db, 'users', id) : null), [db, id]);
-  const { data: profile, loading: userLoading } = useDoc(userRef);
+  // Profile resolved from the users list API
+  const { data: users = [], isLoading: userLoading } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: () => fetcher('/api/admin/users'),
+  });
 
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
+  const profile = useMemo(
+    () => (users as any[]).find((u) => u.uid === id) || null,
+    [users, id]
+  );
 
-  const ordersQuery = useMemo(() => {
-    if (!db || !id) return null;
-    return query(collection(db, 'orders'), where('userId', '==', id), orderBy('createdAt', 'desc'));
-  }, [db, id]);
+  const { data: settings } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings');
+      const json = await res.json();
+      return json.data || null;
+    },
+  });
 
-  const { data: orders, loading: ordersLoading } = useCollection(ordersQuery);
+  const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: () => fetcher('/api/admin/orders'),
+    refetchInterval: 15000,
+  });
+
+  const orders = useMemo(
+    () => [...(allOrders as any[])]
+      .filter((o) => o.userId === id)
+      .sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0)),
+    [allOrders, id]
+  );
 
   const stats = useMemo(() => {
-    if (!orders) return { count: 0, total: 0 };
     const paidOrders = orders.filter(o => o.status === 'paid');
     return {
       count: paidOrders.length,
-      total: paidOrders.reduce((sum, o) => sum + (o.total || 0), 0)
+      total: paidOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0)
     };
   }, [orders]);
 
@@ -132,7 +154,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             <Link href="/admin/users"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <Avatar className="h-10 w-10 border">
-            <AvatarImage src={profile.photoURL} />
+            <AvatarImage src={profile.photoUrl || profile.photoURL} />
             <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">{profile.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
@@ -248,18 +270,18 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                       [...Array(3)].map((_, i) => (
                         <tr key={i} className="animate-pulse"><td colSpan={5} className="h-9 bg-muted/20"></td></tr>
                       ))
-                    ) : orders?.map((order: any) => (
+                    ) : orders.map((order: any) => (
                       <tr key={order.id} className="hover:bg-muted/40 transition-colors">
                         <td className="px-4 py-2.5 font-mono font-medium text-primary">#{order.id.slice(-8)}</td>
                         <td className="px-4 py-2.5 text-muted-foreground">
-                          {order.createdAt ? format(new Date(order.createdAt.toDate()), 'MMM dd, yyyy') : 'N/A'}
+                          {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, yyyy') : 'N/A'}
                         </td>
                         <td className="px-4 py-2.5">
                           <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className="text-[10px] font-medium capitalize">
                             {order.status}
                           </Badge>
                         </td>
-                        <td className="px-4 py-2.5 text-right font-semibold">₹{(order.total / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</td>
                         <td className="px-4 py-2.5 text-right">
                           <Button variant="ghost" size="icon" asChild className="h-7 w-7 rounded-lg text-muted-foreground hover:text-primary">
                             <Link href={`/admin/orders/${order.id}`}><ArrowUpRight className="h-3.5 w-3.5" /></Link>
@@ -267,7 +289,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                         </td>
                       </tr>
                     ))}
-                    {!ordersLoading && orders?.length === 0 && (
+                    {!ordersLoading && orders.length === 0 && (
                       <tr><td colSpan={5} className="py-12 text-center text-xs text-muted-foreground">No recorded transactions for this profile.</td></tr>
                     )}
                   </tbody>
@@ -288,9 +310,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               <div className="flex items-center justify-between py-1.5 text-xs border-b border-border/60">
                 <span className="text-[10px] font-medium text-muted-foreground">Member Since</span>
                 <span className="font-medium">
-                  {profile.createdAt
-                    ? format(profile.createdAt.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt), 'MMMM yyyy')
-                    : 'Recently'}
+                  {profile.createdAt ? format(new Date(profile.createdAt), 'MMMM yyyy') : 'Recently'}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1.5 text-xs border-b border-border/60">

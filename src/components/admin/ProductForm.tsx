@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, Key } from 'react';
+import { useState, useRef, Key, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useCollection, useUser } from '@/firebase';
-import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
+import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,14 +11,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Loader2, 
-  Upload, 
-  Trash2, 
-  Sparkles, 
-  CheckCircle2, 
-  Lock, 
-  Globe, 
+import {
+  Loader2,
+  Upload,
+  Trash2,
+  Sparkles,
+  CheckCircle2,
+  Lock,
+  Globe,
   Zap
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -29,8 +29,6 @@ import { RichTextEditor } from '@/components/shared/RichTextEditor';
 import { cn, generateSlug } from '@/lib/utils';
 import { optimizeImage } from '@/lib/image-optimizer';
 import Image from 'next/image';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 
 interface ProductFormProps {
@@ -40,15 +38,22 @@ interface ProductFormProps {
 
 export function ProductForm({ initialData, id }: ProductFormProps) {
   const router = useRouter();
-  const db = useFirestore();
   const { user } = useUser();
+  const auth = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSlugLocked, setIsSlugLocked] = useState(!!id);
-  
-  const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
 
-  // Initialize state directly from initialData if available
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const res = await fetch('/api/categories');
+      const json = await res.json();
+      return json.success ? json.data : [];
+    },
+  });
+
+  // Initialize state directly from initialData if available (prices stored in paise → shown in rupees)
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     slug: initialData?.slug || '',
@@ -76,12 +81,20 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     }
   });
 
+  // When category list arrives after mount, resolve the slug for a preselected id
+  useEffect(() => {
+    if (!id && !formData.categoryId && categories.length === 1) {
+      setFormData(prev => ({ ...prev, categoryId: categories[0].id }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'source' | 'preview' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file || !formData.name) return;
 
     const tempSlug = formData.slug || generateSlug(formData.name);
-    
+
     try {
       let uploadFile = file;
       let finalKey = "";
@@ -94,7 +107,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         const ext = file.name.split('.').pop();
         finalKey = `products/files/${type}/${tempSlug}-${type}.${ext}`;
       }
-      
+
       const uploadFormData = new FormData();
       uploadFormData.append('file', uploadFile);
       uploadFormData.append('key', finalKey);
@@ -106,7 +119,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         if (type === 'banner') setFormData(prev => ({ ...prev, bannerImage: result.url! }));
         if (type === 'source') setFormData(prev => ({ ...prev, fileKey: result.url!, fileSize: uploadFile.size }));
         if (type === 'preview') setFormData(prev => ({ ...prev, previewFileKey: result.url! }));
-        
+
         toast({ title: "Resource Synced", description: file.name });
       }
     } catch (error) {
@@ -118,7 +131,7 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
     if (!formData.name) return;
     setIsGenerating(true);
     try {
-      const selectedCategory = categories?.find(c => c.id === formData.categoryId);
+      const selectedCategory = categories.find((c: any) => c.id === formData.categoryId);
       const result = await generateProductCopy({
         name: formData.name,
         category: selectedCategory?.name || 'Digital Asset',
@@ -145,50 +158,67 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !user) return;
+    if (!user) return;
     setIsSaving(true);
 
-    const slugToSave = formData.slug || generateSlug(formData.name);
-    const selectedCategory = categories?.find(c => c.id === formData.categoryId);
-    
-    const productData = {
-      ...formData,
-      slug: slugToSave,
-      price: Math.round(Number(formData.price) * 100),
-      compareAtPrice: Math.round(Number(formData.compareAtPrice) * 100),
-      categorySlug: selectedCategory?.slug || '',
-      tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [],
-      updatedAt: serverTimestamp(),
-      createdBy: id ? (initialData?.createdBy || user.uid) : user.uid,
-      ...(id ? {} : { 
-        createdAt: serverTimestamp(),
-        downloadCount: 0,
-        salesCount: 0,
-        averageRating: 5.0,
-        reviewCount: 0
-      }),
-    };
+    try {
+      const slugToSave = formData.slug || generateSlug(formData.name);
+      const selectedCategory = categories.find((c: any) => c.id === formData.categoryId);
 
-    const docRef = id ? doc(db, 'products', id) : doc(collection(db, 'products'));
+      // Prices are submitted in RUPEES — the API converts to paise server-side.
+      const productData = {
+        name: formData.name,
+        slug: slugToSave,
+        description: formData.description,
+        shortDescription: formData.shortDescription,
+        price: Number(formData.price),
+        compareAtPrice: Number(formData.compareAtPrice),
+        categoryId: formData.categoryId || undefined,
+        categorySlug: selectedCategory?.slug || formData.categorySlug || 'asset',
+        tags: typeof formData.tags === 'string'
+          ? formData.tags.split(',').map(t => t.trim()).filter(Boolean)
+          : formData.tags,
+        images: formData.images,
+        bannerImage: formData.bannerImage || undefined,
+        fileKey: formData.fileKey || undefined,
+        previewFileKey: formData.previewFileKey || undefined,
+        fileSize: formData.fileSize || 0,
+        fileFormat: formData.fileFormat || 'ZIP',
+        fileVersion: formData.fileVersion || '1.0',
+        isPublished: formData.isPublished,
+        isFeatured: formData.isFeatured,
+        seo: formData.seo,
+      };
 
-    setDoc(docRef, productData, { merge: true })
-      .then(() => {
-        logAdminAction({
-          db, adminId: user.uid, adminEmail: user.email!,
-          action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: docRef.id, details: { name: formData.name, slug: slugToSave }
-        });
-        toast({ title: `Record Synchronized`, description: `Product ${formData.name} is now live.` });
-        router.push('/admin/products');
-      })
-      .catch(async () => {
-        const permissionError = new FirestorePermissionError({
-          path: docRef.path,
-          operation: id ? 'update' : 'create',
-          requestResourceData: productData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      })
-      .finally(() => setIsSaving(false));
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : '';
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(productData),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Save failed');
+      }
+
+      const savedId = json.data?.id || id || slugToSave;
+      logAdminAction({
+        adminId: user.uid, adminEmail: user.email || 'unknown',
+        action: id ? 'UPDATE' : 'CREATE', resourceType: 'PRODUCT', resourceId: savedId, details: { name: formData.name, slug: slugToSave }
+      });
+
+      toast({ title: `Record Synchronized`, description: `Product ${formData.name} is now live.` });
+      router.push('/admin/products');
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Save Failed", description: error?.message || 'Could not persist the product record.' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -305,13 +335,13 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               <Select value={formData.categoryId} onValueChange={(val) => setFormData({...formData, categoryId: val})}>
                 <SelectTrigger className="h-9 rounded-lg text-xs"><SelectValue placeholder="Select Category" /></SelectTrigger>
                 <SelectContent>
-                  {categories?.map((cat) => (
+                  {(categories as any[]).map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-medium text-muted-foreground">Price (INR)</Label>

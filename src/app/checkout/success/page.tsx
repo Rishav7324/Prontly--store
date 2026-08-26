@@ -2,8 +2,8 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
+import { useQuery } from '@tanstack/react-query';
 import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, FileDown, Loader2 } from 'lucide-react';
@@ -44,15 +44,24 @@ function downloadInvoice(base64: string, orderId: string) {
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const { user } = useUser();
 
-  const db = useFirestore();
-  const orderRef = useMemoFirebase(
-    () => (db && orderId ? (doc(db, 'orders', orderId) as any) : null),
-    [db, orderId]
-  );
-  const { data: order, loading } = useDoc<OrderData>(orderRef);
+  // Fetch the signed-in user's orders (Neon via API) and locate this order
+  const { data: order, isLoading } = useQuery<OrderData | null>({
+    queryKey: ['user-orders', user?.uid ?? '', orderId],
+    queryFn: async () => {
+      const token = user ? await user.getIdToken() : '';
+      const res = await fetch('/api/user/orders', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const json = await res.json();
+      if (!json?.success || !Array.isArray(json.data)) return null;
+      return (json.data as OrderData[]).find((o) => o.id === orderId) ?? null;
+    },
+    enabled: !!orderId && !!user,
+  });
 
-  if (loading || !order) {
+  if (!user || isLoading || !order) {
     return (
       <div className="flex h-[70vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

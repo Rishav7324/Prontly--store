@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+type Timestamp = any;
 
 // ─── Download Record (stored in Firestore) ───────────────────────────────────
 export interface DownloadRecord {

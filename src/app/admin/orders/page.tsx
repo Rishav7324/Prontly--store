@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc, updateDoc } from 'firebase/firestore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { 
-  Search, 
-  MoreVertical, 
-  Eye, 
+import {
+  Search,
+  MoreVertical,
+  Eye,
   ShoppingBag,
   Filter,
   CheckCircle2,
@@ -40,51 +39,71 @@ import { generateInvoicePdf, sendRefundEmail } from '@/app/actions/email-actions
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const db = useFirestore();
-  
-  // No orderBy to avoid complex index requirements; sort in memory
-  const ordersQuery = useMemoFirebase(() => db ? collection(db, 'orders') : null, [db]);
-  const { data: allOrders, loading } = useCollection(ordersQuery);
+  const queryClient = useQueryClient();
 
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
+  const { data: allOrders = [], isLoading } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: () => fetcher('/api/admin/orders'),
+    refetchInterval: 15000,
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings');
+      const json = await res.json();
+      return json.data || null;
+    },
+  });
 
   const processedOrders = useMemo(() => {
-    if (!allOrders) return [];
-    
-    return [...allOrders]
+    return [...(allOrders as any[])]
       .filter(order => {
-        const matchesSearch = 
+        const matchesSearch =
           order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.userEmail?.toLowerCase().includes(searchTerm.toLowerCase());
-        
+
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
         return matchesSearch && matchesStatus;
       })
       .sort((a: any, b: any) => {
-        const dateA = a.createdAt?.toMillis?.() || 0;
-        const dateB = b.createdAt?.toMillis?.() || 0;
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return dateB - dateA;
       });
   }, [allOrders, searchTerm, statusFilter]);
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
-    if (!db) return;
-    const ref = doc(db, 'orders', id);
-    await updateDoc(ref, { status: newStatus, ...(newStatus === 'refunded' ? { refundedAt: new Date() } : {}) });
-    // Fire refund email to customer when admin marks refunded (best-effort)
-    if (newStatus === 'refunded') {
-      const order = allOrders?.find((o: any) => o.id === id);
-      if (order) {
-        void sendRefundEmail(order).catch(() => {});
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+      if (!res.ok) throw new Error();
+      // Fire refund email to customer when admin marks refunded (best-effort)
+      if (newStatus === 'refunded') {
+        const order = (allOrders as any[]).find((o) => o.id === id);
+        if (order) {
+          void sendRefundEmail(order).catch(() => {});
+        }
       }
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      toast({ title: "Audit Update", description: `Record ${id.slice(-8)} transition to ${newStatus}.` });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Transition Error" });
     }
-    toast({ title: "Audit Update", description: `Record ${id.slice(-8)} transition to ${newStatus}.` });
   };
 
   const handleDownloadInvoice = async (order: any) => {
@@ -104,8 +123,7 @@ export default function AdminOrders() {
   };
 
   const lifetimeStats = useMemo(() => {
-    if (!allOrders) return { total: 0, count: 0 };
-    const paid = allOrders.filter(o => o.status === 'paid');
+    const paid = (allOrders as any[]).filter(o => o.status === 'paid');
     return {
       total: paid.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0) / 100,
       count: paid.length
@@ -145,8 +163,8 @@ export default function AdminOrders() {
           <div className="flex flex-col md:flex-row gap-3 justify-between">
             <div className="relative w-full max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search by ID, name or email..." 
+              <Input
+                placeholder="Search by ID, name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 h-9 rounded-lg"
@@ -154,7 +172,7 @@ export default function AdminOrders() {
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <select 
+              <select
                 className="bg-background border rounded-lg px-3 h-9 text-xs outline-none focus:ring-1 focus:ring-primary min-w-[140px]"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -169,7 +187,7 @@ export default function AdminOrders() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
+          {isLoading ? (
             <div className="p-4 space-y-2">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
@@ -199,7 +217,7 @@ export default function AdminOrders() {
                         </div>
                       </TableCell>
                       <TableCell className="px-3 py-2 text-[10px] text-muted-foreground font-mono whitespace-nowrap">
-                        {order.createdAt ? format(new Date(order.createdAt.toMillis ? order.createdAt.toMillis() : order.createdAt), 'MMM dd, HH:mm') : 'N/A'}
+                        {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, HH:mm') : 'N/A'}
                       </TableCell>
                       <TableCell className="text-xs font-medium tabular-nums px-3 py-2">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</TableCell>
                       <TableCell className="px-3 py-2">
@@ -224,9 +242,9 @@ export default function AdminOrders() {
                                 <Eye className="h-4 w-4" /> Inspect Record
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleDownloadInvoice(order)} 
-                              disabled={downloadingId === order.id} 
+                            <DropdownMenuItem
+                              onClick={() => handleDownloadInvoice(order)}
+                              disabled={downloadingId === order.id}
                               className="rounded-md text-xs cursor-pointer"
                             >
                               {downloadingId === order.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}

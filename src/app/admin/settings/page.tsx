@@ -1,38 +1,36 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
+import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { 
-  Save, 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Save,
   Globe,
   Loader2,
   Home,
-  Star,
-  FileText,
-  Megaphone,
   CreditCard,
-  ShieldCheck,
   Server
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { logAdminAction } from '@/lib/admin-logs';
 
 export default function AdminSettings() {
-  const db = useFirestore();
   const { user } = useUser();
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings, loading } = useDoc(settingsRef);
-  
+
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings');
+      const json = await res.json();
+      return json.data || null;
+    },
+  });
+
   const [formData, setFormData] = useState<any>({
     siteName: 'Prontly Store',
     siteDescription: 'Premium Digital Asset Marketplace',
@@ -42,16 +40,13 @@ export default function AdminSettings() {
     homepageHeroCopy: { headline: "", subheadline: "", badge: "" },
     featuredProductIds: [],
     emailSettings: { fromEmail: '', senderName: '' },
-    smtpConfig: { host: '', port: '465', user: '', pass: '', secure: true },
     invoiceSettings: { businessName: '', address: '', color: '#5b52d6', footerText: '', logoUrl: '' }
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [featuredIdsInput, setFeaturedIdsInput] = useState('');
 
   useEffect(() => {
     if (settings) {
-      setFormData(settings);
-      setFeaturedIdsInput(settings.featuredProductIds?.join(', ') || '');
+      setFormData((prev: any) => ({ ...prev, ...settings }));
     }
   }, [settings]);
 
@@ -61,39 +56,31 @@ export default function AdminSettings() {
   };
 
   const handleSave = async () => {
-    if (!db || !user) return;
+    if (!user) return;
     setIsSaving(true);
 
-    const finalFeaturedIds = featuredIdsInput.split(',').map(id => id.trim()).filter(id => id);
-    const finalData = {
-      ...formData,
-      featuredProductIds: finalFeaturedIds,
-      updatedAt: serverTimestamp(),
-    };
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Save failed');
 
-    const docRef = doc(db, 'site_settings', 'main');
-
-    // Non-blocking write pattern
-    setDoc(docRef, finalData, { merge: true })
-      .then(() => {
-        logAdminAction({
-          db, adminId: user.uid, adminEmail: user.email!,
-          action: 'UPDATE', resourceType: 'SETTINGS', resourceId: 'main', details: { type: 'global_config' }
-        });
-        toast({ title: "Settings saved" });
-      })
-      .catch(async () => {
-        const permissionError = new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'write',
-          requestResourceData: finalData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      })
-      .finally(() => setIsSaving(false));
+      logAdminAction({
+        adminId: user.uid, adminEmail: user.email || 'unknown',
+        action: 'UPDATE', resourceType: 'SETTINGS', resourceId: 'main', details: { type: 'global_config' }
+      });
+      toast({ title: "Settings saved" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Save Failed", description: error?.message });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6 pb-16">
@@ -125,11 +112,52 @@ export default function AdminSettings() {
             <CardContent className="p-0 space-y-4">
               <div className="grid gap-1.5">
                 <Label htmlFor="siteName" className="text-[10px] font-medium text-muted-foreground">Site Name</Label>
-                <Input id="siteName" value={formData.siteName} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+                <Input id="siteName" value={formData.siteName || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="siteDescription" className="text-[10px] font-medium text-muted-foreground">Site Description</Label>
+                <Input id="siteDescription" value={formData.siteDescription || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="logoUrl" className="text-[10px] font-medium text-muted-foreground">Logo URL</Label>
-                <Input id="logoUrl" value={formData.logoUrl} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+                <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="contactEmail" className="text-[10px] font-medium text-muted-foreground">Contact Email</Label>
+                <Input id="contactEmail" value={formData.contactEmail || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="gstNumber" className="text-[10px] font-medium text-muted-foreground">GST Number</Label>
+                <Input id="gstNumber" value={formData.gstNumber || ''} onChange={handleChange} className="h-9 rounded-lg text-xs font-mono" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="homepage" className="space-y-4">
+          <Card className="rounded-xl shadow-sm p-4 border-0">
+            <CardHeader className="p-0 pb-3 space-y-0.5">
+              <CardTitle className="text-sm font-semibold">Hero Copy</CardTitle>
+              <CardDescription className="text-xs">Headline content shown on the storefront homepage.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="headline" className="text-[10px] font-medium text-muted-foreground">Headline</Label>
+                <Input
+                  id="headline"
+                  value={formData.homepageHeroCopy?.headline || ''}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, homepageHeroCopy: { ...prev.homepageHeroCopy, headline: e.target.value } }))}
+                  className="h-9 rounded-lg text-xs"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="subheadline" className="text-[10px] font-medium text-muted-foreground">Subheadline</Label>
+                <Input
+                  id="subheadline"
+                  value={formData.homepageHeroCopy?.subheadline || ''}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, homepageHeroCopy: { ...prev.homepageHeroCopy, subheadline: e.target.value } }))}
+                  className="h-9 rounded-lg text-xs"
+                />
               </div>
             </CardContent>
           </Card>
@@ -144,7 +172,36 @@ export default function AdminSettings() {
             <CardContent className="p-0">
               <div className="grid gap-1.5">
                 <Label htmlFor="razorpayKeyId" className="text-[10px] font-medium text-muted-foreground">Razorpay Key ID</Label>
-                <Input id="razorpayKeyId" value={formData.razorpayKeyId} onChange={handleChange} className="h-9 rounded-lg text-xs font-mono" />
+                <Input id="razorpayKeyId" value={formData.razorpayKeyId || ''} onChange={handleChange} className="h-9 rounded-lg text-xs font-mono" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="email" className="space-y-4">
+          <Card className="rounded-xl shadow-sm p-4 border-0">
+            <CardHeader className="p-0 pb-3 space-y-0.5">
+              <CardTitle className="text-sm font-semibold">Verified Sender</CardTitle>
+              <CardDescription className="text-xs">Identity used for transactional and broadcast email.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="fromEmail" className="text-[10px] font-medium text-muted-foreground">From Email</Label>
+                <Input
+                  id="fromEmail"
+                  value={formData.emailSettings?.fromEmail || ''}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, emailSettings: { ...prev.emailSettings, fromEmail: e.target.value } }))}
+                  className="h-9 rounded-lg text-xs font-mono"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="senderName" className="text-[10px] font-medium text-muted-foreground">Sender Name</Label>
+                <Input
+                  id="senderName"
+                  value={formData.emailSettings?.senderName || ''}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, emailSettings: { ...prev.emailSettings, senderName: e.target.value } }))}
+                  className="h-9 rounded-lg text-xs"
+                />
               </div>
             </CardContent>
           </Card>

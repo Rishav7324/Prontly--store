@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { useAuth, useFirestore } from '@/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo, type User as FirebaseUser } from 'firebase/auth';
+import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,12 +14,25 @@ import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { sendWelcomeEmail } from '@/app/actions/email-actions';
 
+// Ensure the Neon users row exists (fire-and-forget)
+const syncUserToNeon = (user: FirebaseUser, displayName: string) => {
+  user
+    .getIdToken()
+    .then((token) =>
+      fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ uid: user.uid, email: user.email, displayName, photoURL: user.photoURL || '' }),
+      }).catch(() => {})
+    )
+    .catch(() => {});
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
-  const db = useFirestore();
   const router = useRouter();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -30,14 +42,7 @@ export default function LoginPage() {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       // Sync to Neon SQL (ensures users table has row for FK)
-      try {
-        const token = await cred.user.getIdToken();
-        await fetch('/api/user/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ uid: cred.user.uid, email: cred.user.email, displayName: cred.user.displayName || email.split('@')[0], photoURL: cred.user.photoURL || null }),
-        }).catch(() => {});
-      } catch {}
+      syncUserToNeon(cred.user, cred.user.displayName || email.split('@')[0]);
       toast({ title: "Login Successful", description: "Accessing your digital workspace." });
       router.push('/dashboard');
     } catch (error: any) {
@@ -53,7 +58,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    if (!auth || !db) return;
+    if (!auth) return;
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -62,46 +67,19 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      const isNewUser = !userSnap.exists();
+      const info = await getAdditionalUserInfo(result);
+      const isNewUser = info?.isNewUser ?? false;
+
+      // Sync to Neon SQL (ensures users table row; upsert-safe for returning users)
+      syncUserToNeon(user, user.displayName || 'Creator');
 
       if (isNewUser) {
-        await setDoc(userRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || 'Creator',
-          photoURL: user.photoURL || '',
-          role: 'customer',
-          isActive: true,
-          orderCount: 0,
-          totalSpent: 0,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          lastLoginAt: serverTimestamp()
-        });
-
-        try {
-          const token = await user.getIdToken();
-          await fetch('/api/user/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ uid: user.uid, email: user.email, displayName: user.displayName || 'Creator', photoURL: user.photoURL || '' }),
-          }).catch(() => {});
-        } catch {}
-
         if (user.email) {
           sendWelcomeEmail(user.email, user.displayName || 'Creator')
             .catch(e => console.warn('Welcome email background failure:', e.message));
         }
         toast({ title: "Welcome to Prontly!", description: "Account created via Google identity." });
       } else {
-        await setDoc(userRef, {
-          lastLoginAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-        
         toast({ title: "Session Restored", description: "Welcome back to the marketplace." });
       }
 

@@ -2,28 +2,49 @@
 
 import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, limit, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
+import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { BlogEditor, type BlogPostForm } from '@/components/admin/BlogEditor';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function EditBlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
-  const db = useFirestore();
   const { user } = useUser();
+  const auth = useAuth();
   const [isSaving, setIsSaving] = useState(false);
 
-  const postQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'blog_posts'), where('slug', '==', slug), limit(1)) : null;
-  }, [db, slug]);
+  // Drafts aren't served by the public GET — the list page stashes the row
+  // in sessionStorage before navigating here; fall back to the API by slug.
+  const { data: fetchedPost, isLoading } = useQuery({
+    queryKey: ['blog-post', slug],
+    queryFn: async () => {
+      try {
+        const cached = sessionStorage.getItem(`blog-edit-${slug}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+      const res = await fetch(`/api/blog?slug=${encodeURIComponent(slug)}`);
+      if (res.status === 404) return null;
+      const json = await res.json();
+      return json.success ? json.data : null;
+    },
+  });
 
-  const { data: posts, loading } = useCollection(postQuery);
-  const post = posts?.[0] as any;
-  const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
+  const post = fetchedPost as any;
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetcher('/api/categories'),
+  });
 
   const [form, setForm] = useState<BlogPostForm>({
     title: '',
@@ -46,7 +67,7 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
         excerpt: post.excerpt || '',
         featuredImage: post.featuredImage || '',
         status: post.status || 'draft',
-        tags: post.tags?.join(', ') || '',
+        tags: Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ''),
         authorName: post.authorName || '',
         categoryId: post.categoryId || '',
       });
@@ -54,25 +75,36 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
   }, [post]);
 
   const handleSubmit = async (data: BlogPostForm) => {
-    if (!db || !post) return;
+    if (!user || !post) return;
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, 'blog_posts', post.id), {
-        ...data,
-        tags: data.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        updatedAt: serverTimestamp(),
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : '';
+      // Resolve target via ?firestoreId= when present; body.slug is the fallback key server-side.
+      let url = '/api/blog';
+      if (post.firestoreId) url += `?firestoreId=${encodeURIComponent(post.firestoreId)}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ ...data, slug: post.slug }),
       });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Save failed');
+
+      try { sessionStorage.removeItem(`blog-edit-${slug}`); } catch {}
       toast({ title: 'Article saved' });
       router.push('/admin/blog');
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Save failed' });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Save failed', description: error?.message });
       throw error;
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (loading)
+  if (isLoading)
     return (
       <div className="flex h-96 items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />

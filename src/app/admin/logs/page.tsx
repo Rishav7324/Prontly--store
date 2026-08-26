@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  History, 
+import {
+  Search,
+  History,
   User
 } from "lucide-react";
 import {
@@ -21,17 +20,22 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function AdminLogsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const db = useFirestore();
 
-  const logsQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'admin_logs'), orderBy('timestamp', 'desc'), limit(100)) : null;
-  }, [db]);
+  const { data: logs = [], isLoading } = useQuery({
+    queryKey: ['admin-logs'],
+    queryFn: () => fetcher('/api/admin/logs'),
+    refetchInterval: 30000,
+  });
 
-  const { data: logs, loading } = useCollection(logsQuery);
-
-  const filteredLogs = logs?.filter(log => 
+  const filteredLogs = (logs as any[]).filter(log =>
     log.adminEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.resourceType?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -57,8 +61,8 @@ export default function AdminLogsPage() {
         <CardHeader className="p-4 border-b">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Search logs by email, action, or resource..." 
+            <Input
+              placeholder="Search logs by email, action, or resource..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 rounded-lg"
@@ -66,13 +70,13 @@ export default function AdminLogsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
+          {isLoading ? (
             <div className="p-4 space-y-2">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
-          ) : filteredLogs && filteredLogs.length > 0 ? (
+          ) : filteredLogs.length > 0 ? (
             <div className="overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
@@ -88,7 +92,7 @@ export default function AdminLogsPage() {
                   {filteredLogs.map((log: any) => (
                     <TableRow key={log.id} className="transition-colors">
                       <TableCell className="pl-4 px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
-                        {log.timestamp ? format(new Date(log.timestamp.toDate()), 'MMM dd, HH:mm:ss') : 'Just now'}
+                        {log.timestamp ? format(new Date(log.timestamp), 'MMM dd, HH:mm:ss') : 'Just now'}
                       </TableCell>
                       <TableCell className="px-3 py-2">
                         <div className="flex items-center gap-2">

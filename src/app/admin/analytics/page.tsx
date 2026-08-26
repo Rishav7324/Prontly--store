@@ -1,11 +1,11 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell,
   AreaChart,
@@ -13,9 +13,9 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { 
-  ShoppingBag, 
-  Users, 
+import {
+  ShoppingBag,
+  Users,
   Calendar,
   Download,
   CreditCard,
@@ -25,46 +25,54 @@ import {
   Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function AdminAnalytics() {
-  const db = useFirestore();
-  
-  const ordersQuery = useMemoFirebase(() => db ? collection(db, 'orders') : null, [db]);
-  const { data: orders, loading } = useCollection(ordersQuery);
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: () => fetcher('/api/admin/orders'),
+    refetchInterval: 30000,
+  });
 
   const stats = useMemo(() => {
-    if (!orders) return { total: 0, count: 0, aov: 0, conversion: '0%', pipeline: 0 };
-    const paidOrders = orders.filter(o => o.status === 'paid');
+    if (!orders.length) return { total: 0, count: 0, aov: 0, conversion: '0%', pipeline: 0 };
+    const list = orders as any[];
+    const paidOrders = list.filter(o => o.status === 'paid');
     const total = paidOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0);
-    const conv = orders.length > 0 ? ((paidOrders.length / orders.length) * 100).toFixed(1) : 0;
-    
+    const conv = list.length > 0 ? ((paidOrders.length / list.length) * 100).toFixed(1) : 0;
+
     return {
       total: total / 100,
       count: paidOrders.length,
       aov: paidOrders.length > 0 ? (total / paidOrders.length / 100).toFixed(0) : 0,
       conversion: `${conv}%`,
-      pipeline: orders.length
+      pipeline: list.length
     };
   }, [orders]);
 
   const revenueData = useMemo(() => {
-    if (!orders) return [];
-    
+    if (!orders.length) return [];
+
     const last6Months = Array.from({ length: 6 }).map((_, i) => subMonths(new Date(), i)).reverse();
-    
+
     return last6Months.map(monthDate => {
       const monthStart = startOfMonth(monthDate);
       const monthEnd = endOfMonth(monthDate);
-      
-      const monthOrders = orders.filter(o => {
-        const d = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+
+      const monthOrders = (orders as any[]).filter(o => {
+        if (!o.createdAt) return false;
+        const d = new Date(o.createdAt);
         return isWithinInterval(d, { start: monthStart, end: monthEnd }) && o.status === 'paid';
       });
-      
+
       return {
         month: format(monthDate, 'MMM'),
         revenue: Math.round(monthOrders.reduce((sum, o) => sum + (o.totalAmount || o.total || 0), 0) / 100),
@@ -74,10 +82,10 @@ export default function AdminAnalytics() {
   }, [orders]);
 
   const categoryMix = useMemo(() => {
-    if (!orders) return [];
-    
+    if (!orders.length) return [];
+
     const counts: Record<string, number> = {};
-    orders.filter(o => o.status === 'paid').forEach(o => {
+    (orders as any[]).filter(o => o.status === 'paid').forEach(o => {
       o.items?.forEach((item: any) => {
         const cat = item.category || item.productName?.split(' ')[0] || 'Asset';
         counts[cat] = (counts[cat] || 0) + 1;
@@ -133,7 +141,7 @@ export default function AdminAnalytics() {
                 <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
               <p className="text-lg md:text-xl font-semibold tabular-nums">
-                {loading ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : item.value}
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : item.value}
               </p>
               <p className="flex items-center text-[10px] font-medium text-green-600">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -155,7 +163,7 @@ export default function AdminAnalytics() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="h-[260px] w-full pt-3">
-              {loading ? (
+              {isLoading ? (
                 <div className="h-full w-full flex items-center justify-center bg-muted/30 rounded-lg animate-pulse">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
@@ -171,7 +179,7 @@ export default function AdminAnalytics() {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'rgba(0,0,0,0.4)', fontSize: 11}} />
                     <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(0,0,0,0.4)', fontSize: 11}} width={40} />
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ backgroundColor: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: '11px' }}
                       cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1 }}
                     />

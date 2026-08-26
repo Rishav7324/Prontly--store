@@ -18,14 +18,10 @@ import {
   Layout,
   Send,
   Eye,
-  Copy,
   Users,
   UserPlus,
   UserX,
-  Megaphone,
   BarChart3,
-  CheckCircle2,
-  Clock
 } from "lucide-react";
 import {
   listTemplates,
@@ -59,11 +55,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 
 export default function AdminEmailsPage() {
-  const db = useFirestore();
   const [templates, setTemplates] = useState<any[]>([]);
   const [domains, setDomains] = useState<any[]>([]);
   const [audiences, setAudiences] = useState<any[]>([]);
@@ -78,12 +71,14 @@ export default function AdminEmailsPage() {
   const [testEmail, setTestEmail] = useState('');
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
 
-  // Stats from Firestore logs
-  const eventsQuery = useMemoFirebase(() => db ? query(collection(db, 'email_events'), orderBy('timestamp', 'desc'), limit(100)) : null, [db]);
-  const { data: events } = useCollection(eventsQuery);
-
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
+  // Sender identity resolved from store settings API (no Firestore)
+  const [settings, setSettings] = useState<any>(null);
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((r) => r.json())
+      .then((json) => setSettings(json.data || null))
+      .catch(() => {});
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -207,7 +202,7 @@ export default function AdminEmailsPage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg md:text-xl font-semibold font-headline">Communication Center</h1>
-          <p className="text-xs text-muted-foreground">Administer Resend templates, campaigns, and delivery health.</p>
+          <p className="text-xs text-muted-foreground">Administer email templates, campaigns, and delivery health.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs" onClick={fetchData} disabled={loading}>
@@ -311,7 +306,7 @@ export default function AdminEmailsPage() {
             <CardHeader className="flex flex-row items-center justify-between p-4 border-b space-y-0">
               <div>
                 <CardTitle className="text-sm font-semibold">Subscriber Audience</CardTitle>
-                <CardDescription className="text-xs">Managed list of verified email contacts from your Resend list.</CardDescription>
+                <CardDescription className="text-xs">Managed list of verified email contacts from your email platform.</CardDescription>
               </div>
               <Dialog open={isContactModalOpen} onOpenChange={setIsContactModalOpen}>
                 <DialogTrigger asChild>
@@ -386,59 +381,15 @@ export default function AdminEmailsPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Total Events', val: events?.length || 0, icon: BarChart3, color: 'text-primary' },
-              { label: 'Delivered', val: events?.filter(e => e.type === 'delivered').length || 0, icon: CheckCircle2, color: 'text-green-500' },
-              { label: 'Opened', val: events?.filter(e => e.type === 'opened').length || 0, icon: Eye, color: 'text-accent' },
-              { label: 'Engagement', val: `${Math.round(((events?.filter(e => e.type === 'clicked').length || 0) / (events?.length || 1)) * 100)}%`, icon: Megaphone, color: 'text-orange-500' },
-            ].map((stat, i) => (
-              <Card key={i} className="rounded-xl shadow-sm border bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-medium text-muted-foreground">{stat.label}</p>
-                    <stat.icon className={cn("h-3.5 w-3.5", stat.color)} />
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-semibold mt-1">{stat.val}</h3>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="rounded-xl shadow-sm border overflow-hidden bg-card">
-            <CardHeader className="p-4 pb-3"><CardTitle className="text-sm font-semibold">Live Delivery Stream</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="pl-4 text-[10px] font-medium text-muted-foreground">Event Type</TableHead>
-                    <TableHead className="text-[10px] font-medium text-muted-foreground">Recipient</TableHead>
-                    <TableHead className="text-[10px] font-medium text-muted-foreground">Timestamp</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events?.map((ev) => (
-                    <TableRow key={ev.id}>
-                      <TableCell className="pl-4">
-                        <Badge className={cn(
-                          "text-[10px] font-medium px-1.5 py-0 border-none",
-                          ev.type === 'delivered' ? "bg-green-500/10 text-green-500" :
-                          ev.type === 'opened' ? "bg-blue-500/10 text-blue-500" :
-                          ev.type === 'clicked' ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"
-                        )}>
-                          {ev.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium text-xs">{ev.data?.to?.join(', ') || 'System'}</TableCell>
-                      <TableCell className="text-[10px] text-muted-foreground font-mono flex items-center gap-1.5">
-                        <Clock className="h-3 w-3" />
-                        {ev.timestamp ? new Date(ev.timestamp.toDate()).toLocaleString() : 'Recent'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
+          <Card className="rounded-xl shadow-sm border bg-card p-8">
+            <div className="flex h-52 flex-col items-center justify-center text-center">
+              <BarChart3 className="h-10 w-10 text-muted-foreground mb-3 opacity-20" />
+              <h3 className="text-sm font-semibold">Delivery analytics coming soon</h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+                Email event tracking (delivered / opened / clicked) is being migrated to the new data layer.
+                Delivery health will stream here once webhooks are reconnected.
+              </p>
+            </div>
           </Card>
         </TabsContent>
 
@@ -446,7 +397,7 @@ export default function AdminEmailsPage() {
           <Card className="rounded-xl shadow-sm border bg-card">
             <CardHeader className="p-4 pb-3">
               <CardTitle className="text-sm font-semibold">Infrastructure Verification</CardTitle>
-              <CardDescription className="text-xs">Resend domain identity and security validation.</CardDescription>
+              <CardDescription className="text-xs">Sender domain identity and security validation.</CardDescription>
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-2">
               {domains.map((domain) => (

@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { getAdminAuth } from '@/lib/firebase-admin';
 import { generateOTP, hashOTP } from '@/lib/otp-utils';
 import { sendEmail } from '@/services/email/service';
 import { otpTemplate } from '@/services/email/templates';
-import { isDatabaseConfigured, getDb } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { passwordResetOtps } from '@/lib/db/schema';
 
 /**
@@ -20,9 +19,6 @@ export async function POST(req: Request) {
     }
 
     const auth = getAdminAuth();
-    const db = getAdminDb();
-    
-    // Check if user exists (Generic success response to prevent enumeration)
     let userRecord;
     try {
       userRecord = await auth.getUserByEmail(email);
@@ -35,28 +31,14 @@ export async function POST(req: Request) {
     const otpHash = hashOTP(otp);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minute window
 
-    // Persist hashed OTP — SQL if configured, else Firestore
-    if (isDatabaseConfigured()) {
-      const dbSql = getDb();
-      await dbSql.insert(passwordResetOtps).values({
-        email: email.toLowerCase(),
-        otpHash,
-        expiresAt,
-        used: false,
-        attempts: 0,
-        ipAddress: req.headers.get('x-forwarded-for') || 'unknown',
-      });
-    } else {
-      await db.collection('passwordResetOTP').add({
-        email: email.toLowerCase(),
-        otpHash,
-        expiresAt: expiresAt,
-        used: false,
-        attempts: 0,
-        createdAt: FieldValue.serverTimestamp(),
-        ipAddress: req.headers.get('x-forwarded-for') || 'unknown'
-      });
-    }
+    await getDb().insert(passwordResetOtps).values({
+      email: email.toLowerCase(),
+      otpHash,
+      expiresAt,
+      used: false,
+      attempts: 0,
+      ipAddress: req.headers.get('x-forwarded-for') || 'unknown',
+    });
 
     // Dispatch branded email using the 'security' sender channel
     // Sender: security@store.prontly.in

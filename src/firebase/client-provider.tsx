@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ReactNode, useMemo, useState } from 'react';
@@ -7,15 +6,14 @@ import { initializeFirebase } from './index';
 import { FirebaseProvider } from './provider';
 
 export function FirebaseClientProvider({ children }: { children: ReactNode }) {
-  const { app, db, auth } = useMemo(() => {
+  const { app, auth } = useMemo(() => {
     return initializeFirebase();
   }, []);
 
-  // Create a stable QueryClient instance on the client side
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60 * 1000, // 1 minute
+        staleTime: 60 * 1000,
         refetchOnWindowFocus: false,
       },
     },
@@ -23,7 +21,7 @@ export function FirebaseClientProvider({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <FirebaseProvider app={app} db={db} auth={auth}>
+      <FirebaseProvider app={app} auth={auth}>
         {children}
       </FirebaseProvider>
     </QueryClientProvider>

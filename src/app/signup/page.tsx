@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile, getAdditionalUserInfo, type User as FirebaseUser } from 'firebase/auth';
+import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +14,20 @@ import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { sendWelcomeEmail } from '@/app/actions/email-actions';
+
+// Ensure the Neon users row exists (fire-and-forget)
+const syncUserToNeon = (user: FirebaseUser, displayName: string) => {
+  user
+    .getIdToken()
+    .then((token) =>
+      fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ uid: user.uid, email: user.email, displayName, photoURL: user.photoURL || '' }),
+      }).catch(() => {})
+    )
+    .catch(() => {});
+};
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -26,12 +39,11 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
-  const db = useFirestore();
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !db) return;
+    if (!auth) return;
 
     if (formData.password !== formData.confirmPassword) {
       toast({ variant: "destructive", title: "Validation Error", description: "Passwords do not match." });
@@ -50,28 +62,8 @@ export default function SignupPage() {
 
       await updateProfile(user, { displayName: formData.name });
 
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: formData.name,
-        role: 'customer',
-        isActive: true,
-        orderCount: 0,
-        totalSpent: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        lastLoginAt: serverTimestamp()
-      });
-
-      // Sync to Neon SQL (if DATABASE_URL configured)
-      try {
-        const token = await user.getIdToken();
-        await fetch('/api/user/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ uid: user.uid, email: user.email, displayName: formData.name, photoURL: user.photoURL || null }),
-        }).catch(() => {});
-      } catch {}
+      // Sync to Neon SQL (ensures users table has row for FK)
+      syncUserToNeon(user, formData.name);
 
       sendWelcomeEmail(formData.email, formData.name)
         .catch(e => console.warn('Welcome email failure:', e.message));
@@ -91,7 +83,7 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignup = async () => {
-    if (!auth || !db) return;
+    if (!auth) return;
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -100,33 +92,13 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || 'Creator',
-          photoURL: user.photoURL || '',
-          role: 'customer',
-          isActive: true,
-          orderCount: 0,
-          totalSpent: 0,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          lastLoginAt: serverTimestamp()
-        });
+      const info = await getAdditionalUserInfo(result);
+      const isNewUser = info?.isNewUser ?? false;
 
-        try {
-          const token = await user.getIdToken();
-          await fetch('/api/user/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ uid: user.uid, email: user.email, displayName: user.displayName || 'Creator', photoURL: user.photoURL || '' }),
-          }).catch(() => {});
-        } catch {}
+      // Sync to Neon SQL (upsert-safe for existing accounts)
+      syncUserToNeon(user, user.displayName || 'Creator');
 
+      if (isNewUser) {
         if (user.email) {
           sendWelcomeEmail(user.email, user.displayName || 'Creator')
             .catch(e => console.warn('Welcome email failure:', e.message));

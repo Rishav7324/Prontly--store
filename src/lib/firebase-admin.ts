@@ -1,10 +1,9 @@
 import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
 import { getAuth, Auth } from 'firebase-admin/auth';
-import { getFirestore, Firestore } from 'firebase-admin/firestore';
 
 /**
- * @fileOverview Production-grade Firebase Admin SDK Initialization.
- * Supports individual variables or a single JSON string for high-reliability backend operations.
+ * @fileOverview Firebase Admin — AUTH ONLY.
+ * All data lives in Neon Postgres (src/lib/db). Firestore removed.
  */
 
 function getAdminApp(): App {
@@ -31,11 +30,11 @@ function getAdminApp(): App {
   if (serviceAccountRaw) {
     try {
       let sanitized = serviceAccountRaw;
-      if ((sanitized.startsWith("'") && sanitized.endsWith("'")) || 
+      if ((sanitized.startsWith("'") && sanitized.endsWith("'")) ||
           (sanitized.startsWith('"') && sanitized.endsWith('"'))) {
         sanitized = sanitized.substring(1, sanitized.length - 1);
       }
-      
+
       const serviceAccount = JSON.parse(sanitized);
       if (serviceAccount.private_key) {
         serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n').trim();
@@ -55,4 +54,3 @@ function getAdminApp(): App {
 }
 
 export const getAdminAuth = (): Auth => getAuth(getAdminApp());
-export const getAdminDb = (): Firestore => getFirestore(getAdminApp());

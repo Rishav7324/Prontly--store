@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 import { createRazorpayOrder } from '@/lib/razorpay/client';
 import { calculatePriceBreakdown } from '@/lib/payment/gst';
-import { Timestamp } from 'firebase-admin/firestore';
-import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { products, coupons, orders, orderItems, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
@@ -71,30 +70,6 @@ export async function POST(req: NextRequest) {
           }
         }
       }
-    } else {
-      const db = getAdminDb();
-      for (const item of items) {
-        const productSnap = await db.collection('products').doc(item.id).get();
-        if (!productSnap.exists) continue;
-        const product = productSnap.data()!;
-        const price = product.price || 0;
-        subtotal += price * (item.quantity || 1);
-        cartItems.push({ productId: item.id, productName: product.name, price, quantity: item.quantity || 1 });
-      }
-      if (couponCode) {
-        const couponSnap = await db.collection('coupons')
-          .where('code', '==', couponCode.toUpperCase())
-          .where('isActive', '==', true)
-          .limit(1)
-          .get();
-        if (!couponSnap.empty) {
-          const coupon = couponSnap.docs[0].data();
-          discount = coupon.type === 'percentage'
-            ? Math.round((subtotal * (coupon.value || 0)) / 100)
-            : coupon.value || 0;
-          appliedCoupon = couponCode.toUpperCase();
-        }
-      }
     }
 
     // 4. Calculate Final Financials
@@ -152,22 +127,6 @@ export async function POST(req: NextRequest) {
         const [c] = await db.select().from(coupons).where(eq(coupons.code, appliedCoupon)).limit(1);
         if (c) await db.update(coupons).set({ usageCount: (c.usageCount ?? 0) + 1 }).where(eq(coupons.id, c.id));
       }
-    } else {
-      const db = getAdminDb();
-      await db.collection('orders').doc(razorpayOrder.id).set({
-        userId: uid,
-        userEmail: decoded.email || '',
-        userName: decoded.name || 'User',
-        items: cartItems,
-        subtotal: breakdown.subtotal,
-        discountAmount: breakdown.discount,
-        gstAmount: 0,
-        totalAmount: breakdown.total,
-        couponCode: appliedCoupon,
-        status: 'pending',
-        createdAt: Timestamp.now(),
-        paymentId: razorpayOrder.id
-      });
     }
 
     return NextResponse.json({

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
+import { useState, useMemo } from 'react';
+import { useUser, useAuth } from '@/firebase';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -25,8 +25,6 @@ import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface ReviewSystemProps {
   productId: string;
@@ -35,21 +33,24 @@ interface ReviewSystemProps {
 
 export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
   const { user } = useUser();
-  const db = useFirestore();
+  const auth = useAuth();
+  const queryClient = useQueryClient();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [starFilter, setStarFilter] = useState<number | null>(null);
 
-  const reviewsQuery = useMemoFirebase(() => {
-    if (!db || !productId) return null;
-    return query(
-      collection(db, 'reviews'),
-      where('productId', '==', productId)
-    );
-  }, [db, productId]);
-
-  const { data: allReviews, loading } = useCollection(reviewsQuery);
+  // Reviews feed — Neon via API, polled every 15s
+  const { data: allReviews, isLoading: loading } = useQuery({
+    queryKey: ['reviews', productId],
+    queryFn: async () => {
+      const res = await fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`);
+      const json = await res.json();
+      return json?.success ? (json.data as any[]) : [];
+    },
+    refetchInterval: 15000,
+    enabled: !!productId,
+  });
 
   const processedReviews = useMemo(() => {
     if (!allReviews) return [];
@@ -58,8 +59,8 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
       result = result.filter(r => r.rating === starFilter);
     }
     return result.sort((a: any, b: any) => {
-      const dateA = a.createdAt?.toMillis?.() || 0;
-      const dateB = b.createdAt?.toMillis?.() || 0;
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
     });
   }, [allReviews, starFilter]);
@@ -86,7 +87,7 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !user) {
+    if (!user) {
       toast({ title: "Sign in required", description: "Please login to leave a review." });
       return;
     }
@@ -97,48 +98,38 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
     }
 
     setIsSubmitting(true);
-    const reviewData = {
-      productId,
-      productName,
-      userId: user.uid,
-      userName: user.displayName || 'Verified User',
-      userAvatar: user.photoURL || '',
-      rating,
-      comment,
-      isApproved: true,
-      createdAt: serverTimestamp()
-    };
 
     try {
-      await addDoc(collection(db, 'reviews'), reviewData);
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : '';
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          productId,
+          userId: user.uid,
+          userName: user.displayName || 'Verified User',
+          userAvatar: user.photoURL || '',
+          rating,
+          comment,
+        }),
+      });
 
-      const productRef = doc(db, 'products', productId);
-      const productSnap = await getDoc(productRef);
-      
-      if (productSnap.exists()) {
-        const prodData = productSnap.data();
-        const currentCount = prodData.reviewCount || 0;
-        const currentAvg = prodData.averageRating || 5.0;
-        const newCount = currentCount + 1;
-        const newAvg = Number(((currentAvg * currentCount + rating) / newCount).toFixed(1));
-
-        await updateDoc(productRef, {
-          reviewCount: newCount,
-          averageRating: newAvg,
-          updatedAt: serverTimestamp()
-        });
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || 'Failed to publish review');
       }
+
+      // Product rating is recomputed server-side; refresh the feed
+      queryClient.invalidateQueries({ queryKey: ['reviews', productId] });
 
       setComment('');
       setRating(5);
       toast({ title: "Review Shared", description: `Thank you for reviewing ${productName}!` });
-    } catch (serverError: any) {
-      const permissionError = new FirestorePermissionError({
-        path: 'reviews',
-        operation: 'create',
-        requestResourceData: reviewData,
-      } satisfies SecurityRuleContext);
-      errorEmitter.emit('permission-error', permissionError);
+    } catch {
+      toast({ variant: "destructive", title: "Review failed", description: "Something went wrong while publishing your review. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
@@ -297,7 +288,7 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
                         <CheckCircle2 className="h-3 w-3 text-green-500" />
                       </p>
                       <p className="text-[10px] text-ghost-gray uppercase font-bold tracking-tighter">
-                        {review.createdAt ? format(new Date(review.createdAt.toDate()), 'MMM dd, yyyy') : 'RECENT'}
+                        {review.createdAt ? format(new Date(review.createdAt), 'MMM dd, yyyy') : 'RECENT'}
                       </p>
                     </div>
                   </div>

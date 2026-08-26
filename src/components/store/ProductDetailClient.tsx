@@ -28,8 +28,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import Image from "next/image";
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
-import { collection, query, where, limit, doc } from "firebase/firestore";
+import { useQuery } from "@tanstack/react-query";
 import { analytics } from "@/lib/analytics";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -128,15 +127,44 @@ const ProductBreadcrumbs = ({ category, name }: { category: string, name: string
 
 export function ProductDetailClient({ product: hydratedProduct }: { product: any }) {
   const router = useRouter();
-  const db = useFirestore();
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>(hydratedProduct.images?.[0] || '');
   const [isDescExpanded, setIsDescExpanded] = useState(false);
 
-  const productRef = useMemoFirebase(() => (db ? doc(db, 'products', hydratedProduct.id) : null), [db, hydratedProduct.id]);
-  const { data: liveProduct, loading: liveLoading } = useDoc(productRef);
+  // Live product refresh — fetch full record by id once (Neon via API)
+  const [liveProduct, setLiveProduct] = useState<any>(null);
+  const [liveLoading, setLiveLoading] = useState(false);
+
+  useEffect(() => {
+    if (!hydratedProduct?.id) return;
+    let cancelled = false;
+    setLiveLoading(true);
+    fetch(`/api/products/${hydratedProduct.id}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled || !json?.success || !json.data) return;
+        const row = json.data;
+        // averageRating is stored on a 0–50 scale server-side; normalize to 0–5
+        const merged = {
+          ...hydratedProduct,
+          ...row,
+          averageRating:
+            typeof row.averageRating === 'number'
+              ? Math.round(row.averageRating) / 10
+              : hydratedProduct.averageRating,
+        };
+        setLiveProduct(merged);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLiveLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydratedProduct]);
 
   const product = liveProduct || hydratedProduct;
 
@@ -145,13 +173,21 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
     if (product) analytics.viewProduct(product);
   }, [product]);
 
-  const suggestedQuery = useMemoFirebase(() => {
-    if (!db || !product?.categorySlug) return null;
-    return query(collection(db, 'products'), where('categorySlug', '==', product.categorySlug), limit(5));
-  }, [db, product?.categorySlug]);
+  // Suggested products — same category, exclude current, max 4
+  const { data: rawSuggested } = useQuery({
+    queryKey: ['products', 'suggested', product?.categorySlug],
+    queryFn: async () => {
+      const res = await fetch('/api/products');
+      const json = await res.json();
+      return json?.success ? json.data : [];
+    },
+    enabled: !!product?.categorySlug,
+  });
 
-  const { data: rawSuggested } = useCollection(suggestedQuery);
-  const suggestedProducts = rawSuggested?.filter(p => p.id !== product.id).slice(0, 4) || [];
+  const suggestedProducts =
+    (rawSuggested || [])
+      .filter((p: any) => p.categorySlug === product.categorySlug && p.id !== product.id)
+      .slice(0, 4) || [];
 
   const handleAddToCart = () => {
     addItem({ id: product.id, name: product.name, price: product.price, imageUrl: product.images?.[0] || '', category: product.categorySlug || 'Asset' });

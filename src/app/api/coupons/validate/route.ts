@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
-import { getDb, isDatabaseConfigured } from '@/lib/db';
+import { getDb } from '@/lib/db';
 import { coupons } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -31,8 +30,8 @@ export async function POST(req: NextRequest) {
       expiresAt?: Date | string | null;
     } | null = null;
 
-    // SQL first, fallback to Firestore if DATABASE_URL not set (same as create-order)
-    if (isDatabaseConfigured()) {
+    // SQL only — Neon is the single source of truth
+    {
       const db = getDb();
       const [row] = await db.select().from(coupons).where(eq(coupons.code, rawCode)).limit(1);
       if (row) {
@@ -45,24 +44,6 @@ export async function POST(req: NextRequest) {
           expiresAt: row.expiresAt,
         };
         if (!row.isActive) coupon = null;
-      }
-    } else {
-      const db = getAdminDb();
-      const snap = await db.collection('coupons')
-        .where('code', '==', rawCode)
-        .where('isActive', '==', true)
-        .limit(1)
-        .get();
-      if (!snap.empty) {
-        const data = snap.docs[0].data() as any;
-        coupon = {
-          type: data.type,
-          value: data.value ?? 0,
-          minOrderAmount: data.minOrderAmount,
-          maxUsageCount: data.maxUsageCount,
-          usageCount: data.usageCount,
-          expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate() : (data.expiresAt ?? null),
-        };
       }
     }
 

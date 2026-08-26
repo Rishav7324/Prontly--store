@@ -1,20 +1,18 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import { useSqlCollection } from '@/hooks/useSqlCollection';
-import { useAuth } from '@/firebase';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { 
-  Plus, 
-  Search, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
   ExternalLink,
   Package
 } from 'lucide-react';
@@ -39,34 +37,34 @@ import Link from 'next/link';
 import { logAdminAction } from '@/lib/admin-logs';
 import { toast } from '@/hooks/use-toast';
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useUser();
   const auth = useAuth();
-  const db = useFirestore();
-  
-  // Always try SQL API first (dual-mode API returns Firestore if Neon not set)
-  const productsQuery = useMemoFirebase(() => {
-    return db ? collection(db, 'products') : null;
-  }, [db]);
+  const queryClient = useQueryClient();
 
-  const { data: sqlProducts, loading: sqlLoading } = useSqlCollection('/api/products');
-  const { data: firestoreProducts, loading: firestoreLoading } = useCollection(!sqlProducts && !sqlLoading ? productsQuery : null);
-  const allProducts = sqlProducts && sqlProducts.length > 0 ? (sqlProducts as any) : firestoreProducts;
-  const loading = sqlLoading || (!sqlProducts && firestoreLoading);
+  const { data: allProducts = [], isLoading: loading } = useQuery({
+    queryKey: ['admin-products'],
+    queryFn: () => fetcher('/api/products'),
+    refetchInterval: 15000,
+  });
 
   const processedProducts = useMemo(() => {
-    if (!allProducts) return [];
-    
-    return [...allProducts]
-      .filter(p => 
+    return [...(allProducts as any[])]
+      .filter(p =>
         (p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.categorySlug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.slug?.toLowerCase().includes(searchTerm.toLowerCase()))
       )
       .sort((a: any, b: any) => {
-        const dateA = a.createdAt?.toMillis?.() || a.updatedAt?.toMillis?.() || 0;
-        const dateB = b.createdAt?.toMillis?.() || b.updatedAt?.toMillis?.() || 0;
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : (a.updatedAt ? new Date(a.updatedAt).getTime() : 0);
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : (b.updatedAt ? new Date(b.updatedAt).getTime() : 0);
         return dateB - dateA;
       });
   }, [allProducts, searchTerm]);
@@ -74,28 +72,18 @@ export default function AdminProducts() {
   const deleteProduct = async (id: string, name: string) => {
     if (!user || !confirm('Permanently remove this product?')) return;
     try {
-      // Try SQL API first (works for both SQL and Firestore fallback)
       const token = auth?.currentUser ? await auth.currentUser.getIdToken() : '';
       const res = await fetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (!res.ok) {
-        // Fallback direct Firestore if API fails
-        if (!db) throw new Error('No DB');
-        const { deleteDoc, doc } = await import('firebase/firestore');
-        await deleteDoc(doc(db, 'products', id));
-      }
-      // Log (dual-mode: will use SQL API if configured)
-      if (db) {
-        await logAdminAction({
-          db, adminId: user.uid, adminEmail: user.email || 'unknown',
-          action: 'DELETE', resourceType: 'PRODUCT', resourceId: id, details: { name }
-        });
-      }
+      if (!res.ok && res.status !== 404) throw new Error('Delete failed');
+      logAdminAction({
+        adminId: user.uid, adminEmail: user.email || 'unknown',
+        action: 'DELETE', resourceType: 'PRODUCT', resourceId: id, details: { name }
+      });
       toast({ title: "Product Purged" });
-      // Refetch
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
     } catch (e) {
       toast({ variant: "destructive", title: "Operation Failed" });
     }
@@ -120,8 +108,8 @@ export default function AdminProducts() {
         <CardHeader className="p-4 border-b">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name, slug, or category..." 
+            <Input
+              placeholder="Search by name, slug, or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 rounded-lg"
@@ -152,11 +140,11 @@ export default function AdminProducts() {
                     <TableRow key={product.id} className="transition-colors group">
                       <TableCell className="pl-4 px-3 py-2">
                         <div className="relative h-9 w-9 rounded-lg bg-muted overflow-hidden border">
-                          <Image 
-                            src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/100/100'} 
-                            alt={product.name} 
-                            fill 
-                            className="object-cover" 
+                          <Image
+                            src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/100/100'}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
                           />
                         </div>
                       </TableCell>
@@ -174,7 +162,7 @@ export default function AdminProducts() {
                         </code>
                       </TableCell>
                       <TableCell className="text-xs font-semibold tabular-nums px-3 py-2">
-                        ₹{(product.price / 100).toLocaleString('en-IN')}
+                        ₹{((product.price || 0) / 100).toLocaleString('en-IN')}
                       </TableCell>
                       <TableCell className="text-right pr-4 px-3 py-2">
                         <DropdownMenu>
@@ -196,7 +184,7 @@ export default function AdminProducts() {
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="rounded-md cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive text-xs"
                               onClick={() => deleteProduct(product.id, product.name)}
                             >

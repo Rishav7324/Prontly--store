@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useCollection, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
+import { useUser, useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -22,33 +22,49 @@ const emptyForm: BlogPostForm = {
   categoryId: '',
 };
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function NewBlogPostPage() {
   const router = useRouter();
-  const db = useFirestore();
   const { user } = useUser();
+  const auth = useAuth();
   const [isSaving, setIsSaving] = useState(false);
-  const { data: categories } = useCollection(db ? collection(db, 'categories') : null);
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetcher('/api/categories'),
+  });
   const [form, setForm] = useState<BlogPostForm>(emptyForm);
 
   const handleSubmit = async (data: BlogPostForm) => {
-    if (!db || !user) return;
+    if (!user) return;
     setIsSaving(true);
     try {
-      await addDoc(collection(db, 'blog_posts'), {
-        ...data,
-        authorId: user.uid,
-        authorName: data.authorName || user.displayName || 'Prontly Editorial',
-        tags: data.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        faqItems: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        viewCount: 0,
-        publishedAt: data.status === 'published' ? serverTimestamp() : null,
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : '';
+      const res = await fetch('/api/blog', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          ...data,
+          authorId: user.uid,
+          authorName: data.authorName || user.displayName || 'Prontly Editorial',
+          tags: data.tags.split(',').map((t) => t.trim()).filter(Boolean),
+          status: data.status,
+        }),
       });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Save failed');
+
       toast({ title: 'Article published', description: 'Blog post saved successfully.' });
       router.push('/admin/blog');
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Save failed' });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Save failed', description: error?.message });
       throw error;
     } finally {
       setIsSaving(false);

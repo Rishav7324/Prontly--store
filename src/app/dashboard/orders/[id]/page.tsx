@@ -1,10 +1,10 @@
 'use client';
 
-import { use, useMemo, useState } from 'react';
+import { use, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useAuth } from '@/firebase';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,38 +25,64 @@ import { format } from 'date-fns';
 import { generateInvoicePdf } from '@/app/actions/email-actions';
 import { toast } from '@/hooks/use-toast';
 
+interface OrderItem {
+  productName: string;
+  price: number;
+  quantity: number;
+  productId?: string;
+}
+
+interface Order {
+  id: string;
+  status: 'pending' | 'paid' | 'delivered' | 'refunded' | 'failed';
+  subtotal: number;
+  discountAmount: number;
+  totalAmount: number;
+  createdAt: string;
+  paidAt?: string | null;
+  items: OrderItem[];
+  couponCode?: string;
+}
+
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { user } = useUser();
-  const db = useFirestore();
+  const { user, profile } = useUser();
+  const auth = useAuth();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const orderRef = useMemoFirebase(() => (db ? doc(db, 'orders', id) : null), [db, id]);
-  const { data: order, loading } = useDoc(orderRef);
+  const { data: order, isLoading: loading } = useQuery<Order[]>({
+    queryKey: ['user-orders', user?.uid],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!auth?.currentUser) throw new Error('Not authenticated');
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/user/orders', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      const json = await res.json();
+      return json.data ?? [];
+    },
+  });
 
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
+  const currentOrder = order?.find((o) => o.id === id);
 
   const handleDownloadInvoice = async () => {
-    if (!order) return;
+    if (!currentOrder) return;
     setIsDownloading(true);
     try {
       const plainOrder = {
-        id: order.id,
-        userName: order.userName,
-        userEmail: order.userEmail,
-        items: order.items,
-        subtotal: order.subtotal,
-        discount: order.discount,
-        total: order.total,
-        createdAt: order.createdAt
+        id: currentOrder.id,
+        userName: profile?.displayName || user?.displayName || 'Verified Creator',
+        userEmail: user?.email || '',
+        items: currentOrder.items,
+        subtotal: currentOrder.subtotal,
+        discount: currentOrder.discountAmount,
+        total: currentOrder.totalAmount,
+        createdAt: currentOrder.createdAt
       };
 
-      const plainSettings = settings ? {
-        invoiceSettings: settings.invoiceSettings || {}
-      } : null;
-
-      const pdfBase64 = await generateInvoicePdf(plainOrder, plainSettings);
+      const pdfBase64 = await generateInvoicePdf(plainOrder, null);
       
       const link = document.createElement('a');
       link.href = `data:application/pdf;base64,${pdfBase64}`;
@@ -81,7 +107,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  if (!order || (user && order.userId !== user.uid)) {
+  if (!currentOrder) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
@@ -146,13 +172,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   <CardTitle className="text-sm font-semibold">Assets & Licenses</CardTitle>
                 </div>
                 <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-500 border-none px-2 py-0 text-[10px] font-medium rounded-md">
-                  {order.status}
+                  {currentOrder.status}
                 </Badge>
               </CardHeader>
               <CardContent className="px-0 pb-0 pt-1">
                 <div className="divide-y divide-border/60 -mx-4">
-                  {order.items?.map((item: any) => (
-                    <div key={item.productId} className="px-4 py-3.5 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+                  {currentOrder.items?.map((item, index) => (
+                    <div key={item.productId ?? index} className="px-4 py-3.5 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-10 w-10 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
                           <Receipt className="h-4 w-4 text-muted-foreground opacity-50" />
@@ -170,9 +196,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold">₹{(item.price / 100).toLocaleString('en-IN')}</p>
-                        <Link href={`/products/${item.productId}`} className="text-[10px] text-primary hover:underline mt-0.5 inline-flex items-center gap-1">
-                          View Product <ExternalLink className="h-2.5 w-2.5" />
-                        </Link>
+                        {item.productId && (
+                          <Link href={`/products/${item.productId}`} className="text-[10px] text-primary hover:underline mt-0.5 inline-flex items-center gap-1">
+                            View Product <ExternalLink className="h-2.5 w-2.5" />
+                          </Link>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -186,11 +214,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="space-y-3">
                   <div>
                     <p className="text-[10px] font-medium text-muted-foreground">Identity</p>
-                    <p className="text-sm font-semibold mt-0.5">{order.userName || 'Verified Creator'}</p>
+                    <p className="text-sm font-semibold mt-0.5">{profile?.displayName || user?.displayName || 'Verified Creator'}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-medium text-muted-foreground">Contact Address</p>
-                    <p className="text-xs mt-0.5 truncate">{order.userEmail}</p>
+                    <p className="text-xs mt-0.5 truncate">{user?.email}</p>
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-border/60">
@@ -211,7 +239,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     <div>
                       <p className="text-[10px] font-medium text-green-600 dark:text-green-500">Delivery Synchronized</p>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                        Assets processed on {order.paidAt ? format(order.paidAt.toDate ? order.paidAt.toDate() : new Date(order.paidAt), 'PPP p') : 'Recently'}.
+                        Assets processed on {currentOrder.paidAt ? format(new Date(currentOrder.paidAt), 'PPP p') : 'Recently'}.
                       </p>
                     </div>
                   </div>
@@ -237,17 +265,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-white/40">Gross Subtotal</span>
-                    <span className="font-mono">₹{(order.subtotal / 100).toLocaleString('en-IN')}</span>
+                    <span className="font-mono">₹{(currentOrder.subtotal / 100).toLocaleString('en-IN')}</span>
                   </div>
-                  {order.discountAmount > 0 && (
+                  {currentOrder.discountAmount > 0 && (
                     <div className="flex justify-between items-center text-xs font-medium text-green-400">
-                      <span>Incentive ({order.couponCode || 'PROMO'})</span>
-                      <span className="font-mono">-₹{(order.discountAmount / 100).toLocaleString('en-IN')}</span>
+                      <span>Incentive ({currentOrder.couponCode || 'PROMO'})</span>
+                      <span className="font-mono">-₹{(currentOrder.discountAmount / 100).toLocaleString('en-IN')}</span>
                     </div>
                   )}
                   <div className="pt-4 border-t border-white/10 flex justify-between items-baseline">
                     <span className="text-[10px] font-medium text-white/60">Net Value</span>
-                    <span className="text-xl md:text-2xl font-semibold tracking-tight">₹{((order.totalAmount || order.total) / 100).toLocaleString('en-IN')}</span>
+                    <span className="text-xl md:text-2xl font-semibold tracking-tight">₹{((currentOrder.totalAmount || 0) / 100).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 

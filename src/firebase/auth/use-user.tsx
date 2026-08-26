@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { useAuth, useFirestore } from '../provider';
+import { useAuth } from '../provider';
 
 export interface UserProfile {
   uid: string;
@@ -18,52 +17,36 @@ export interface UserProfile {
   [key: string]: any;
 }
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export function useUser() {
   const auth = useAuth();
-  const db = useFirestore();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     if (!auth) return;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      if (!firebaseUser) {
-        setProfile(null);
-        setLoading(false);
-      }
+      setAuthLoading(false);
     });
-
-    return () => unsubscribeAuth();
+    return () => unsub();
   }, [auth]);
 
-  useEffect(() => {
-    if (!db || !user) return;
+  // Profile fetched from Neon via API (replaces Firestore onSnapshot)
+  const { data: profileData, isLoading: profileLoading } = useSWR(
+    user ? '/api/user/me' : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
-    setLoading(true);
-    const unsubscribeProfile = onSnapshot(
-      doc(db, 'users', user.uid),
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile);
-        }
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching user profile:', error);
-        setLoading(false);
-      }
-    );
+  const profile: UserProfile | null = profileData?.data || null;
 
-    return () => unsubscribeProfile();
-  }, [db, user]);
-
-  return { 
-    user, 
+  return {
+    user,
     profile,
-    role: profile?.role || 'customer',
-    loading 
+    loading: authLoading,
+    role: profile?.role,
+    mutateProfile: () => undefined,
   };
 }

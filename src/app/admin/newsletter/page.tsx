@@ -1,15 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useCollection, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { 
-  Search, 
-  Trash2, 
-  Mail, 
+import {
+  Search,
+  Trash2,
+  Mail,
   Download,
   Users,
   SendHorizontal,
@@ -33,12 +32,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
@@ -54,17 +53,23 @@ export default function AdminNewsletter() {
     templateId: '',
     subject: ''
   });
+  const queryClient = useQueryClient();
 
-  const db = useFirestore();
-  
-  const subscribersQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'newsletter_subscribers'), orderBy('createdAt', 'desc')) : null;
-  }, [db]);
+  const { data: settingsPayload, isLoading } = useQuery({
+    queryKey: ['admin-settings-subscribers'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/settings?subscribers=1');
+      const json = await res.json();
+      return {
+        settings: json.data || null,
+        subscribers: (json.subscribers || []) as any[],
+      };
+    },
+    refetchInterval: 30000,
+  });
 
-  const { data: subscribers, loading } = useCollection(subscribersQuery);
-
-  const settingsRef = useMemoFirebase(() => db ? doc(db, 'site_settings', 'main') : null, [db]);
-  const { data: settings } = useDoc(settingsRef);
+  const subscribers = settingsPayload?.subscribers || [];
+  const settings = settingsPayload?.settings;
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -74,12 +79,25 @@ export default function AdminNewsletter() {
     fetchTemplates();
   }, []);
 
+  const removeSubscriber = async (email: string) => {
+    if (!confirm('Remove subscriber?')) return;
+    try {
+      const res = await fetch(`/api/admin/settings?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
+      toast({ title: 'Subscriber Removed', description: email });
+      queryClient.invalidateQueries({ queryKey: ['admin-settings-subscribers'] });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Remove Failed', description: error?.message });
+    }
+  };
+
   const handleBroadcast = async () => {
-    if (!broadcastData.templateId || !subscribers) return;
-    
+    if (!broadcastData.templateId || subscribers.length === 0) return;
+
     setIsBroadcasting(true);
-    const emails = subscribers.map(s => s.email);
-    
+    const emails = subscribers.map((s: any) => s.email);
+
     try {
       // Sanitize settings for Server Action
       const plainEmailSettings = settings?.emailSettings ? {
@@ -107,23 +125,22 @@ export default function AdminNewsletter() {
     }
   };
 
-  const filteredSubscribers = subscribers?.filter(s => 
+  const filteredSubscribers = subscribers.filter((s: any) =>
     s.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const exportCSV = () => {
-    if (!subscribers) return;
-    const headers = ['Email', 'Source', 'Date Subscribed'];
-    const rows = subscribers.map(s => [
+    if (subscribers.length === 0) return;
+    const headers = ['Email', 'Date Subscribed'];
+    const rows = subscribers.map((s: any) => [
       s.email,
-      s.source || 'Website',
-      s.createdAt ? format(new Date(s.createdAt.toDate()), 'yyyy-MM-dd') : 'N/A'
+      s.createdAt ? format(new Date(s.createdAt), 'yyyy-MM-dd') : 'N/A'
     ]);
-    
-    const csvContent = "data:text/csv;charset=utf-8," 
+
+    const csvContent = "data:text/csv;charset=utf-8,"
       + headers.join(",") + "\n"
       + rows.map(e => e.join(",")).join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -155,7 +172,7 @@ export default function AdminNewsletter() {
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Broadcast Newsletter</DialogTitle>
-                <DialogDescription>Send a pre-designed Resend template to all {subscribers?.length || 0} active subscribers.</DialogDescription>
+                <DialogDescription>Send a pre-designed template to all {subscribers.length} active subscribers.</DialogDescription>
               </DialogHeader>
               <div className="space-y-3 py-2">
                 <div className="grid gap-1.5">
@@ -173,9 +190,9 @@ export default function AdminNewsletter() {
                 </div>
                 <div className="grid gap-1.5">
                   <Label className="text-[10px] font-medium text-muted-foreground">Campaign Subject</Label>
-                  <Input 
+                  <Input
                     className="h-9 rounded-lg"
-                    placeholder="e.g. This Week's Top AI Prompts" 
+                    placeholder="e.g. This Week's Top AI Prompts"
                     value={broadcastData.subject}
                     onChange={(e) => setBroadcastData({...broadcastData, subject: e.target.value})}
                   />
@@ -183,13 +200,13 @@ export default function AdminNewsletter() {
                 <div className="rounded-lg bg-primary/5 p-3 flex items-start gap-2.5 border border-primary/20">
                   <AlertCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    Broadcasts are sent via Resend Batch API. Ensure your selected template is verified and follows anti-spam regulations.
+                    Broadcasts are sent in sequential batches via the transactional email API. Ensure your selected template is verified and follows anti-spam regulations.
                   </p>
                 </div>
               </div>
               <DialogFooter>
-                <Button 
-                  onClick={handleBroadcast} 
+                <Button
+                  onClick={handleBroadcast}
                   disabled={isBroadcasting || !broadcastData.templateId}
                   size="sm"
                   className="w-full h-8 rounded-lg"
@@ -208,7 +225,7 @@ export default function AdminNewsletter() {
           <CardContent className="p-0 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-medium text-muted-foreground">Active Audience</p>
-              <h3 className="text-xl md:text-2xl font-semibold mt-1">{subscribers?.length || 0}</h3>
+              <h3 className="text-xl md:text-2xl font-semibold mt-1">{subscribers.length}</h3>
               <p className="text-[10px] font-medium text-muted-foreground mt-1">Verified Emails</p>
             </div>
             <Users className="h-8 w-8 text-primary opacity-20" />
@@ -220,8 +237,8 @@ export default function AdminNewsletter() {
         <CardHeader className="p-4 border-b">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Search by email..." 
+            <Input
+              placeholder="Search by email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 rounded-lg"
@@ -229,13 +246,13 @@ export default function AdminNewsletter() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
+          {isLoading ? (
             <div className="p-4 space-y-2">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
-          ) : filteredSubscribers && filteredSubscribers.length > 0 ? (
+          ) : filteredSubscribers.length > 0 ? (
             <div className="overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
@@ -258,15 +275,13 @@ export default function AdminNewsletter() {
                         </div>
                       </TableCell>
                       <TableCell className="px-3 py-2 text-xs text-muted-foreground">
-                        {sub.source || 'Website'}
+                        Website
                       </TableCell>
                       <TableCell className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
-                        {sub.createdAt ? format(new Date(sub.createdAt.toDate()), 'MMM dd, yyyy') : 'N/A'}
+                        {sub.createdAt ? format(new Date(sub.createdAt), 'MMM dd, yyyy') : 'N/A'}
                       </TableCell>
                       <TableCell className="text-right pr-4 px-3 py-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => {
-                          if (confirm('Remove subscriber?')) deleteDoc(doc(db!, 'newsletter_subscribers', sub.id));
-                        }}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeSubscriber(sub.email)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>

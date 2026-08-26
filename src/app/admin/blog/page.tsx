@@ -1,18 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { 
-  Plus, 
-  Search, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
   FileText,
   Eye
 } from 'lucide-react';
@@ -34,24 +33,47 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { toast } from '@/hooks/use-toast';
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
 
 export default function AdminBlog() {
   const [searchTerm, setSearchTerm] = useState('');
-  const db = useFirestore();
-  
-  const blogQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'blog_posts'), orderBy('createdAt', 'desc')) : null;
-  }, [db]);
+  const queryClient = useQueryClient();
 
-  const { data: posts, loading } = useCollection(blogQuery);
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ['admin-blog'],
+    queryFn: () => fetcher('/api/blog'),
+    refetchInterval: 30000,
+  });
 
-  const filteredPosts = posts?.filter(p => 
+  const filteredPosts = (posts as any[]).filter(p =>
     p.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const deletePost = async (id: string) => {
-    if (!db || !confirm('Delete this blog post?')) return;
-    await deleteDoc(doc(db, 'blog_posts', id));
+  const openEditor = (post: any) => {
+    try {
+      sessionStorage.setItem(`blog-edit-${post.slug}`, JSON.stringify(post));
+    } catch {}
+    window.location.href = `/admin/blog/edit/${post.slug}`;
+  };
+
+  const deletePost = async (post: any) => {
+    if (!confirm('Delete this blog post?')) return;
+    try {
+      // API accepts firestore id or uuid
+      const res = await fetch(`/api/blog?id=${encodeURIComponent(post.firestoreId || post.id)}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
+      toast({ title: 'Article deleted', description: post.title });
+      queryClient.invalidateQueries({ queryKey: ['admin-blog'] });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Delete failed', description: error?.message });
+    }
   };
 
   return (
@@ -73,8 +95,8 @@ export default function AdminBlog() {
         <CardHeader className="p-4 border-b">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Search articles..." 
+            <Input
+              placeholder="Search articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 rounded-lg"
@@ -82,13 +104,13 @@ export default function AdminBlog() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
+          {isLoading ? (
             <div className="p-4 space-y-2">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />
               ))}
             </div>
-          ) : filteredPosts && filteredPosts.length > 0 ? (
+          ) : filteredPosts.length > 0 ? (
             <div className="overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
@@ -115,7 +137,7 @@ export default function AdminBlog() {
                         </Badge>
                       </TableCell>
                       <TableCell className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
-                        {post.publishedAt || post.createdAt ? format(new Date((post.publishedAt || post.createdAt).toDate()), 'MMM dd, yyyy') : 'N/A'}
+                        {(post.publishedAt || post.createdAt) ? format(new Date(post.publishedAt || post.createdAt), 'MMM dd, yyyy') : 'N/A'}
                       </TableCell>
                       <TableCell className="px-3 py-2">
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -133,10 +155,10 @@ export default function AdminBlog() {
                           <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuLabel className="text-[10px] font-medium text-muted-foreground p-2">Actions</DropdownMenuLabel>
                             <DropdownMenuItem asChild className="rounded-md text-xs cursor-pointer">
-                              <Link href={`/admin/blog/edit/${post.id}`}>
+                              <button type="button" onClick={() => openEditor(post)} className="flex w-full items-center">
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Post
-                              </Link>
+                              </button>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild className="rounded-md text-xs cursor-pointer">
                               <Link href={`/blog/${post.slug}`} target="_blank">
@@ -145,9 +167,9 @@ export default function AdminBlog() {
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="rounded-md text-xs cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
-                              onClick={() => deletePost(post.id)}
+                              onClick={() => deletePost(post)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete

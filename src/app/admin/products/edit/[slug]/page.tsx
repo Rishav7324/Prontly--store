@@ -1,8 +1,7 @@
 'use client';
 
-import { use, useMemo } from 'react';
-import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit, doc } from 'firebase/firestore';
+import { use } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
@@ -10,29 +9,21 @@ import Link from 'next/link';
 
 /**
  * @fileOverview Product Edit Resolver
- * Handles dual resolution (Slug or ID) to ensure data is always found.
+ * Loads by slug or ID via GET /api/products/[id-or-slug].
  */
 export default function EditProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const db = useFirestore();
-  
-  // 1. Attempt lookup by Slug field
-  const slugQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'products'), where('slug', '==', slug), limit(1)) : null;
-  }, [db, slug]);
 
-  const { data: slugResults, loading: slugLoading } = useCollection(slugQuery);
-  
-  // 2. Fallback: Attempt lookup by direct Document ID
-  const idRef = useMemoFirebase(() => {
-    return db ? doc(db, 'products', slug) : null;
-  }, [db, slug]);
-
-  const { data: idResult, loading: idLoading } = useDoc(idRef);
-
-  // Resolve the actual product data from either source
-  const product = (slugResults && slugResults.length > 0) ? slugResults[0] : (idResult || null);
-  const isLoading = slugLoading && idLoading;
+  const { data: product, isLoading } = useQuery({
+    queryKey: ['product', slug],
+    queryFn: async () => {
+      const res = await fetch(`/api/products/${encodeURIComponent(slug)}`);
+      if (res.status === 404) return null;
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to load product');
+      return json.data;
+    },
+  });
 
   if (isLoading) {
     return (
@@ -70,10 +61,10 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
       </header>
 
       {/* Passing a key forces re-render when data is ready, solving hydration issues */}
-      <ProductForm 
-        key={product?.id || 'loading'} 
-        initialData={product} 
-        id={product?.id} 
+      <ProductForm
+        key={product?.id || 'loading'}
+        initialData={product}
+        id={product?.id}
       />
     </div>
   );

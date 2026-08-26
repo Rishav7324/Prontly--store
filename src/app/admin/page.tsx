@@ -14,8 +14,7 @@ import {
   History,
   ShieldCheck
 } from "lucide-react";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, limit, orderBy } from "firebase/firestore";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo } from "react";
@@ -39,29 +38,43 @@ import {
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.success ? json.data : [];
+};
+
 export default function AdminDashboard() {
-  const db = useFirestore();
+  const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: () => fetcher('/api/admin/orders'),
+    refetchInterval: 15000,
+  });
 
-  const ordersQuery = useMemoFirebase(() => db ? collection(db, 'orders') : null, [db]);
-  const { data: allOrders, loading: ordersLoading } = useCollection(ordersQuery);
+  const { data: allProducts = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['admin-products'],
+    queryFn: () => fetcher('/api/products'),
+  });
 
-  const productsQuery = useMemoFirebase(() => db ? collection(db, 'products') : null, [db]);
-  const { data: allProducts, loading: productsLoading } = useCollection(productsQuery);
+  const { data: users = [] } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: () => fetcher('/api/admin/users'),
+  });
 
-  const usersQuery = useMemoFirebase(() => db ? collection(db, 'users') : null, [db]);
-  const { data: users } = useCollection(usersQuery);
+  const { data: allLogs = [], isLoading: logsLoading } = useQuery({
+    queryKey: ['admin-logs'],
+    queryFn: () => fetcher('/api/admin/logs'),
+    refetchInterval: 30000,
+  });
 
-  const logsQuery = useMemoFirebase(() => {
-    return db ? query(collection(db, 'admin_logs'), limit(5)) : null;
-  }, [db]);
-  const { data: adminLogs, loading: logsLoading } = useCollection(logsQuery);
+  const adminLogs = useMemo(() => (allLogs as any[]).slice(0, 5), [allLogs]);
 
   const processedData = useMemo(() => {
-    if (!allOrders) return { revenue: 0, ordersCount: 0, recent: [], chart: [] };
+    if (!allOrders.length) return { revenue: 0, ordersCount: 0, recent: [], chart: [] };
 
-    const sorted = [...allOrders].sort((a: any, b: any) => {
-      const dateA = a.createdAt?.toMillis?.() || 0;
-      const dateB = b.createdAt?.toMillis?.() || 0;
+    const sorted = [...(allOrders as any[])].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
     });
 
@@ -80,8 +93,8 @@ export default function AdminDashboard() {
     }, {} as any);
 
     paidOrders.forEach(order => {
-      const date = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-      const day = format(date, 'eee');
+      if (!order.createdAt) return;
+      const day = format(new Date(order.createdAt), 'eee');
       if (dailyRevenueMap[day] !== undefined) {
         dailyRevenueMap[day] += (order.totalAmount || order.total || 0) / 100;
       }
@@ -97,9 +110,9 @@ export default function AdminDashboard() {
 
   const stats = [
     { name: 'Total Volume', value: `₹${processedData.revenue.toLocaleString('en-IN')}`, icon: TrendingUp },
-    { name: 'Verified Users', value: (users?.length || 0).toString(), icon: UsersIcon },
+    { name: 'Verified Users', value: users.length.toString(), icon: UsersIcon },
     { name: 'Paid Orders', value: processedData.ordersCount.toString(), icon: OrderIcon },
-    { name: 'Live Products', value: (allProducts?.length || 0).toString(), icon: ProductIcon },
+    { name: 'Live Products', value: allProducts.length.toString(), icon: ProductIcon },
   ];
 
   return (
@@ -217,7 +230,7 @@ export default function AdminDashboard() {
             <CardContent className="p-0 pt-3 space-y-1">
               {logsLoading ? (
                 [...Array(3)].map((_, i) => <div key={i} className="h-9 w-full animate-pulse bg-muted rounded-lg" />)
-              ) : adminLogs && adminLogs.length > 0 ? (
+              ) : adminLogs.length > 0 ? (
                 adminLogs.map((log: any) => (
                   <div key={log.id} className="flex items-start gap-3 py-2 rounded-lg hover:bg-muted/50 transition-colors">
                     <div className={cn(
@@ -256,7 +269,10 @@ export default function AdminDashboard() {
             <CardContent className="p-0 pt-3 space-y-1">
               {productsLoading ? (
                 [...Array(3)].map((_, i) => <div key={i} className="h-10 w-full animate-pulse bg-muted rounded-lg" />)
-              ) : allProducts?.sort((a,b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, 3).map((p: any) => (
+              ) : [...(allProducts as any[])]
+                .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+                .slice(0, 3)
+                .map((p) => (
                 <div key={p.id} className="flex items-center justify-between gap-3 py-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-9 w-9 rounded-lg overflow-hidden shrink-0 relative bg-muted">

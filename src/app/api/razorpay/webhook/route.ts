@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
 import { verifyWebhookSignature } from '@/lib/razorpay/client';
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { generateInvoicePdf } from '@/lib/payment/invoice';
 import { sendOrderConfirmationEmail, sendDeliveryEmail, sendNewOrderAlert } from '@/app/actions/email-actions';
-import { getDb, getPgDb, isDatabaseConfigured } from '@/lib/db';
+import { getDb, getPgDb } from '@/lib/db';
 import { orders, orderItems, products, downloads, users, analytics } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -100,50 +98,7 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           console.error('[WEBHOOK_POST_PROCESSING_ERROR]:', err);
         }
-      }
-    } else {
-      const db = getAdminDb();
-      result = await db.runTransaction(async (transaction) => {
-        const orderRef = db.collection('orders').doc(razorpayOrderId);
-        const orderSnap = await transaction.get(orderRef);
-        if (!orderSnap.exists) return { status: 'skipped', reason: 'order_not_found' };
-        const order = orderSnap.data()!;
-        if (order.status === 'paid') return { status: 'already_paid' };
-        const productsData: Record<string, any> = {};
-        for (const item of (order.items || [])) {
-          const productRef = db.collection('products').doc(item.productId);
-          const productSnap = await transaction.get(productRef);
-          if (productSnap.exists) productsData[item.productId] = productSnap.data();
-        }
-        transaction.update(orderRef, { status: 'paid', paidAt: Timestamp.now(), razorpayPaymentId });
-        for (const item of (order.items || [])) {
-          const product = productsData[item.productId];
-          if (product) {
-            const downloadRef = db.collection('downloads').doc(order.userId).collection('products').doc(item.productId);
-            transaction.set(downloadRef, { userId: order.userId, productId: item.productId, orderId: razorpayOrderId, productName: product.name, productSlug: product.slug, productImage: product.images?.[0] || '', fileKey: product.fileKey, fileName: product.fileName || `${product.slug}.zip`, fileSize: product.fileSize || 0, fileFormat: product.fileFormat || 'zip', fileVersion: product.fileVersion || '1.0', downloadLimit: 5, downloadCount: 0, purchasedAt: Timestamp.now(), isActive: true, downloadAllowed: true }, { merge: true });
-            transaction.update(db.collection('products').doc(item.productId), { salesCount: FieldValue.increment(1) });
-          }
-        }
-        const userRef = db.collection('users').doc(order.userId);
-        transaction.set(userRef, { totalSpent: FieldValue.increment(order.totalAmount || order.total || 0), orderCount: FieldValue.increment(1), lastPurchaseAt: Timestamp.now() }, { merge: true });
-        const analyticsRef = db.collection('analytics').doc('global');
-        transaction.set(analyticsRef, { totalRevenue: FieldValue.increment(order.totalAmount || order.total || 0), totalOrders: FieldValue.increment(1) }, { merge: true });
-        return { status: 'fulfilled', orderData: { ...order, id: razorpayOrderId } };
-      });
-
-      if (result.status === 'fulfilled') {
-        try {
-          const db = getAdminDb();
-          const pdfBase64 = await generateInvoicePdf(result.orderData);
-          await db.collection('orders').doc(razorpayOrderId).update({ invoicePdfBase64: pdfBase64 });
-          await sendOrderConfirmationEmail(result.orderData);
-          void sendDeliveryEmail(result.orderData).catch(() => {});
-          void sendNewOrderAlert(result.orderData);
-        } catch (err) {
-          console.error('[WEBHOOK_POST_PROCESSING_ERROR]:', err);
-        }
-      }
-    }
+      }    }
 
     return NextResponse.json({ success: true });
 

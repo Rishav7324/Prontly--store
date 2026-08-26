@@ -9,9 +9,8 @@
 
 import { getBrevoClient, sendTransactionalEmail } from '@/lib/brevo';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
-import { siteSettings } from '@/lib/db/schema';
+import { siteSettings, emailTemplates } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getAdminDb } from '@/lib/firebase-admin';
 
 const DEFAULT_SENDER = { name: 'Prontly Store', email: 'hello@store.prontly.in' };
 
@@ -19,18 +18,13 @@ async function resolveSender(sender?: { fromEmail?: string; senderName?: string 
   if (sender?.fromEmail) {
     return { name: sender.senderName || DEFAULT_SENDER.name, email: sender.fromEmail };
   }
-  // Try site_settings (SQL first, then Firestore)
+  // site_settings from Neon
   try {
-    if (isDatabaseConfigured()) {
-      const db = getDb();
-      const [row] = await db.select().from(siteSettings).where(eq(siteSettings.id, 'main')).limit(1);
-      const es = row?.emailSettings as any;
-      if (es?.fromEmail) return { name: es.senderName || DEFAULT_SENDER.name, email: es.fromEmail };
-    }
-    const snap = await getAdminDb().collection('site_settings').doc('main').get();
-    const es = snap.data()?.emailSettings;
+    const db = getDb();
+    const [row] = await db.select().from(siteSettings).where(eq(siteSettings.id, 'main')).limit(1);
+    const es = row?.emailSettings as any;
     if (es?.fromEmail) return { name: es.senderName || DEFAULT_SENDER.name, email: es.fromEmail };
-  } catch { /* fall through to default */ }
+  } catch {}
   return DEFAULT_SENDER;
 }
 
@@ -77,34 +71,24 @@ const BUILT_IN_TEMPLATES = [
 
 export async function listTemplates() {
   try {
-    const db = getAdminDb();
-    const snap = await db.collection('email_templates').get();
-    const custom = snap.docs.map((d: any) => ({
-      id: d.id,
-      name: d.data().name || 'Untitled',
-      subject: d.data().subject || '',
-      html: d.data().html || '',
-      builtin: false,
-      createdAt: d.data().createdAt,
-    }));
-    // Built-ins first, then user-created
+    const db = getDb();
+    const rows = await db.select().from(emailTemplates);
+    const custom = rows.map((r) => ({ id: r.id, name: r.name, subject: r.subject, html: r.html, builtin: false }));
     return { success: true, data: [...BUILT_IN_TEMPLATES, ...custom] };
-  } catch (e: any) {
-    // Even if Firestore fails, show built-ins
+  } catch {
     return { success: true, data: BUILT_IN_TEMPLATES };
   }
 }
 
 export async function createResendTemplate(payload: { name: string; html: string; subject?: string }) {
   try {
-    const db = getAdminDb();
-    const ref = await db.collection('email_templates').add({
+    const db = getDb();
+    const [row] = await db.insert(emailTemplates).values({
       name: payload.name,
-      html: payload.html,
       subject: payload.subject || '',
-      createdAt: new Date().toISOString(),
-    });
-    return { success: true, data: { id: ref.id } };
+      html: payload.html || '',
+    }).returning();
+    return { success: true, data: { id: row.id } };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -112,7 +96,9 @@ export async function createResendTemplate(payload: { name: string; html: string
 
 export async function deleteResendTemplate(id: string) {
   try {
-    await getAdminDb().collection('email_templates').doc(id).delete();
+    const db = getDb();
+    await db.delete(emailTemplates).where(eq(emailTemplates.id, id as any));
+    await db.delete(emailTemplates).where(eq(emailTemplates.firestoreId, id));
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -122,7 +108,7 @@ export async function deleteResendTemplate(id: string) {
 /* ─── CAMPAIGNS & BROADCASTS ─── */
 
 export async function sendNewsletterCampaign(payload: {
-  /** Firestore email_templates doc id — or raw HTML passed via templateHtml */
+  /** Neon email_templates id — or raw HTML passed via templateHtml */
   templateId?: string;
   templateHtml?: string;
   subject: string;
@@ -132,8 +118,10 @@ export async function sendNewsletterCampaign(payload: {
   try {
     let html = payload.templateHtml || '';
     if (!html && payload.templateId) {
-      const snap = await getAdminDb().collection('email_templates').doc(payload.templateId).get();
-      html = snap.data()?.html || '';
+      const db = getDb();
+      let [t] = await db.select().from(emailTemplates).where(eq(emailTemplates.id, payload.templateId as any)).limit(1);
+      if (!t) [t] = await db.select().from(emailTemplates).where(eq(emailTemplates.firestoreId, payload.templateId)).limit(1);
+      html = t?.html || '';
     }
     if (!html) return { success: false, error: 'Template not found or empty HTML' };
 
@@ -252,8 +240,10 @@ export async function sendTestEmail(payload: {
   try {
     let html = payload.templateHtml || '';
     if (!html && payload.templateId) {
-      const snap = await getAdminDb().collection('email_templates').doc(payload.templateId).get();
-      html = snap.data()?.html || '<p>Test email from Prontly</p>';
+      const db = getDb();
+      let [t] = await db.select().from(emailTemplates).where(eq(emailTemplates.id, payload.templateId as any)).limit(1);
+      if (!t) [t] = await db.select().from(emailTemplates).where(eq(emailTemplates.firestoreId, payload.templateId)).limit(1);
+      html = t?.html || '<p>Test email from Prontly</p>';
     }
     const sender = await resolveSender(payload.sender);
     const result = await sendTransactionalEmail({

@@ -1,6 +1,5 @@
 import { MetadataRoute } from "next";
-import { getAdminDb } from "@/lib/firebase-admin";
-import { isDatabaseConfigured, getDb } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { products, blogPosts } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
@@ -105,20 +104,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.7,
         });
       }
-    } else {
-      const db = getAdminDb();
-      const prods = await db.collection("products").select("slug", "updatedAt").get();
-      prods.docs.forEach((doc) => {
-        const data = doc.data();
-        if (!data.slug) return;
-        sitemap.push({ url: `${siteUrl}/products/${data.slug}`, lastModified: data.updatedAt?.toDate?.() ?? now, changeFrequency: "weekly", priority: 0.9 });
-      });
-      const blogs = await db.collection("blog_posts").select("slug", "updatedAt", "publishedAt").get();
-      blogs.docs.forEach((doc) => {
-        const data = doc.data();
-        if (!data.slug) return;
-        sitemap.push({ url: `${siteUrl}/blog/${data.slug}`, lastModified: data.updatedAt?.toDate?.() ?? data.publishedAt?.toDate?.() ?? now, changeFrequency: "monthly", priority: 0.7 });
-      });
     }
 
     const unique = new Map<string, MetadataRoute.Sitemap[number]>();

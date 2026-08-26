@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useAuth } from '@/firebase';
+import { mutate as mutateSwr } from 'swr';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,12 +30,10 @@ import { toast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { uploadFileAction } from '@/app/actions/r2-actions';
 import { optimizeImage } from '@/lib/image-optimizer';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function UserSettingsPage() {
   const { user, profile, loading: authLoading } = useUser();
-  const db = useFirestore();
+  const auth = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -57,6 +55,22 @@ export default function UserSettingsPage() {
       });
     }
   }, [profile]);
+
+  const persistProfileUpdate = async (patch: { displayName?: string; photoURL?: string; phone?: string }) => {
+    if (!auth?.currentUser) return;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      await fetch('/api/user/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(patch),
+      });
+      // Refresh shared profile (useUser SWR cache)
+      mutateSwr('/api/user/me');
+    } catch {
+      // Non-blocking persistence failure is surfaced via the save flow only
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,20 +98,8 @@ export default function UserSettingsPage() {
         // 3. Update local state immediately
         setFormData(prev => ({ ...prev, photoURL: result.url! }));
         
-        // 4. Persist to Firestore (Non-blocking write)
-        const userRef = doc(db!, 'users', user.uid);
-        setDoc(userRef, { 
-          photoURL: result.url,
-          updatedAt: serverTimestamp() 
-        }, { merge: true })
-        .catch(async () => {
-          const permissionError = new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'update',
-            requestResourceData: { photoURL: result.url },
-          } satisfies SecurityRuleContext);
-          errorEmitter.emit('permission-error', permissionError);
-        });
+        // 4. Persist to Neon (Non-blocking write)
+        persistProfileUpdate({ photoURL: result.url }).catch(() => {});
 
         toast({ title: "Photo Updated", description: `Compressed to ${Math.round(optimized.optimizedSize / 1024)}KB.` });
       } else {
@@ -113,32 +115,33 @@ export default function UserSettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db || !user) return;
+    if (!user) return;
     setIsSaving(true);
 
-    const finalData = {
-      ...formData,
-      updatedAt: serverTimestamp()
-    };
+    try {
+      if (!auth?.currentUser) throw new Error('Not authenticated');
+      const token = await auth.currentUser.getIdToken();
 
-    const userRef = doc(db, 'users', user.uid);
-
-    // Non-blocking write pattern
-    setDoc(userRef, finalData, { merge: true })
-      .then(() => {
-        toast({ title: "Profile Synchronized", description: "Your account preferences have been updated." });
-      })
-      .catch(async () => {
-        const permissionError = new FirestorePermissionError({
-          path: userRef.path,
-          operation: 'update',
-          requestResourceData: finalData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      })
-      .finally(() => {
-        setIsSaving(false);
+      const res = await fetch('/api/user/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          displayName: formData.displayName,
+          photoURL: formData.photoURL,
+          phone: formData.phone,
+        }),
       });
+
+      if (!res.ok) throw new Error('Save failed');
+
+      // Refresh shared profile so Navbar/dashboard reflect changes
+      mutateSwr('/api/user/me');
+      toast({ title: "Profile Synchronized", description: "Your account preferences have been updated." });
+    } catch {
+      toast({ variant: "destructive", title: "Sync Failed", description: "Could not update your profile. Please try again." });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (authLoading) {

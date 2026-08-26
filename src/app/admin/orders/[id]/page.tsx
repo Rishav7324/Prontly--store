@@ -1,8 +1,7 @@
 'use client';
 
 import { use, useMemo } from 'react';
-import { useDoc, useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,22 +18,41 @@ import { toast } from '@/hooks/use-toast';
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const db = useFirestore();
+  const queryClient = useQueryClient();
 
-  const orderRef = useMemo(() => (db ? doc(db, 'orders', id) : null), [db, id]);
-  const { data: order, loading } = useDoc(orderRef);
+  // Order is resolved from the admin orders list (each row carries items[])
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['admin-orders'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/orders');
+      const json = await res.json();
+      return json.success ? json.data : [];
+    },
+    refetchInterval: 15000,
+  });
+
+  const order = useMemo(
+    () => (orders as any[]).find((o) => o.id === id) || null,
+    [orders, id]
+  );
 
   const updateStatus = async (newStatus: string) => {
-    if (!db || !order) return;
+    if (!order) return;
     try {
-      await updateDoc(doc(db, 'orders', id), { status: newStatus });
+      const res = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: order.id, status: newStatus }),
+      });
+      if (!res.ok) throw new Error();
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       toast({ title: "Order State Modified", description: `Transitioned to ${newStatus}.` });
     } catch (e) {
       toast({ variant: "destructive", title: "Transition Error" });
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
@@ -78,7 +96,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           <Card className="rounded-xl shadow-sm border p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold">Customer</p>
-              <Badge variant="outline" className="font-mono text-[10px] font-medium border-primary/20 text-primary">UID: {order.userId.slice(-8)}</Badge>
+              <Badge variant="outline" className="font-mono text-[10px] font-medium border-primary/20 text-primary">UID: {order.userId?.slice(-8)}</Badge>
             </div>
             <div className="flex items-center justify-between py-1.5 text-xs border-b border-border/60">
               <span className="text-[10px] font-medium text-muted-foreground">Public Name</span>
@@ -90,7 +108,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             </div>
             <div className="flex items-center justify-between py-1.5 text-xs border-b border-border/60">
               <span className="text-[10px] font-medium text-muted-foreground">Placed On</span>
-              <span className="font-medium">{format(new Date(order.createdAt.toDate()), 'PPP p')}</span>
+              <span className="font-medium">{order.createdAt ? format(new Date(order.createdAt), 'PPP p') : 'N/A'}</span>
             </div>
             <div className="flex items-center justify-between py-1.5 text-xs border-b border-border/60">
               <span className="text-[10px] font-medium text-muted-foreground">Verification</span>
@@ -116,11 +134,11 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {order.items?.map((item: any) => (
-                      <tr key={item.productId} className="hover:bg-muted/40 transition-colors">
+                      <tr key={item.id || item.productId} className="hover:bg-muted/40 transition-colors">
                         <td className="px-4 py-2.5 font-medium">{item.productName}</td>
                         <td className="px-4 py-2.5 text-center text-muted-foreground">{item.quantity}</td>
-                        <td className="px-4 py-2.5 text-right text-muted-foreground">₹{(item.price / 100).toLocaleString('en-IN')}</td>
-                        <td className="px-4 py-2.5 text-right font-semibold">₹{((item.price * item.quantity) / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-2.5 text-right text-muted-foreground">₹{((item.price || 0) / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold">₹{(((item.price || 0) * (item.quantity || 1)) / 100).toLocaleString('en-IN')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -135,7 +153,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             <p className="text-sm font-semibold mb-2">Summary</p>
             <div className="flex justify-between py-1.5 text-xs border-b border-border/60">
               <span className="text-[10px] font-medium text-muted-foreground">Subtotal</span>
-              <span className="font-medium">₹{(order.subtotal / 100).toLocaleString('en-IN')}</span>
+              <span className="font-medium">₹{((order.subtotal || 0) / 100).toLocaleString('en-IN')}</span>
             </div>
             {order.discountAmount > 0 && (
               <div className="flex justify-between py-1.5 text-xs border-b border-border/60">
@@ -145,7 +163,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             )}
             <div className="flex justify-between items-baseline pt-3 pb-1">
               <span className="text-sm font-semibold">Net Value</span>
-              <span className="text-xl font-semibold text-primary">₹{((order.totalAmount || order.total) / 100).toLocaleString('en-IN')}</span>
+              <span className="text-xl font-semibold text-primary">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</span>
             </div>
             <p className="text-[10px] font-medium text-muted-foreground text-center pt-2">Direct digital fulfillment</p>
           </Card>
@@ -159,7 +177,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-medium">Transaction Logged</p>
-                  <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{format(new Date(order.createdAt.toDate()), 'MMM dd, HH:mm:ss')}</p>
+                  <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{order.createdAt ? format(new Date(order.createdAt), 'MMM dd, HH:mm:ss') : 'N/A'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">

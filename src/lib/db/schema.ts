@@ -381,3 +381,17 @@ export const emailEvents = pgTable('email_events', {
   payload: jsonb('payload'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+// ─────────────────────────── EMAIL TEMPLATES (Brevo replacement) ───────────────────────────
+export const emailTemplates = pgTable(
+  'email_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    firestoreId: text('firestore_id'),
+    name: text('name').notNull(),
+    subject: text('subject').default(''),
+    html: text('html').default(''),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('email_templates_name_idx').on(t.name)]
+);
