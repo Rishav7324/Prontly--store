@@ -82,6 +82,7 @@
     "genkit": "^1.41.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
+    "jose": "^4.15.9",
     "lucide-react": "^0.475.0",
     "next": "^16.3.2",
     "nodemailer": "^9.0.5",
