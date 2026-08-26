@@ -1,9 +1,10 @@
 /**
- * @fileOverview Auth helpers — Firebase Auth kept, Firestore removed.
- * Verifies Bearer token via Firebase Admin and checks role via Neon `users` table.
+ * @fileOverview Auth helpers — Firebase Auth only.
+ * ID tokens verified via pure crypto (src/lib/firebase-token.ts) — no firebase-admin.
+ * Roles/entitlements come from Neon Postgres (src/lib/db).
  */
 
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { verifyIdToken } from '@/lib/firebase-token';
 import { getDb } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -22,8 +23,7 @@ export async function verifyAuthToken(authHeader: string | null): Promise<AuthUs
   const token = authHeader?.replace('Bearer ', '').trim() || '';
   if (!token) throw new Error('UNAUTHORIZED: Missing token');
 
-  const auth = getAdminAuth();
-  const decoded = await auth.verifyIdToken(token);
+  const decoded = await verifyIdToken(token);
   return {
     uid: decoded.uid,
     email: decoded.email || null,
@@ -40,7 +40,6 @@ export async function isAdmin(uid: string): Promise<boolean> {
     const [row] = await db.select({ role: users.role }).from(users).where(eq(users.uid, uid)).limit(1);
     return row?.role === 'admin' || row?.role === 'super-admin';
   } catch {
-    // Fallback: if DB not configured, allow via Firebase custom claims (if set)
     return false;
   }
 }

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
 import { generateOTP, hashOTP } from '@/lib/otp-utils';
 import { sendEmail } from '@/services/email/service';
 import { otpTemplate } from '@/services/email/templates';
 import { getDb } from '@/lib/db';
-import { passwordResetOtps } from '@/lib/db/schema';
+import { passwordResetOtps, users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Secure OTP Request Handler.
@@ -18,14 +18,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
-    const auth = getAdminAuth();
-    let userRecord;
-    try {
-      userRecord = await auth.getUserByEmail(email);
-    } catch (e: any) {
+    // User existence check via Neon (no Firebase Admin needed)
+    const existing = await getDb().select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
+    if (existing.length === 0) {
       console.log('Recovery attempt for non-existent user:', email);
       return NextResponse.json({ success: true, message: 'If an account exists, a code has been sent.' });
     }
+    const displayName = existing[0].displayName || 'Creator';
 
     const otp = generateOTP();
     const otpHash = hashOTP(otp);
@@ -46,7 +45,7 @@ export async function POST(req: Request) {
       type: 'security',
       to: email,
       subject: `🔐 ${otp} is your Prontly verification code`,
-      html: otpTemplate(otp, userRecord.displayName || 'Creator')
+      html: otpTemplate(otp, displayName)
     });
 
     return NextResponse.json({ success: true });

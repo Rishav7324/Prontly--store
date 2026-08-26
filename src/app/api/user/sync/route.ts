@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { verifyAuthToken } from '@/lib/auth/verify';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -16,8 +16,7 @@ export async function POST(req: NextRequest) {
     const token = authHeader?.replace('Bearer ', '') ?? '';
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const auth = getAdminAuth();
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await verifyAuthToken(req.headers.get('authorization'));
     const body = await req.json();
     const { uid, email, displayName, photoURL } = body;
 

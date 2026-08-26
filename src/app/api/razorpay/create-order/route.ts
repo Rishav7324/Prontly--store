@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth } from '@/lib/firebase-admin';
+import { verifyAuthToken } from '@/lib/auth/verify';
 import { createRazorpayOrder } from '@/lib/razorpay/client';
 import { calculatePriceBreakdown } from '@/lib/payment/gst';
 import { getDb } from '@/lib/db';
@@ -13,10 +13,7 @@ import { eq, and } from 'drizzle-orm';
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate User
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "") ?? "";
-    const auth = getAdminAuth();
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await verifyAuthToken(req.headers.get('authorization'));
     const uid = decoded.uid;
 
     const body = await req.json();
