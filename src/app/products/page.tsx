@@ -99,7 +99,8 @@ export async function generateMetadata({ searchParams }: MarketplacePageProps): 
   const category = sParams.category as string | undefined;
   const q = sParams.q as string | undefined;
   let title = 'Product Catalog | Premium Assets & Templates';
-  let description = 'Acquire professional-grade AI prompts, UI systems, and technical documentation. Instant electronic fulfillment with perpetual licensing.';
+  let description =
+    'Acquire professional-grade AI prompts, UI systems, and technical documentation. Instant electronic fulfillment with perpetual licensing.';
   if (category) {
     title = `${category.charAt(0).toUpperCase() + category.slice(1)} Assets — Prontly`;
     description = `Browse our specialized collection of ${category} assets. Built for professional performance.`;
@@ -125,7 +126,7 @@ export default async function ProductListingPage({ searchParams }: MarketplacePa
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Navbar />
-      <main className="flex-1 container-page pt-20 pb-12">
+      <main className="flex-1 container-page pt-20 pb-10">
         <MarketplaceClient initialProducts={products} initialCategories={categories} />
       </main>
       <Footer />
