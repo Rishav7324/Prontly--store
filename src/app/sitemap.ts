@@ -81,7 +81,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  // Try to add dynamic product/blog URLs — never fail the whole sitemap if DB is down
   try {
+    if (!process.env.DATABASE_URL) {
+      console.warn("Sitemap: DATABASE_URL not set, returning static routes only");
+      return sitemap;
+    }
     const db = getDb();
     const prods = await db
       .select({ slug: products.slug, updatedAt: products.updatedAt })
@@ -109,14 +114,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       });
     }
-
-    const unique = new Map<string, MetadataRoute.Sitemap[number]>();
-
-    sitemap.forEach((item) => unique.set(item.url, item));
-
-    return [...unique.values()];
   } catch (error) {
-    console.error("Sitemap generation failed:", error);
-    return sitemap;
+    console.warn("Sitemap DB fetch failed, returning static routes:", error);
   }
+
+  const unique = new Map<string, MetadataRoute.Sitemap[number]>();
+  sitemap.forEach((item) => unique.set(item.url, item));
+  return [...unique.values()];
 }
