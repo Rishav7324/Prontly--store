@@ -2,56 +2,91 @@ import { Metadata } from 'next';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MarketplaceClient } from '@/components/store/MarketplaceClient';
-import { firebaseConfig } from '@/firebase/config';
 import { generateMeta } from '@/lib/seo/generate-meta';
 import { getCollectionSchema, getBreadcrumbSchema } from '@/lib/seo/schema-builder';
+import { isDatabaseConfigured, getDb } from '@/lib/db';
+import { products as productsTable, categories as categoriesTable } from '@/lib/db/schema';
 
 interface MarketplacePageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 async function getInitialData() {
+  if (isDatabaseConfigured()) {
+    try {
+      const db = getDb();
+      const [cats, prods] = await Promise.all([
+        db.select().from(categoriesTable),
+        db.select().from(productsTable),
+      ]);
+      return {
+        categories: cats.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          iconEmoji: c.iconEmoji || '📦',
+          description: c.description || '',
+        })),
+        products: prods.map((p: any) => ({
+          id: p.id,
+          slug: p.slug,
+          name: p.name,
+          price: p.price,
+          compareAtPrice: p.compareAtPrice || 0,
+          categorySlug: p.categorySlug || 'asset',
+          images: Array.isArray(p.images) ? p.images : [],
+          averageRating: (p.averageRating ?? 50) / 10,
+          reviewCount: p.reviewCount || 0,
+          salesCount: p.salesCount || 0,
+          shortDescription: p.shortDescription || '',
+          tags: Array.isArray(p.tags) ? p.tags : [],
+          isFeatured: p.isFeatured || false,
+        })),
+      };
+    } catch (e) {
+      console.error('[CATALOG_SQL_ERROR]:', e);
+    }
+  }
+
+  // Fallback: Firestore REST (for local dev without DATABASE_URL)
+  const { firebaseConfig } = await import('@/firebase/config');
   const projectId = firebaseConfig.projectId;
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
-  
   try {
-    // 1. Fetch Categories
-    const catRes = await fetch(`${baseUrl}/categories`, { next: { revalidate: 3600 } });
+    const [catRes, prodRes] = await Promise.all([
+      fetch(`${baseUrl}/categories`, { next: { revalidate: 3600 } }),
+      fetch(`${baseUrl}/products?pageSize=100`, { next: { revalidate: 3600 } }),
+    ]);
     const catData = await catRes.json();
-    const categories = (catData.documents || []).map((doc: any) => {
-      const fields = doc.fields || {};
-      return {
-        id: doc.name.split('/').pop(),
-        name: fields.name?.stringValue || "",
-        slug: fields.slug?.stringValue || "",
-        iconEmoji: fields.iconEmoji?.stringValue || "📦",
-        description: fields.description?.stringValue || ""
-      };
-    });
-
-    // 2. Fetch All Products
-    const prodRes = await fetch(`${baseUrl}/products?pageSize=100`, { next: { revalidate: 3600 } });
     const prodData = await prodRes.json();
-    const products = (prodData.documents || []).map((doc: any) => {
-      const fields = doc.fields || {};
-      
+    const categories = (catData.documents || []).map((doc: any) => {
+      const f = doc.fields || {};
       return {
         id: doc.name.split('/').pop(),
-        slug: fields.slug?.stringValue || "",
-        name: fields.name?.stringValue || "Untitled Asset",
-        price: parseInt(fields.price?.integerValue || fields.price?.doubleValue?.toString() || "0"),
-        compareAtPrice: parseInt(fields.compareAtPrice?.integerValue || fields.compareAtPrice?.doubleValue?.toString() || "0"),
-        categorySlug: fields.categorySlug?.stringValue || "asset",
-        images: fields.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
-        averageRating: parseFloat(fields.averageRating?.doubleValue || fields.averageRating?.integerValue || "5.0"),
-        reviewCount: parseInt(fields.reviewCount?.integerValue || "0"),
-        salesCount: parseInt(fields.salesCount?.integerValue || "0"),
-        shortDescription: fields.shortDescription?.stringValue || "",
-        tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
-        isFeatured: fields.isFeatured?.booleanValue || false
+        name: f.name?.stringValue || '',
+        slug: f.slug?.stringValue || '',
+        iconEmoji: f.iconEmoji?.stringValue || '📦',
+        description: f.description?.stringValue || '',
       };
     });
-
+    const products = (prodData.documents || []).map((doc: any) => {
+      const f = doc.fields || {};
+      return {
+        id: doc.name.split('/').pop(),
+        slug: f.slug?.stringValue || '',
+        name: f.name?.stringValue || 'Untitled Asset',
+        price: parseInt(f.price?.integerValue || '0'),
+        compareAtPrice: parseInt(f.compareAtPrice?.integerValue || '0'),
+        categorySlug: f.categorySlug?.stringValue || 'asset',
+        images: f.images?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+        averageRating: parseFloat(f.averageRating?.doubleValue || '5'),
+        reviewCount: parseInt(f.reviewCount?.integerValue || '0'),
+        salesCount: parseInt(f.salesCount?.integerValue || '0'),
+        shortDescription: f.shortDescription?.stringValue || '',
+        tags: f.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || [],
+        isFeatured: f.isFeatured?.booleanValue || false,
+      };
+    });
     return { categories, products };
   } catch (error) {
     console.error('[CATALOG_DATA_FETCH_ERROR]:', error);
@@ -63,24 +98,14 @@ export async function generateMetadata({ searchParams }: MarketplacePageProps): 
   const sParams = await searchParams;
   const category = sParams.category as string | undefined;
   const q = sParams.q as string | undefined;
-  
-  let title = "Product Catalog | Premium Assets & Templates";
-  let description = "Acquire professional-grade AI prompts, UI systems, and technical documentation. Instant electronic fulfillment with perpetual licensing.";
-
+  let title = 'Product Catalog | Premium Assets & Templates';
+  let description = 'Acquire professional-grade AI prompts, UI systems, and technical documentation. Instant electronic fulfillment with perpetual licensing.';
   if (category) {
     title = `${category.charAt(0).toUpperCase() + category.slice(1)} Assets — Prontly`;
     description = `Browse our specialized collection of ${category} assets. Built for professional performance.`;
   }
-
-  if (q) {
-    title = `Search results for "${q}" — Catalog`;
-  }
-
-  return generateMeta({
-    title,
-    description,
-    path: '/products'
-  });
+  if (q) title = `Search results for "${q}" — Catalog`;
+  return generateMeta({ title, description, path: '/products' });
 }
 
 export default async function ProductListingPage({ searchParams }: MarketplacePageProps) {
@@ -88,29 +113,20 @@ export default async function ProductListingPage({ searchParams }: MarketplacePa
   const category = sParams.category as string | undefined;
   const { categories, products } = await getInitialData();
 
-  const collectionSchema = getCollectionSchema(category || "Product Catalog", products);
+  const collectionSchema = getCollectionSchema(category || 'Product Catalog', products);
   const breadcrumbSchema = getBreadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Catalog", path: "/products" },
-    ...(category ? [{ name: category.charAt(0).toUpperCase() + category.slice(1), path: `/products?category=${category}` }] : [])
+    { name: 'Home', path: '/' },
+    { name: 'Catalog', path: '/products' },
+    ...(category ? [{ name: category.charAt(0).toUpperCase() + category.slice(1), path: `/products?category=${category}` }] : []),
   ]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 pt-32 pb-24 max-w-7xl">
-        <MarketplaceClient 
-          initialProducts={products} 
-          initialCategories={categories} 
-        />
+      <main className="flex-1 container-page pt-20 pb-12">
+        <MarketplaceClient initialProducts={products} initialCategories={categories} />
       </main>
       <Footer />
     </div>
