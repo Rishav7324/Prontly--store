@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next";
 import { getDb } from "@/lib/db";
 import { products, blogPosts } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -82,28 +82,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    if (isDatabaseConfigured()) {
-      const db = getDb();
-      const prods = await db.select({ slug: products.slug, updatedAt: products.updatedAt }).from(products);
-      for (const p of prods) {
-        if (!p.slug) continue;
-        sitemap.push({
-          url: `${siteUrl}/products/${p.slug}`,
-          lastModified: p.updatedAt ?? now,
-          changeFrequency: "weekly",
-          priority: 0.9,
-        });
-      }
-      const blogs = await db.select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt, publishedAt: blogPosts.publishedAt }).from(blogPosts);
-      for (const b of blogs) {
-        if (!b.slug) continue;
-        sitemap.push({
-          url: `${siteUrl}/blog/${b.slug}`,
-          lastModified: b.updatedAt ?? b.publishedAt ?? now,
-          changeFrequency: "monthly",
-          priority: 0.7,
-        });
-      }
+    const db = getDb();
+    const prods = await db
+      .select({ slug: products.slug, updatedAt: products.updatedAt })
+      .from(products)
+      .where(eq(products.isPublished, true));
+    for (const p of prods) {
+      if (!p.slug) continue;
+      sitemap.push({
+        url: `${siteUrl}/products/${p.slug}`,
+        lastModified: p.updatedAt ?? now,
+        changeFrequency: "weekly",
+        priority: 0.9,
+      });
+    }
+    const blogs = await db
+      .select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt, publishedAt: blogPosts.publishedAt })
+      .from(blogPosts)
+      .where(eq(blogPosts.status, "published"));
+    for (const b of blogs) {
+      if (!b.slug) continue;
+      sitemap.push({
+        url: `${siteUrl}/blog/${b.slug}`,
+        lastModified: b.updatedAt ?? b.publishedAt ?? now,
+        changeFrequency: "monthly",
+        priority: 0.7,
+      });
     }
 
     const unique = new Map<string, MetadataRoute.Sitemap[number]>();
