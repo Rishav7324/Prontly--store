@@ -13,7 +13,7 @@ import {
   newOrderAlertTemplate,
 } from '@/services/email/templates';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { formatPrice } from '@/lib/payment/gst';
 
 /**
@@ -117,15 +117,15 @@ export async function generateInvoicePdf(order: any, settings: any) {
     formatPrice(item.price)
   ]);
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: 90,
     head: [['Product Description', 'Qty', 'Unit Price', 'Total']],
     body: tableRows,
-    headStyles: { fillColor: primaryColor },
+    headStyles: { fillColor: primaryColor } as any,
     theme: 'striped'
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY || 150;
+  const finalY = (doc as any).lastAutoTable?.finalY || 150;
 
   // Totals Section
   doc.setFontSize(10);
