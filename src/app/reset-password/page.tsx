@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Zap, Loader2, ShieldCheck, AlertCircle, CheckCircle2, Lock } from 'lucide-react';
+import { Loader2, ShieldCheck, AlertCircle, CheckCircle2, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
@@ -26,11 +26,26 @@ function ResetPasswordHandler() {
   const [success, setSuccess] = useState(false);
   
   const oobCode = searchParams.get('oobCode');
+  const token = searchParams.get('token');
+  const email = searchParams.get('email');
+
+  const isBrevoFlow = !!(token && email);
+  const isFirebaseFlow = !!oobCode;
 
   useEffect(() => {
+    if (isBrevoFlow) {
+      // For Brevo link flow, no need to verify oobCode, just show form
+      // Optionally verify token is valid by calling an endpoint, but we can just show form
+      // and let the reset API handle validation
+      setVerifying(false);
+      return;
+    }
+
     if (!oobCode || !auth) {
       setVerifying(false);
-      setError("Invalid or missing security code.");
+      if (!isBrevoFlow) {
+        setError("Invalid or missing reset link. Please request a new one.");
+      }
       return;
     }
 
@@ -41,11 +56,10 @@ function ResetPasswordHandler() {
         setVerifying(false);
         setError("This reset link has expired or has already been used.");
       });
-  }, [oobCode, auth]);
+  }, [oobCode, auth, isBrevoFlow, token, email]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !oobCode) return;
 
     if (newPassword !== confirmPassword) {
       toast({ variant: "destructive", title: "Mismatch", description: "Passwords do not match." });
@@ -61,7 +75,22 @@ function ResetPasswordHandler() {
     setError(null);
 
     try {
-      await confirmPasswordReset(auth, oobCode, newPassword);
+      if (isBrevoFlow) {
+        // Brevo link flow: use our API
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, resetToken: token, newPassword }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to update password');
+      } else if (isFirebaseFlow && auth && oobCode) {
+        // Legacy Firebase link flow
+        await confirmPasswordReset(auth, oobCode, newPassword);
+      } else {
+        throw new Error('Invalid reset link');
+      }
+      
       setSuccess(true);
       toast({ title: "Access Restored", description: "Your password has been updated successfully." });
       setTimeout(() => router.push('/login'), 3000);
@@ -113,12 +142,15 @@ function ResetPasswordHandler() {
         </Link>
         <h1 className="text-4xl font-bold font-headline">Secure New Access</h1>
         <p className="text-muted-foreground mt-3 text-lg">Define your new account credentials.</p>
+        {isBrevoFlow && email && (
+          <p className="text-xs text-muted-foreground mt-2">Resetting password for <span className="font-mono font-medium text-foreground">{email}</span></p>
+        )}
       </div>
 
       <Card className="border-white/5 bg-card/30 rounded-[2.5rem] overflow-hidden shadow-2xl backdrop-blur-xl">
         <CardHeader className="p-10 pb-6 text-center">
           <div className="inline-flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-3 mx-auto">
-            <ShieldCheck className="h-4 w-4" /> Identity Protection Active
+            <ShieldCheck className="h-4 w-4" /> {isBrevoFlow ? 'Brevo Secure Link' : 'Identity Protection Active'}
           </div>
         </CardHeader>
 
@@ -161,6 +193,11 @@ function ResetPasswordHandler() {
               <Button type="submit" className="w-full h-16 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin" /> : 'Update Password'}
               </Button>
+              {isBrevoFlow && (
+                <p className="text-center text-[11px] text-muted-foreground">
+                  This link expires in 15 minutes and can only be used once via Brevo.
+                </p>
+              )}
             </form>
           )}
         </CardContent>

@@ -207,6 +207,23 @@ You're receiving this because you subscribed at store.prontly.in.<br>
   return baseLayout(content, input.heading);
 }
 
+/* ─────────────────────────── RESET LINK ─────────────────────────── */
+export function resetLinkTemplate(link: string, name: string) {
+  const content = `
+<h1 style="margin:0 0 6px;font-size:20px;font-weight:800;color:${INK};text-align:center;">Reset your password</h1>
+<p style="margin:0 0 20px;font-size:13px;color:${SOFT};line-height:1.7;text-align:center;">Hi ${name}, click the button below to set a new password for your Prontly account.</p>
+${btn(link, 'Reset password')}
+<p style="margin:16px 0 0;background:${BG};border:1px solid ${LINE};border-radius:8px;padding:12px 14px;font-size:11px;color:${SOFT};line-height:1.6;text-align:center;word-break:break-all;">
+If the button doesn't work, copy and paste this link:<br>
+<a href="${link}" style="color:${BRAND};word-break:break-all;">${link}</a>
+</p>
+<p style="margin:14px 0 0;font-size:11px;color:${MUTED};text-align:center;line-height:1.6;">
+This link expires in <strong>15 minutes</strong> and can only be used once.<br>
+Didn't request this? Ignore this email — your password won't change.
+</p>`;
+  return baseLayout(content, 'Reset your Prontly password');
+}
+
 /* ─────────────────────────── CONTACT FORM ACK ─────────────────────────── */
 export function contactAckTemplate(name: string) {
   const content = `
