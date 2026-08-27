@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/auth/verify';
 import { createRazorpayOrder } from '@/lib/razorpay/client';
 import { calculatePriceBreakdown } from '@/lib/payment/gst';
-import { getDb } from '@/lib/db';
+import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { products, coupons, orders, orderItems, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
