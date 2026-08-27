@@ -6,7 +6,10 @@ import crypto from 'crypto';
  * aud/iss/exp/sub claims per https://firebase.google.com/docs/reference/admin/node/authentication
  */
 
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || process.env.FIREBASE_ADMIN_PROJECT_ID;
+const PROJECT_ID =
+  process.env.FIREBASE_PROJECT_ID ||
+  process.env.FIREBASE_ADMIN_PROJECT_ID ||
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 const CERT_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 
 interface CertCache {

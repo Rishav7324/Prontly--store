@@ -17,8 +17,6 @@ export interface UserProfile {
   [key: string]: any;
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
 export function useUser() {
   const auth = useAuth();
   const [user, setUser] = useState<User | null>(null);
@@ -33,10 +31,16 @@ export function useUser() {
     return () => unsub();
   }, [auth]);
 
-  // Profile fetched from Neon via API (replaces Firestore onSnapshot)
+  // Profile fetched from Neon via API (replaces Firestore onSnapshot) — must send Firebase ID token
   const { data: profileData, isLoading: profileLoading } = useSWR(
-    user ? '/api/user/me' : null,
-    fetcher,
+    user ? ['/api/user/me', user.uid] : null,
+    async ([url]) => {
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : '';
+      const res = await fetch(url as string, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      return res.json();
+    },
     { revalidateOnFocus: false }
   );
 

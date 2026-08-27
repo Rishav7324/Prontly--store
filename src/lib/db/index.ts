@@ -8,10 +8,9 @@ import 'server-only';
 
 import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePg } from 'drizzle-orm/neon-serverless';
-import { neon, neonConfig, Pool } from '@neondatabase/serverless';
+import { neon, Pool } from '@neondatabase/serverless';
 import * as schema from './schema';
 
-neonConfig.fetchConnectionCache = true;
 
 function getDatabaseUrl(): string | null {
   return process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || null;
