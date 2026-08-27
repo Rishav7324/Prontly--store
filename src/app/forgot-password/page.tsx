@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Click the link in the email to set a new password. The link expires in 15 minutes and can be used only once. Check spam folder if you don’t see it.
                   </p>
-                  <p className="text-[10px] text-muted-foreground font-mono">From: reset-password@store.prontly.in via Brevo</p>
+                  <p className="text-[10px] text-muted-foreground font-mono">From: reset-password@store.prontly.in </p>
                 </div>
                 <Button variant="outline" className="h-10 w-full rounded-lg text-sm font-medium" onClick={() => setSent(false)}>
                   Send again
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                   <Label htmlFor="reset-email" className="text-xs">Email address</Label>
                   <Input id="reset-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="h-10" />
                   <p className="text-[10px] text-muted-foreground">
-                    Link will be sent from <span className="font-mono font-medium">reset-password@store.prontly.in</span> via Brevo
+                    Link will be sent from <span className="font-mono font-medium">reset-password@store.prontly.in</span> 
                   </p>
                 </div>
                 <Button type="submit" className="h-10 w-full rounded-lg text-sm font-medium" disabled={loading}>
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
         </Card>
 
         <p className="text-center text-[10px] text-muted-foreground">
-          All recovery emails are sent via Brevo from <span className="font-mono">reset-password@store.prontly.in</span>
+          All recovery emails are sent via <span className="font-mono">reset-password@store.prontly.in</span>
         </p>
       </div>
     </div>
