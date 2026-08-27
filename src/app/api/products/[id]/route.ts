@@ -4,11 +4,19 @@ import { products } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyAuthToken, isAdmin } from '@/lib/auth/verify';
 
+function isUuid(v: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+}
+
 async function resolveProduct(id: string) {
   const db = getDb();
-  let [row] = await db.select().from(products).where(eq(products.id, id as any)).limit(1);
-  if (!row) [row] = await db.select().from(products).where(eq(products.slug, id)).limit(1);
-  if (!row) [row] = await db.select().from(products).where(eq(products.firestoreId, id)).limit(1);
+  if (isUuid(id)) {
+    const [row] = await db.select().from(products).where(eq(products.id, id as any)).limit(1);
+    if (row) return row;
+  }
+  let [row] = await db.select().from(products).where(eq(products.slug, id)).limit(1);
+  if (row) return row;
+  [row] = await db.select().from(products).where(eq(products.firestoreId, id)).limit(1);
   return row ?? null;
 }
 
