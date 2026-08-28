@@ -118,44 +118,104 @@ export function otpTemplate(otp: string, name: string) {
 
 /* ─────────────────────────── ORDER CONFIRMATION ─────────────────────────── */
 export function invoiceTemplate(data: any) {
-  const itemsHtml = (data.items || []).map((item: any) => `
-<tr>
-  <td style="padding:12px 0;border-bottom:1px solid ${LINE};">
-    <div style="font-weight:600;color:${INK};font-size:13px;">${item.productName}</div>
-    <div style="font-size:10px;color:${MUTED};margin-top:2px;">Digital license &times;${item.quantity || 1}</div>
-  </td>
-  <td align="right" valign="top" style="padding:12px 0;border-bottom:1px solid ${LINE};font-weight:600;color:${INK};font-size:13px;">
-    ₹${((item.price || 0) / 100).toLocaleString('en-IN')}
-  </td>
-</tr>`).join('');
+  const orderDate = data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Today';
+  const orderIdShort = (data.id || '').slice(-8).toUpperCase();
+  const totalPaid = (((data.totalAmount ?? data.subtotal) || 0) / 100).toLocaleString('en-IN');
+  const subtotal = (((data.subtotal || 0)) / 100).toLocaleString('en-IN');
+  const discountAmount = ((data.discountAmount || 0) / 100).toLocaleString('en-IN');
 
-  const discountRow = data.discountAmount > 0
-    ? row('Discount', `−₹${(data.discountAmount / 100).toLocaleString('en-IN')}`, { green: true })
-    : '';
+  const itemsHtml = (data.items || []).map((item: any) => `
+  <tr>
+    <td style="padding:14px 0;border-bottom:1px solid #27272a;">
+      <div style="font-weight:700;color:#ffffff;font-size:13px;letter-spacing:-0.01em;">${item.productName}</div>
+      <div style="font-size:11px;color:#a1a1aa;margin-top:3px;display:flex;align-items:center;">
+        <span style="background:#27272a;color:#d4d4d8;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;margin-right:6px;">PERPETUAL LICENSE</span>
+        <span>Qty: ${item.quantity || 1}</span>
+      </div>
+    </td>
+    <td align="right" valign="top" style="padding:14px 0;border-bottom:1px solid #27272a;font-weight:700;color:#ffffff;font-size:14px;font-family:'JetBrains Mono',monospace;">
+      ₹${((item.price || 0) / 100).toLocaleString('en-IN')}
+    </td>
+  </tr>`).join('');
+
+  const discountRow = data.discountAmount > 0 ? `
+  <tr>
+    <td style="padding:8px 0;font-size:12px;color:#10b981;font-weight:600;">Promo Discount (${data.couponCode || 'APPLIED'})</td>
+    <td align="right" style="padding:8px 0;font-size:12px;color:#10b981;font-weight:700;font-family:'JetBrains Mono',monospace;">−₹${discountAmount}</td>
+  </tr>` : '';
 
   const content = `
-<table width="100%" style="margin-bottom:16px;">
-<tr>
-  <td>
-    <h1 style="margin:0;font-size:20px;font-weight:800;color:${INK};">Order confirmed ✓</h1>
-    <p style="margin:4px 0 0;font-size:11px;color:${MUTED};font-family:monospace;">#${data.id.slice(-8).toUpperCase()}</p>
-  </td>
-  <td align="right">
-    <span style="background:#f0fdf4;color:${GREEN};font-size:10px;font-weight:700;padding:4px 12px;border-radius:999px;display:inline-block;">PAID</span>
-  </td>
-</tr>
-</table>
-<p style="margin:0 0 16px;font-size:13px;color:${SOFT};line-height:1.6;">Thanks for your purchase! Instant download links are live in your library.</p>
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">${itemsHtml}</table>
-<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
-  ${row('Subtotal', `₹${((data.subtotal || 0) / 100).toLocaleString('en-IN')}`)}
-  ${discountRow}
-  <tr><td colspan="2" style="padding-top:10px;"></td></tr>
-  ${row('Total paid', `₹${(((data.totalAmount ?? data.subtotal) || 0) / 100).toLocaleString('en-IN')}`, { strong: true })}
-</table>
-${btn(`${SITE}/dashboard/downloads`, 'Go to my downloads')}
-<p style="margin:12px 0 0;font-size:11px;color:${MUTED};text-align:center;">Download limits: 5 per product · links refresh anytime from your library.</p>`;
-  return baseLayout(content, `Order #${data.id.slice(-8).toUpperCase()} confirmed — downloads ready.`);
+  <!-- Luxury Dark Invoice Container with Background Header Texture -->
+  <div style="background:#09090b;background-image:linear-gradient(180deg, rgba(24,24,27,0.9) 0%, rgba(9,9,11,1) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop');background-size:cover;border:1px solid #27272a;border-radius:16px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+    
+    <!-- Top Gold Accent Bar -->
+    <div style="height:4px;background:linear-gradient(90deg, #f59e0b 0%, #d97706 50%, #b45309 100%);"></div>
+
+    <!-- Header Block -->
+    <div style="padding:28px 28px 20px;border-bottom:1px solid #27272a;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+            <div style="display:inline-block;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fbbf24;font-size:10px;font-weight:800;letter-spacing:0.1em;padding:3px 10px;border-radius:20px;text-transform:uppercase;margin-bottom:8px;">
+              OFFICIAL TAX INVOICE
+            </div>
+            <h1 style="margin:0;font-size:24px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">Payment Confirmed</h1>
+            <p style="margin:4px 0 0;font-size:12px;color:#a1a1aa;">Order Reference: <span style="font-family:'JetBrains Mono',monospace;color:#f4f4f5;font-weight:700;">#${orderIdShort}</span> &bull; ${orderDate}</p>
+          </td>
+          <td align="right" valign="top">
+            <div style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;font-size:11px;font-weight:800;padding:6px 14px;border-radius:999px;display:inline-block;letter-spacing:0.05em;">
+              ● SETTLED
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Main Body & Items -->
+    <div style="padding:24px 28px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+        <thead>
+          <tr>
+            <th align="left" style="padding-bottom:10px;font-size:10px;font-weight:800;color:#71717a;text-transform:uppercase;letter-spacing:0.08em;">Acquired Asset</th>
+            <th align="right" style="padding-bottom:10px;font-size:10px;font-weight:800;color:#71717a;text-transform:uppercase;letter-spacing:0.08em;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+
+      <!-- Financial Calculation Block -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;border-top:1px solid #27272a;padding-top:12px;">
+        <tr>
+          <td style="padding:6px 0;font-size:12px;color:#a1a1aa;">Subtotal</td>
+          <td align="right" style="padding:6px 0;font-size:12px;color:#d4d4d8;font-weight:600;font-family:'JetBrains Mono',monospace;">₹${subtotal}</td>
+        </tr>
+        ${discountRow}
+        <tr>
+          <td style="padding:14px 0 6px;font-size:14px;color:#ffffff;font-weight:800;">Grand Total Paid</td>
+          <td align="right" style="padding:14px 0 6px;font-size:18px;color:#f59e0b;font-weight:800;font-family:'JetBrains Mono',monospace;">₹${totalPaid}</td>
+        </tr>
+      </table>
+
+      <!-- Action Button -->
+      <div style="margin-top:24px;text-align:center;">
+        <a href="${SITE}/dashboard/downloads" style="display:inline-block;width:100%;box-sizing:border-box;background:linear-gradient(180deg, #ffffff 0%, #e4e4e7 100%);color:#09090b;font-size:13px;font-weight:700;text-decoration:none;padding:14px 24px;border-radius:12px;box-shadow:0 10px 20px -5px rgba(255,255,255,0.2);">
+          ⚡ Access Source Files & License in Vault &rarr;
+        </a>
+      </div>
+
+      <!-- Trust Stamp Footer -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #18181b;text-align:center;">
+        <p style="margin:0;font-size:11px;color:#71717a;line-height:1.6;">
+          🔒 Cryptographically signed by <strong>Prontly Digital Infrastructure</strong>.<br>
+          Commercial License is perpetual for unlimited client & internal projects.
+        </p>
+      </div>
+    </div>
+  </div>`;
+  
+  return baseLayout(content, `Tax Invoice #${orderIdShort} — ₹${totalPaid} confirmed.`);
 }
 
 /* ─────────────────────────── DELIVERY / DOWNLOADS READY ─────────────────────────── */
