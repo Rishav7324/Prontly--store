@@ -40,7 +40,6 @@ const menuItems = [
   ]},
   { group: 'Catalog & Sales', items: [
     { name: 'Products', href: '/admin/products', icon: Package },
-    { name: 'Submissions', href: '/admin/submissions', icon: Upload },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { name: 'Customers', href: '/admin/users', icon: Users },
     { name: 'Categories', href: '/admin/categories', icon: Layers },

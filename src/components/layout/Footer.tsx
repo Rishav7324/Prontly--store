@@ -10,7 +10,6 @@ const columns = [
     links: [
       ['All Products', '/products'],
       ['Categories', '/products?view=categories'],
-      ['Sell Prompts & Assets', '/sell'],
       ['Blog & Guides', '/blog'],
       ['Wishlist', '/wishlist'],
       ['My Downloads', '/dashboard'],
