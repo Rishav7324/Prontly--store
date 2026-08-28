@@ -92,6 +92,7 @@ export function Navbar() {
   const navLinks = [
     { label: 'Products', href: '/products', icon: Package },
     { label: 'Categories', href: '/products?view=categories', icon: Layers },
+    { label: 'Sell Prompts', href: '/sell', icon: Sparkles },
     { label: 'Blog', href: '/blog', icon: BookOpen },
   ];
 

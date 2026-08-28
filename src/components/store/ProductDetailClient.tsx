@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
+import { BundleUpsell } from "@/components/store/BundleUpsell";
 import { analytics } from "@/lib/analytics";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -434,6 +435,9 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                   </p>
                 </div>
               </div>
+
+              {/* ── BUNDLE & SAVE FREQUENTLY BOUGHT TOGETHER ── */}
+              <BundleUpsell currentProduct={product} />
 
               {/* Technical Metadata Spec Cards */}
               <div className="grid grid-cols-2 gap-2.5">

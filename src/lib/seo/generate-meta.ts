@@ -16,7 +16,7 @@ interface GenerateMetaProps {
 
 /**
  * Generates automated production SEO Metadata for any page.
- * Simplifies Open Graph by using direct image URLs for better social platform compatibility.
+ * Uses dynamic high-conversion OpenGraph cards for products and direct images for standard pages.
  */
 export function generateMeta({
   title,
@@ -31,8 +31,23 @@ export function generateMeta({
   const fullTitle = `${title} | Prontly`.slice(0, 60);
   const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`;
   
-  // Use the provided image or fall back to the brand logo
-  const ogImageUrl = image || DEFAULT_OG_IMAGE;
+  // Construct dynamic viral OpenGraph image URL for products
+  let ogImageUrl = image || DEFAULT_OG_IMAGE;
+  if (type === 'product') {
+    const params = new URLSearchParams({
+      title: title.slice(0, 70),
+      category: category || 'Digital Asset',
+      type: 'Asset',
+    });
+    if (price) {
+      params.set('price', ((price || 0) / 100).toLocaleString('en-IN'));
+    }
+    if (image && image.startsWith('http')) {
+      params.set('image', image);
+    }
+    ogImageUrl = `${SITE_URL}/api/og?${params.toString()}`;
+  }
+
   const ogType = type === 'article' ? 'article' : 'website';
 
   return {

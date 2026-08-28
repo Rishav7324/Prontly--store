@@ -7,6 +7,8 @@ import Script from 'next/script';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { getGlobalSchema } from '@/lib/seo/schema-builder';
 import { WebMCPProvider } from '@/components/ai/WebMCPProvider';
+import { ExitIntentModal } from '@/components/store/ExitIntentModal';
+import { InstallPwaBanner } from '@/components/store/InstallPwaBanner';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
@@ -17,6 +19,8 @@ export const metadata: Metadata = {
   },
   description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets. Professional tools for modern creators.',
   metadataBase: new URL(SITE_URL),
+  manifest: '/manifest.json',
+  themeColor: '#09090b',
   icons: {
     icon: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
     apple: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
@@ -67,6 +71,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           }}
         />
         
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#09090b" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -116,6 +122,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <FirebaseClientProvider>
           <WebMCPProvider />
           {children}
+          <ExitIntentModal />
+          <InstallPwaBanner />
           <Toaster />
           <CookieConsent />
         </FirebaseClientProvider>

@@ -1,0 +1,25 @@
+{
+  "name": "Prontly Store - AI Prompts & Digital Assets",
+  "short_name": "Prontly",
+  "description": "Discover, preview, and acquire high-performance AI prompts, templates, and digital assets.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "categories": ["shopping", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.prontly.in/App%20icon/file_000000004a28720bab301fc1f3a5edb6.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
