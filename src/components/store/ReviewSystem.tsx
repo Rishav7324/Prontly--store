@@ -141,18 +141,25 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
         {/* Left: Summary */}
         <div className="w-full md:w-80 space-y-8">
           <div className="space-y-2">
-             <h3 className="text-xs font-black uppercase text-ghost-gray tracking-[0.2em]">Community Pulse</h3>
-             <div className="flex items-center gap-4">
-                <span className="text-5xl font-bold text-midnight-ink tracking-tighter">{stats.avg}</span>
-                <div className="space-y-1">
-                   <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className={cn("h-4 w-4", s <= Math.round(Number(stats.avg)) ? "text-yellow-500 fill-current" : "text-stone-gray/30")} />
-                    ))}
+             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Customer Reviews</h3>
+             {stats.count > 0 ? (
+               <div className="flex items-center gap-4">
+                  <span className="text-4xl font-extrabold text-foreground font-headline tracking-tight">{stats.avg}</span>
+                  <div className="space-y-1">
+                     <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={cn("h-4 w-4", s <= Math.round(Number(stats.avg)) ? "text-amber-400 fill-amber-400" : "text-border")} />
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground font-semibold">Based on {stats.count} {stats.count === 1 ? 'review' : 'reviews'}</p>
                   </div>
-                  <p className="text-[10px] text-slate-blue font-bold uppercase tracking-widest">Based on {stats.count} reviews</p>
-                </div>
-             </div>
+               </div>
+             ) : (
+               <div className="py-2">
+                 <p className="text-sm font-semibold text-foreground">No customer reviews yet</p>
+                 <p className="text-xs text-muted-foreground mt-0.5">Be the first to share your thoughts after purchasing.</p>
+               </div>
+             )}
           </div>
 
           <div className="space-y-2">

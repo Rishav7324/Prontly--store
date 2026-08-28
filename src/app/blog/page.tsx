@@ -11,27 +11,32 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 
 async function getPosts() {
-  const projectId = firebaseConfig.projectId;
-  const res = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blog_posts?pageSize=100`,
-    { next: { revalidate: 3600 } }
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.documents || [])
-    .map((doc: any) => {
-      const fields = doc.fields || {};
-      return {
-        id: doc.name.split('/').pop(),
-        title: fields.title?.stringValue || "",
-        slug: fields.slug?.stringValue || "",
-        excerpt: fields.excerpt?.stringValue || "",
-        featuredImage: fields.featuredImage?.stringValue || "",
-        status: fields.status?.stringValue || "draft",
-        publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
-        tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || []
-      };
-    });
+  try {
+    const projectId = firebaseConfig.projectId;
+    const res = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blog_posts?pageSize=100`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.documents || [])
+      .map((doc: any) => {
+        const fields = doc.fields || {};
+        return {
+          id: doc.name.split('/').pop(),
+          title: fields.title?.stringValue || "",
+          slug: fields.slug?.stringValue || "",
+          excerpt: fields.excerpt?.stringValue || "",
+          featuredImage: fields.featuredImage?.stringValue || "",
+          status: fields.status?.stringValue || "draft",
+          publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
+          tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || []
+        };
+      });
+  } catch (error) {
+    console.error('[BLOG_FETCH_ERR]:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata(): Promise<Metadata> {

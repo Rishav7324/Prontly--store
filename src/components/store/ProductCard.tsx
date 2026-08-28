@@ -129,12 +129,14 @@ export function ProductCard({
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent truncate">
                 {category}
               </span>
-              <div className="flex items-center gap-1 shrink-0 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                <span className="text-[10px] font-bold text-amber-900 tabular-nums">
-                  {rating ? rating.toFixed(1) : '5.0'}
-                </span>
-              </div>
+              {reviewCount && reviewCount > 0 ? (
+                <div className="flex items-center gap-1 shrink-0 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <span className="text-[10px] font-bold text-amber-900 tabular-nums">
+                    {rating ? rating.toFixed(1) : '5.0'}
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             {/* Title */}

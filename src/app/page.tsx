@@ -159,26 +159,22 @@ export default async function Home() {
 
                 {/* Trust Badges & Metrics */}
                 <div className="flex flex-wrap items-center gap-y-3 gap-x-5 pt-5 mt-1 border-t border-border/50">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex -space-x-2">
-                      {[11, 32, 15, 27, 44].map((imgId) => (
-                        <div key={`avatar-${imgId}`} className="h-7 w-7 rounded-full border-2 border-white bg-muted flex items-center justify-center overflow-hidden shadow-xs">
-                          <Image src={`https://i.pravatar.cc/100?img=${imgId}`} alt="Creator" width={28} height={28} className="object-cover" unoptimized />
-                        </div>
-                      ))}
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                      <ShieldCheck className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      <strong className="font-bold text-foreground">{stats.downloads.toLocaleString('en-IN')}+</strong> downloads
+                    <span className="text-xs text-muted-foreground font-medium">
+                      <strong className="font-bold text-foreground">100% Verified</strong> Prompts & Code
                     </span>
                   </div>
 
                   <span className="h-4 w-px bg-border/60 hidden sm:block" />
 
                   <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" /> Secure Checkout
+                    <Zap className="h-4 w-4 text-amber-500" /> Instant R2 Download
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <Zap className="h-4 w-4 text-amber-500" /> Instant Delivery
+                    <CheckCircle2 className="h-4 w-4 text-blue-600" /> Commercial License
                   </span>
                 </div>
               </div>
@@ -223,10 +219,14 @@ export default async function Home() {
                                   {displayProducts[0]?.name}
                                 </p>
                                 <p className="text-white/80 text-xs mt-1 flex items-center gap-1.5">
-                                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                  <span className="font-semibold">{displayProducts[0]?.averageRating?.toFixed(1) || '5.0'}</span>
-                                  <span>•</span>
-                                  <span>{displayProducts[0]?.salesCount || 120} sales</span>
+                                  {displayProducts[0]?.reviewCount && displayProducts[0]?.reviewCount > 0 ? (
+                                    <>
+                                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                      <span className="font-semibold">{displayProducts[0]?.averageRating?.toFixed(1) || '5.0'}</span>
+                                      <span>•</span>
+                                    </>
+                                  ) : null}
+                                  <span>Instant Delivery</span>
                                 </p>
                               </div>
                               <span className="shrink-0 rounded-xl bg-white text-zinc-950 text-xs sm:text-sm font-extrabold px-3.5 py-2 shadow-md">
@@ -468,69 +468,6 @@ export default async function Home() {
                     <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                       {feat.desc}
                     </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── TESTIMONIALS ─────────────────────── */}
-        <section className="py-14 md:py-20 bg-white border-y border-border/50 overflow-hidden">
-          <div className="container-page">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-              <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 mb-1.5 uppercase">
-                  COMMUNITY LOVE
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                  Loved by Engineers & Creators
-                </h2>
-              </div>
-              <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-foreground/80">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> 4.9/5 from 300+ reviews
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {[
-                {
-                  quote: '“The Claude engineering prompts reduced my sprint research and documentation time by nearly 70%. Absolute game changer.”',
-                  name: 'Aarav Sharma',
-                  role: 'Lead Architect @ BuildFast',
-                  avatar: 'https://i.pravatar.cc/100?img=11'
-                },
-                {
-                  quote: '“Prontly templates are the only ones I’ve bought that genuinely worked in production out of the box without rewrites.”',
-                  name: 'Priya Mukherjee',
-                  role: 'Fullstack Dev & Creator',
-                  avatar: 'https://i.pravatar.cc/100?img=32'
-                },
-                {
-                  quote: '“The one-time payment with perpetual updates is the best model. Downloaded once and already saved dozens of development hours.”',
-                  name: 'Rohan Kapoor',
-                  role: 'Indie Hacker & Founder',
-                  avatar: 'https://i.pravatar.cc/100?img=15'
-                },
-              ].map((item) => (
-                <div key={item.name} className="rounded-2xl border border-border/80 bg-card p-6 flex flex-col justify-between gap-4 hover:shadow-md transition-shadow">
-                  <div className="space-y-3">
-                    <Quote className="h-5 w-5 text-accent/40" />
-                    <p className="text-xs sm:text-sm leading-relaxed text-foreground font-medium">
-                      {item.quote}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 pt-3 border-t border-border/50">
-                    <Image src={item.avatar} alt={item.name} width={36} height={36} className="rounded-full object-cover border" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold leading-none text-foreground">{item.name}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.role}</p>
-                    </div>
-                    <div className="flex gap-0.5 shrink-0">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
                   </div>
                 </div>
               ))}

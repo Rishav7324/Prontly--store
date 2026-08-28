@@ -315,13 +315,20 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                 </h1>
                 
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-3 text-xs">
-                  <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg">
-                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-amber-900">{product.averageRating ? product.averageRating.toFixed(1) : "5.0"}</span>
-                    <a href="#reviews" className="text-muted-foreground hover:text-foreground underline underline-offset-2">
-                      ({product.reviewCount || 0} reviews)
+                  {product.reviewCount && product.reviewCount > 0 ? (
+                    <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg">
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-bold text-amber-900">{product.averageRating ? product.averageRating.toFixed(1) : "5.0"}</span>
+                      <a href="#reviews" className="text-muted-foreground hover:text-foreground underline underline-offset-2">
+                        ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                      </a>
+                    </div>
+                  ) : (
+                    <a href="#reviews" className="inline-flex items-center gap-1.5 bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-lg font-medium transition-colors">
+                      <Star className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>Be the first to review</span>
                     </a>
-                  </div>
+                  )}
 
                   <span className="h-3 w-px bg-border/80" />
 

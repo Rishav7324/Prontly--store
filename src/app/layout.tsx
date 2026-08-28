@@ -7,7 +7,6 @@ import Script from 'next/script';
 import { CookieConsent } from '@/components/layout/CookieConsent';
 import { getGlobalSchema } from '@/lib/seo/schema-builder';
 import { WebMCPProvider } from '@/components/ai/WebMCPProvider';
-import { ExitIntentModal } from '@/components/store/ExitIntentModal';
 import { InstallPwaBanner } from '@/components/store/InstallPwaBanner';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
@@ -122,7 +121,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <FirebaseClientProvider>
           <WebMCPProvider />
           {children}
-          <ExitIntentModal />
           <InstallPwaBanner />
           <Toaster />
           <CookieConsent />
