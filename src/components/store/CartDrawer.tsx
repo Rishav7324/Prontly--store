@@ -5,7 +5,7 @@ import { useCart } from '@/hooks/use-cart';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
@@ -27,70 +27,84 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col border-l border-stone-gray/10 bg-white p-0 sm:max-w-sm">
-        <SheetHeader className="border-b border-stone-gray/10 px-4 py-3">
-          <SheetTitle className="flex items-center gap-2 text-sm font-semibold font-headline text-midnight-ink">
-            <ShoppingBag className="h-4 w-4 text-primary" />
-            Cart ({mounted ? getItemCount() : 0})
+      <SheetContent className="flex w-full flex-col border-l border-border/80 bg-white p-0 sm:max-w-md max-w-[100vw]">
+        {/* Drawer Header */}
+        <SheetHeader className="border-b border-border/70 px-5 py-4 flex flex-row items-center justify-between space-y-0">
+          <SheetTitle className="flex items-center gap-2.5 text-base font-bold text-foreground font-headline">
+            <div className="h-8 w-8 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+              <ShoppingBag className="h-4 w-4" />
+            </div>
+            Your Cart ({mounted ? getItemCount() : 0})
           </SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 px-4">
+        {/* Cart Item Scroll List */}
+        <ScrollArea className="flex-1 px-5">
           {!mounted ? (
-            <div className="flex h-full items-center justify-center">
-              <ShoppingBag className="h-6 w-6 animate-pulse text-muted-foreground opacity-20" />
+            <div className="flex h-full items-center justify-center py-20">
+              <ShoppingBag className="h-8 w-8 animate-pulse text-muted-foreground opacity-30" />
             </div>
           ) : items.length === 0 ? (
-            <div className="flex h-[320px] flex-col items-center justify-center space-y-3 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted/50 opacity-50">
-                <ShoppingBag className="h-5 w-5 text-muted-foreground" />
+            <div className="flex h-[360px] flex-col items-center justify-center space-y-4 text-center px-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground/50 border border-border/60">
+                <ShoppingBag className="h-8 w-8" />
               </div>
-              <p className="text-xs font-medium text-muted-foreground">Your cart is empty.</p>
-              <Button variant="link" onClick={() => onOpenChange(false)} className="h-auto p-0 text-xs font-medium text-primary hover:underline">
-                Browse assets
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-foreground">Your cart is empty</p>
+                <p className="text-xs text-muted-foreground max-w-[240px]">
+                  Explore high-quality templates and digital assets to add to your workspace.
+                </p>
+              </div>
+              <Button asChild className="rounded-xl px-5 h-9 text-xs font-semibold bg-zinc-950 text-white" onClick={() => onOpenChange(false)}>
+                <Link href="/products">Browse Marketplace</Link>
               </Button>
             </div>
           ) : (
-            <div className="divide-y divide-stone-gray/5 py-2">
+            <div className="divide-y divide-border/60 py-3">
               {items.map((item) => (
-                <div key={item.id} className="group flex gap-3 py-3">
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-stone-gray/10 bg-muted">
-                    <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                <div key={item.id} className="group flex gap-3.5 py-3.5">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-muted/40">
+                    <Image src={item.imageUrl || 'https://picsum.photos/seed/placeholder/200/200'} alt={item.name} fill className="object-cover" />
                   </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-1.5">
+                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <h4 className="line-clamp-1 text-xs font-medium leading-snug text-midnight-ink transition-colors group-hover:text-primary">{item.name}</h4>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground">{item.category}</p>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{item.category}</span>
+                        <h4 className="line-clamp-1 text-xs sm:text-sm font-semibold text-foreground leading-snug group-hover:text-accent transition-colors">
+                          {item.name}
+                        </h4>
                       </div>
                       <button 
                         onClick={() => handleRemove(item.id, item.name)}
-                        className="shrink-0 rounded-lg p-1 text-muted-foreground transition-all hover:bg-destructive/5 hover:text-destructive"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive active:scale-90"
                         type="button"
                         aria-label="Remove item"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
+
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center rounded-md border border-stone-gray/10 bg-porcelain-white/50 p-0.5">
+                      <div className="flex items-center rounded-lg border border-border/70 bg-muted/50 p-0.5">
                         <button 
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="flex h-5 w-5 items-center justify-center rounded transition-all hover:bg-white"
+                          className="flex h-6 w-6 items-center justify-center rounded-md transition-all hover:bg-white active:scale-90 disabled:opacity-30"
                           disabled={item.quantity <= 1}
+                          aria-label="Decrease quantity"
                         >
-                          <Minus className="h-2.5 w-2.5" />
+                          <Minus className="h-3 w-3" />
                         </button>
-                        <span className="w-7 text-center text-[10px] font-semibold tabular-nums">{item.quantity}</span>
+                        <span className="w-7 text-center text-xs font-bold tabular-nums">{item.quantity}</span>
                         <button 
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="flex h-5 w-5 items-center justify-center rounded transition-all hover:bg-white"
+                          className="flex h-6 w-6 items-center justify-center rounded-md transition-all hover:bg-white active:scale-90"
+                          aria-label="Increase quantity"
                         >
-                          <Plus className="h-2.5 w-2.5" />
+                          <Plus className="h-3 w-3" />
                         </button>
                       </div>
-                      <span className="text-xs font-bold tabular-nums text-midnight-ink">
-                        ₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}
+                      <span className="text-xs sm:text-sm font-bold tabular-nums text-foreground">
+                        ₹{((item.price / 100) * item.quantity).toLocaleString('en-IN')}
                       </span>
                     </div>
                   </div>
@@ -100,31 +114,39 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           )}
         </ScrollArea>
 
+        {/* Drawer Footer */}
         {mounted && items.length > 0 && (
-          <SheetFooter className="w-full flex-col gap-3 space-y-0 border-t border-stone-gray/10 bg-porcelain-white/50 p-4">
-            <div className="w-full space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+          <SheetFooter className="w-full flex-col gap-3 space-y-0 border-t border-border/70 bg-muted/25 p-5">
+            <div className="w-full space-y-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Subtotal ({getItemCount()} items)</span>
+                <span className="font-semibold text-foreground">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-sm font-semibold text-midnight-ink">Total</span>
-                <span className="text-base font-bold text-primary">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+              <div className="flex items-baseline justify-between border-t border-border/60 pt-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-foreground">Total</span>
+                <span className="text-lg font-extrabold text-foreground tracking-tight font-headline">
+                  ₹{(getTotal() / 100).toLocaleString('en-IN')}
+                </span>
               </div>
             </div>
-            <div className="grid w-full grid-cols-1 gap-2">
-              <Button className="h-9 w-full rounded-lg text-sm font-medium shadow-sm" asChild onClick={() => onOpenChange(false)}>
-                <Link href="/checkout">
-                  Checkout
-                  <ArrowRight className="ml-2 h-3.5 w-3.5" />
+
+            <div className="grid w-full grid-cols-1 gap-2 pt-1">
+              <Button className="h-11 w-full rounded-2xl text-xs sm:text-sm font-bold shadow-md bg-zinc-950 text-white hover:bg-zinc-800 active:scale-[0.98] transition-all" asChild onClick={() => onOpenChange(false)}>
+                <Link href="/checkout" className="flex items-center justify-center gap-2">
+                  Proceed to Checkout
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" className="h-9 rounded-lg border-stone-gray/20 text-xs font-medium transition-all hover:bg-white group" asChild onClick={() => onOpenChange(false)}>
+              <Button variant="outline" className="h-10 rounded-2xl border-border/80 text-xs font-semibold hover:bg-white active:scale-[0.98] transition-all" asChild onClick={() => onOpenChange(false)}>
                 <Link href="/cart">
-                  View full cart
-                  <ArrowRight className="ml-1.5 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  View Full Cart
                 </Link>
               </Button>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground pt-1">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Razorpay Secured • Instant Electronic Delivery</span>
             </div>
           </SheetFooter>
         )}

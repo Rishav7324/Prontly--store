@@ -205,13 +205,13 @@ export default function AdminEmailsPage() {
           <p className="text-xs text-muted-foreground">Administer email templates, campaigns, and delivery health.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs" onClick={fetchData} disabled={loading}>
+          <Button variant="outline" size="sm" className="h-9 rounded-lg text-xs" onClick={fetchData} disabled={loading}>
             <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", loading && "animate-spin")} />
             Refresh Data
           </Button>
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="h-8 rounded-lg text-xs">
+              <Button size="sm" className="h-9 rounded-lg text-xs">
                 <Plus className="h-3.5 w-3.5 mr-1.5" />
                 New Template
               </Button>
@@ -259,16 +259,16 @@ export default function AdminEmailsPage() {
               <Card key={template.id} className="rounded-xl shadow-sm border overflow-hidden group hover:border-primary/30 transition-all bg-card">
                 <CardHeader className="pb-2 p-4">
                   <div className="flex justify-between items-start mb-1.5">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                       <FileCode className="h-4 w-4" />
                     </div>
                     <div className="flex gap-0.5 -mr-2 -mt-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={() => setPreviewTemplate(template)}>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg" onClick={() => setPreviewTemplate(template)}>
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg">
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
                             <Send className="h-3.5 w-3.5" />
                           </Button>
                         </DialogTrigger>
@@ -285,7 +285,7 @@ export default function AdminEmailsPage() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-destructive hover:text-destructive" onClick={() => { if(confirm('Delete template?')) deleteResendTemplate(template.id).then(fetchData); }}>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive hover:text-destructive" onClick={() => { if(confirm('Delete template?')) deleteResendTemplate(template.id).then(fetchData); }}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -310,7 +310,7 @@ export default function AdminEmailsPage() {
               </div>
               <Dialog open={isContactModalOpen} onOpenChange={setIsContactModalOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-1.5 h-8 rounded-lg text-xs shrink-0">
+                  <Button className="gap-1.5 h-9 rounded-lg text-xs shrink-0">
                     <UserPlus className="h-3.5 w-3.5" />
                     New Contact
                   </Button>
@@ -342,27 +342,28 @@ export default function AdminEmailsPage() {
               </Dialog>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
+              <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
+              <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="pl-4 text-[10px] font-medium text-muted-foreground">Recipient</TableHead>
-                    <TableHead className="text-[10px] font-medium text-muted-foreground">Full Name</TableHead>
-                    <TableHead className="text-[10px] font-medium text-muted-foreground">State</TableHead>
-                    <TableHead className="text-right pr-4 text-[10px] font-medium text-muted-foreground">Actions</TableHead>
+                    <TableHead className="px-3 py-2 text-[10px] font-medium text-muted-foreground">Recipient</TableHead>
+                    <TableHead className="px-3 py-2 text-[10px] font-medium text-muted-foreground">Full Name</TableHead>
+                    <TableHead className="px-3 py-2 text-[10px] font-medium text-muted-foreground">State</TableHead>
+                    <TableHead className="px-3 py-2 text-right text-[10px] font-medium text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {contacts.length > 0 ? contacts.map((contact) => (
                     <TableRow key={contact.id}>
-                      <TableCell className="pl-4 font-medium text-xs">{contact.email}</TableCell>
-                      <TableCell className="text-xs">{contact.firstName} {contact.lastName}</TableCell>
-                      <TableCell>
+                      <TableCell className="px-3 py-2 font-medium text-xs">{contact.email}</TableCell>
+                      <TableCell className="px-3 py-2 text-xs">{contact.firstName} {contact.lastName}</TableCell>
+                      <TableCell className="px-3 py-2">
                         <Badge variant={contact.unsubscribed ? "destructive" : "secondary"} className="text-[10px] font-medium px-1.5 py-0">
                           {contact.unsubscribed ? "Unsubscribed" : "Subscribed"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right pr-4">
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-7 w-7 rounded-lg" onClick={() => handleDeleteContact(contact.id)}>
+                      <TableCell className="px-3 py-2 text-right">
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-9 w-9 rounded-lg" onClick={() => handleDeleteContact(contact.id)}>
                           <UserX className="h-3.5 w-3.5" />
                         </Button>
                       </TableCell>
@@ -376,6 +377,7 @@ export default function AdminEmailsPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -411,7 +413,7 @@ export default function AdminEmailsPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Badge variant="outline" className="text-[10px] font-medium px-1.5 py-0">{domain.region}</Badge>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg" asChild>
                       <a href="https://app.brevo.com/senders" target="_blank"><ExternalLink className="h-3.5 w-3.5" /></a>
                     </Button>
                   </div>

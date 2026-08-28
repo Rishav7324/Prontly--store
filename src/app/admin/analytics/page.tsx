@@ -22,7 +22,9 @@ import {
   Zap,
   Activity,
   ArrowUpRight,
-  Loader2
+  Loader2,
+  TrendingUp,
+  PieChart as PieIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -98,7 +100,7 @@ export default function AdminAnalytics() {
       .slice(0, 3);
 
     if (sorted.length === 0) return [
-      { name: 'Direct Sales', value: 100 },
+      { name: 'Direct Catalog Sales', value: 100 },
     ];
 
     const totalItems = sorted.reduce((sum, s) => sum + s.value, 0);
@@ -110,81 +112,96 @@ export default function AdminAnalytics() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
         <div>
-          <h1 className="text-lg md:text-xl font-semibold">Analytics</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Direct analysis of your store&apos;s performance.</p>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-accent mb-1.5 uppercase">
+            METRICS & DRIFT
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-headline">
+            Store Analytics
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Key performance indicators, gross order value, and category demand distribution.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-1.5 h-8 rounded-lg px-3 text-xs">
-            <Calendar className="h-3.5 w-3.5" />
-            Historical Drift
-          </Button>
-          <Button className="gap-1.5 h-8 rounded-lg px-3 text-xs" onClick={() => window.print()}>
-            <Download className="h-3.5 w-3.5" />
-            Audit Report
-          </Button>
-        </div>
-      </header>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Button 
+          variant="outline" 
+          className="gap-2 h-9.5 rounded-2xl px-4 text-xs font-semibold border-border/80 shadow-2xs hover:bg-muted" 
+          onClick={() => window.print()}
+        >
+          <Download className="h-4 w-4" />
+          Export Report
+        </Button>
+      </div>
+
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Conversion', value: stats.conversion, icon: Zap },
-          { label: 'Average Order', value: `₹${Number(stats.aov).toLocaleString()}`, icon: CreditCard },
-          { label: 'Total Volume', value: `₹${stats.total.toLocaleString()}`, icon: ShoppingBag },
-          { label: 'Paid Orders', value: stats.count, icon: Users }
+          { label: 'Settlement Conversion', value: stats.conversion, icon: Zap, color: 'text-amber-600 bg-amber-500/10', desc: 'Paid vs pipeline intents' },
+          { label: 'Average Order Value', value: `₹${Number(stats.aov).toLocaleString('en-IN')}`, icon: CreditCard, color: 'text-blue-600 bg-blue-500/10', desc: 'Per completed checkout' },
+          { label: 'Total Volume', value: `₹${stats.total.toLocaleString('en-IN')}`, icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', desc: 'All-time gross settlement' },
+          { label: 'Completed Orders', value: stats.count.toString(), icon: ShoppingBag, color: 'text-violet-600 bg-violet-500/10', desc: 'Fulfillment transactions' }
         ].map((item, i) => (
-          <Card key={i} className="rounded-xl shadow-sm p-4">
-            <CardContent className="p-0 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
-                <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
+          <div key={i} className="rounded-3xl border border-border/80 bg-white p-5 shadow-xs flex flex-col justify-between gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{item.label}</span>
+              <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${item.color}`}>
+                <item.icon className="h-4.5 w-4.5" />
               </div>
-              <p className="text-lg md:text-xl font-semibold tabular-nums">
-                {isLoading ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : item.value}
+            </div>
+            <div>
+              <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground font-headline tabular-nums">
+                {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : item.value}
               </p>
-              <p className="flex items-center text-[10px] font-medium text-green-600">
-                <ArrowUpRight className="h-3 w-3 mr-1" />
-                Live feed
-              </p>
-            </CardContent>
-          </Card>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</p>
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 rounded-xl shadow-sm p-4">
-          <CardHeader className="p-0 pb-3">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm font-semibold">Revenue Overview</CardTitle>
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* 6-Month Monthly Trend */}
+        <Card className="lg:col-span-8 rounded-3xl border border-border/80 bg-white shadow-xs overflow-hidden">
+          <CardHeader className="p-5 sm:p-6 pb-2 border-b border-border/60">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base sm:text-lg font-bold font-headline text-foreground">
+                  6-Month Performance Trend
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                  Monthly gross volume and transaction density
+                </CardDescription>
+              </div>
             </div>
-            <CardDescription className="text-xs">Monthly revenue volume vs. order count.</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="h-[260px] w-full pt-3">
+          <CardContent className="p-4 sm:p-6 pt-2">
+            <div className="h-[280px] w-full pt-2">
               {isLoading ? (
-                <div className="h-full w-full flex items-center justify-center bg-muted/30 rounded-lg animate-pulse">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div className="h-full w-full flex items-center justify-center bg-muted/30 rounded-2xl animate-pulse">
+                  <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueData}>
+                  <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.28}/>
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'rgba(0,0,0,0.4)', fontSize: 11}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(0,0,0,0.4)', fontSize: 11}} width={40} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.6} />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: '11px' }}
-                      cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1 }}
+                      contentStyle={{ backgroundColor: '#ffffff', border: '1px solid hsl(var(--border))', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: '600' }}
+                      formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Gross Volume']}
                     />
-                    <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" name="Revenue (INR)" />
-                    <Area type="monotone" dataKey="orders" stroke="hsl(var(--accent))" strokeWidth={2} fillOpacity={0} name="Order Count" />
+                    <Area type="monotone" dataKey="revenue" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRev)" name="Revenue (INR)" />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
@@ -192,10 +209,15 @@ export default function AdminAnalytics() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-sm p-4">
-          <CardHeader className="p-0 pb-3">
-            <CardTitle className="text-sm font-semibold">Category Mix</CardTitle>
-            <CardDescription className="text-xs">Sales distribution across asset classes.</CardDescription>
+        {/* Category Share Donut */}
+        <Card className="lg:col-span-4 rounded-3xl border border-border/80 bg-white shadow-xs p-5 sm:p-6 space-y-4">
+          <CardHeader className="p-0 pb-2 border-b border-border/60">
+            <CardTitle className="text-base font-bold font-headline text-foreground flex items-center gap-2">
+              <PieIcon className="h-4.5 w-4.5 text-accent" /> Category Mix
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+              Sales distribution by asset vertical
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0 flex flex-col items-center">
             <div className="h-[180px] w-full">
@@ -203,32 +225,33 @@ export default function AdminAnalytics() {
                 <PieChart>
                   <Pie
                     data={categoryMix}
-                    innerRadius={50}
-                    outerRadius={75}
+                    innerRadius={52}
+                    outerRadius={76}
                     paddingAngle={6}
                     dataKey="value"
                   >
                     {categoryMix.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? 'hsl(var(--primary))' : index === 1 ? 'hsl(var(--accent))' : '#10b981'} stroke="none" />
+                      <Cell key={`cell-${index}`} fill={index === 0 ? '#f59e0b' : index === 1 ? '#8b5cf6' : '#10b981'} stroke="none" />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)' }} />
+                  <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '12px', border: '1px solid hsl(var(--border))' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="grid grid-cols-1 gap-2 w-full mt-4">
+            <div className="grid grid-cols-1 gap-2 w-full mt-3">
               {categoryMix.map((cat, index) => (
-                <div key={cat.name} className="flex items-center justify-between px-3 py-2 rounded-lg border bg-background">
+                <div key={cat.name} className="flex items-center justify-between p-2.5 rounded-2xl border border-border/60 bg-muted/20">
                   <div className="flex items-center gap-2">
-                    <div className={`h-2 w-2 rounded-full ${index === 0 ? 'bg-primary' : index === 1 ? 'bg-accent' : 'bg-green-500'}`} />
-                    <span className="text-xs font-medium">{cat.name}</span>
+                    <div className={`h-2.5 w-2.5 rounded-full ${index === 0 ? 'bg-amber-500' : index === 1 ? 'bg-violet-500' : 'bg-emerald-500'}`} />
+                    <span className="text-xs font-bold text-foreground capitalize">{cat.name}</span>
                   </div>
-                  <span className="text-[10px] font-medium text-muted-foreground tabular-nums">{cat.value}%</span>
+                  <span className="text-xs font-extrabold text-muted-foreground tabular-nums">{cat.value}%</span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+
       </div>
     </div>
   );

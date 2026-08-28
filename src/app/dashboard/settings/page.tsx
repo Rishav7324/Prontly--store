@@ -177,7 +177,7 @@ Regards,`;
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-12 max-w-4xl">
+      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-12 max-w-4xl">
         <div className="mb-8 flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-lg h-9 w-9">
             <Link href="/dashboard"><ChevronLeft className="h-4 w-4" /></Link>
@@ -246,7 +246,7 @@ Regards,`;
                     <Input 
                       value={formData.displayName} 
                       onChange={(e) => setFormData({...formData, displayName: e.target.value})} 
-                      className="h-9 rounded-lg text-xs"
+                      className="h-10 rounded-lg text-xs"
                       placeholder="e.g. John Doe"
                     />
                   </div>
@@ -258,7 +258,7 @@ Regards,`;
                         placeholder="+1 XXXXX XXXXX" 
                         value={formData.phone} 
                         onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                        className="h-9 rounded-lg text-xs pl-9"
+                        className="h-10 rounded-lg text-xs pl-9"
                       />
                     </div>
                   </div>
@@ -267,7 +267,7 @@ Regards,`;
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                       <select 
-                        className="w-full h-9 border border-input rounded-lg text-xs pl-9 pr-3 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none"
+                        className="w-full h-10 border border-input rounded-lg text-xs pl-9 pr-3 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none"
                         value={formData.language}
                         onChange={(e) => setFormData({...formData, language: e.target.value})}
                       >
@@ -279,7 +279,7 @@ Regards,`;
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[10px] font-medium text-muted-foreground">Account Status</Label>
-                    <div className="h-9 bg-muted/40 border border-dashed border-border rounded-lg flex items-center px-3 gap-2">
+                    <div className="h-10 bg-muted/40 border border-dashed border-border rounded-lg flex items-center px-3 gap-2">
                       <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                       <span className="text-xs font-medium">Active & Compliant</span>
                     </div>

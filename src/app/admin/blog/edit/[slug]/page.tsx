@@ -114,9 +114,9 @@ export default function EditBlogPostPage({ params }: { params: Promise<{ slug: s
   if (!post)
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-3">
-        <AlertCircle className="h-8 w-8 text-destructive opacity-30" />
+        <AlertCircle className="h-9 w-9 text-destructive opacity-30" />
         <h2 className="text-lg md:text-xl font-semibold">Article not found</h2>
-        <Button asChild variant="outline" className="h-8 rounded-lg text-xs"><Link href="/admin/blog">Back to Blog</Link></Button>
+        <Button asChild variant="outline" className="h-9 rounded-lg text-xs"><Link href="/admin/blog">Back to Blog</Link></Button>
       </div>
     );
 

@@ -22,12 +22,12 @@ export default function ContactPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-14 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-14 max-w-6xl">
         <header className="max-w-2xl mb-10">
           <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary px-2 py-0">
             Support Center
           </Badge>
-          <h1 className="text-lg md:text-xl font-semibold font-headline mb-3 leading-snug tracking-tight text-midnight-ink">
+          <h1 className="text-2xl md:text-3xl font-semibold font-headline mb-3 leading-snug tracking-tight text-midnight-ink">
             Get in <span className="text-primary">Touch.</span>
           </h1>
           <p className="text-sm text-slate-blue leading-relaxed">

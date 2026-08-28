@@ -83,7 +83,7 @@ export default function AdminBlog() {
           <h1 className="text-lg md:text-xl font-semibold">Blog Posts</h1>
           <p className="text-xs text-muted-foreground">Manage articles and news updates.</p>
         </div>
-        <Button asChild size="sm" className="h-8 rounded-lg">
+        <Button asChild size="sm" className="h-9 rounded-lg">
           <Link href="/admin/blog/new">
             <Plus className="mr-2 h-4 w-4" />
             New Article
@@ -99,7 +99,7 @@ export default function AdminBlog() {
               placeholder="Search articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 rounded-lg"
+              className="pl-9 h-10 rounded-lg"
             />
           </div>
         </CardHeader>
@@ -111,21 +111,21 @@ export default function AdminBlog() {
               ))}
             </div>
           ) : filteredPosts.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
                   <TableRow>
-                    <TableHead className="pl-4">Title</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Views</TableHead>
-                    <TableHead className="text-right pr-4">Actions</TableHead>
+                    <TableHead className="px-3 py-2">Title</TableHead>
+                    <TableHead className="px-3 py-2">Status</TableHead>
+                    <TableHead className="px-3 py-2">Date</TableHead>
+                    <TableHead className="px-3 py-2">Views</TableHead>
+                    <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPosts.map((post: any) => (
                     <TableRow key={post.id}>
-                      <TableCell className="pl-4 px-3 py-2">
+                      <TableCell className="px-3 py-2">
                         <div className="flex flex-col">
                           <span className="text-xs font-medium line-clamp-1 max-w-[280px]">{post.title}</span>
                           <span className="text-[10px] text-muted-foreground font-mono">/{post.slug}</span>
@@ -145,10 +145,10 @@ export default function AdminBlog() {
                           {post.viewCount || 0}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right pr-4 px-3 py-2">
+                      <TableCell className="px-3 py-2 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -187,7 +187,7 @@ export default function AdminBlog() {
               <FileText className="h-10 w-10 text-muted-foreground mb-3 opacity-20" />
               <h3 className="text-sm font-semibold">No articles found</h3>
               <p className="text-xs text-muted-foreground mt-1 mb-4">Start writing your first blog post to attract more traffic.</p>
-              <Button asChild size="sm" className="h-8 rounded-lg">
+              <Button asChild size="sm" className="h-9 rounded-lg">
                 <Link href="/admin/blog/new">
                   <Plus className="mr-2 h-4 w-4" />
                   New Article

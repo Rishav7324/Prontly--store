@@ -20,7 +20,7 @@ export default function DownloadsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 pb-16 pt-8 max-w-5xl">
+      <main className="flex-1 container mx-auto px-4 pb-16 pt-20 md:pt-24 max-w-5xl">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export default function DownloadsPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-48 rounded-xl bg-card animate-pulse border border-border/60" />
+              <div key={i} className="h-32 rounded-xl bg-card animate-pulse border border-border/60" />
             ))}
           </div>
         ) : error ? (

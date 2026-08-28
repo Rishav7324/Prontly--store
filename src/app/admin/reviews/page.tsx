@@ -63,7 +63,7 @@ export default function AdminReviewsPage() {
           <div className="flex flex-col md:flex-row gap-3 justify-between">
             <div className="relative w-full max-w-xs">
               <select
-                className="w-full bg-background border rounded-lg px-3 h-9 text-xs outline-none focus:ring-1 focus:ring-primary"
+                className="w-full bg-background border rounded-lg px-3 h-10 text-xs outline-none focus:ring-1 focus:ring-primary"
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
               >
@@ -80,7 +80,7 @@ export default function AdminReviewsPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={!selectedProductId}
-                className="pl-9 h-9 rounded-lg"
+                className="pl-9 h-10 rounded-lg"
               />
             </div>
           </div>
@@ -99,23 +99,23 @@ export default function AdminReviewsPage() {
               ))}
             </div>
           ) : filteredReviews.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
                   <TableRow>
-                    <TableHead className="pl-4">Customer</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Comment</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right pr-4">Product</TableHead>
+                    <TableHead className="px-3 py-2">Customer</TableHead>
+                    <TableHead className="px-3 py-2">Rating</TableHead>
+                    <TableHead className="px-3 py-2">Comment</TableHead>
+                    <TableHead className="px-3 py-2">Date</TableHead>
+                    <TableHead className="px-3 py-2 text-right">Product</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredReviews.map((review: any) => (
                     <TableRow key={review.id}>
-                      <TableCell className="pl-4 px-3 py-2">
+                      <TableCell className="px-3 py-2">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-7 w-7 border">
+                          <Avatar className="h-9 w-9 border">
                             <AvatarImage src={review.userAvatar} />
                             <AvatarFallback className="text-xs">{review.userName?.charAt(0)}</AvatarFallback>
                           </Avatar>
@@ -137,8 +137,8 @@ export default function AdminReviewsPage() {
                       <TableCell className="px-3 py-2 text-[10px] text-muted-foreground whitespace-nowrap">
                         {review.createdAt ? format(new Date(review.createdAt), 'MMM dd, HH:mm') : 'N/A'}
                       </TableCell>
-                      <TableCell className="text-right pr-4 px-3 py-2">
-                        <Button variant="ghost" size="sm" asChild className="h-7 rounded-lg text-[10px] font-medium text-primary gap-1">
+                      <TableCell className="px-3 py-2 text-right">
+                        <Button variant="ghost" size="sm" asChild className="h-9 rounded-lg text-[10px] font-medium text-primary gap-1">
                           <Link href="/admin/products" target="_blank">
                             <ExternalLink className="h-3 w-3" /> View Product
                           </Link>

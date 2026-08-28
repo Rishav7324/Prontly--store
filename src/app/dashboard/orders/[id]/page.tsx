@@ -128,7 +128,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-20 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-20 max-w-6xl">
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild className="rounded-lg h-9 w-9">

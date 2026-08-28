@@ -87,7 +87,7 @@ export default function AdminStorage() {
           <h1 className="text-lg md:text-xl font-semibold">Storage</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Browse and manage assets in your Cloudflare R2 bucket.</p>
         </div>
-        <Button onClick={fetchFiles} disabled={loading} variant="outline" className="gap-1.5 h-8 rounded-lg text-xs">
+        <Button onClick={fetchFiles} disabled={loading} variant="outline" className="gap-1.5 h-9 rounded-lg text-xs">
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -118,7 +118,7 @@ export default function AdminStorage() {
               placeholder="Search files..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 h-9 rounded-lg text-xs"
+              className="pl-8 h-10 rounded-lg text-xs"
             />
           </div>
         </div>
@@ -130,41 +130,42 @@ export default function AdminStorage() {
               ))}
             </div>
           ) : filteredFiles.length > 0 ? (
-            <Table>
+            <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
+              <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">File Name</TableHead>
-                  <TableHead className="text-xs">Size</TableHead>
-                  <TableHead className="text-xs">Last Modified</TableHead>
-                  <TableHead className="text-right text-xs">Actions</TableHead>
+                  <TableHead className="px-3 py-2 text-xs">File Name</TableHead>
+                  <TableHead className="px-3 py-2 text-xs">Size</TableHead>
+                  <TableHead className="px-3 py-2 text-xs">Last Modified</TableHead>
+                  <TableHead className="px-3 py-2 text-right text-xs">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFiles.map((file) => (
                   <TableRow key={file.key}>
-                    <TableCell>
+                    <TableCell className="px-3 py-2">
                       <div className="flex items-center gap-2.5">
                         {getFileIcon(file.key)}
                         <span className="font-medium text-xs truncate max-w-[300px]">{file.key}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground tabular-nums">
+                    <TableCell className="px-3 py-2 text-xs text-muted-foreground tabular-nums">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="px-3 py-2 text-xs text-muted-foreground">
                       {format(new Date(file.lastModified), 'MMM dd, yyyy HH:mm')}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="px-3 py-2 text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyToClipboard(file.url)}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg" onClick={() => copyToClipboard(file.url)}>
                           {copiedKey === file.url ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg" asChild>
                           <a href={file.url} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="h-3.5 w-3.5" />
                           </a>
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive" onClick={() => handleDelete(file.key)}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive" onClick={() => handleDelete(file.key)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -173,6 +174,7 @@ export default function AdminStorage() {
                 ))}
               </TableBody>
             </Table>
+              </div>
           ) : (
             <div className="flex h-48 flex-col items-center justify-center text-center p-6 gap-1">
               <Database className="h-10 w-10 text-muted-foreground mb-2 opacity-20" />

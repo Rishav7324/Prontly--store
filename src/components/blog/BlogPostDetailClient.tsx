@@ -90,7 +90,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 pt-28 max-w-4xl space-y-4">
+        <div className="container mx-auto px-4 pt-20 md:pt-24 max-w-4xl space-y-4">
           <div className="h-3 w-24 bg-muted animate-pulse rounded" />
           <div className="h-7 w-full max-w-xl bg-muted animate-pulse rounded-lg" />
           <div className="aspect-video w-full bg-muted animate-pulse rounded-xl" />
@@ -121,7 +121,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-14 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-14 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
 
           {/* STICKY SIDE SHARE - DESKTOP */}
@@ -172,7 +172,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
                     </Badge>
                   ))}
                 </div>
-                <h1 className="text-2xl md:text-2xl font-semibold leading-snug tracking-tight break-words max-w-full">
+                <h1 className="text-2xl md:text-4xl font-semibold leading-snug tracking-tight break-words max-w-full">
                   {post.title}
                 </h1>
               </div>
@@ -195,7 +195,7 @@ export default function BlogPostDetailClient({ slug }: { slug: string }) {
               </div>
             </header>
 
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-muted shadow-sm group">
+            <div className="relative h-[220px] md:h-[360px] w-full overflow-hidden rounded-xl border bg-muted shadow-sm group">
               <Image
                 src={post.featuredImage || `https://picsum.photos/seed/${post.id}/1200/600`}
                 alt={post.title}

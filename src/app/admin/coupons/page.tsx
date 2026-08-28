@@ -113,7 +113,7 @@ export default function AdminCoupons() {
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="h-8 rounded-lg">
+            <Button size="sm" className="h-9 rounded-lg">
               <Plus className="mr-2 h-4 w-4" />
               New Coupon
             </Button>
@@ -140,7 +140,7 @@ export default function AdminCoupons() {
                   <Label htmlFor="type" className="text-[10px] font-medium text-muted-foreground">Type</Label>
                   <select
                     id="type"
-                    className="bg-background border rounded-lg h-9 px-3 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    className="bg-background border rounded-lg h-10 px-3 text-xs outline-none focus:ring-1 focus:ring-primary"
                     value={formData.type}
                     onChange={(e) => setFormData({...formData, type: e.target.value})}
                   >
@@ -196,7 +196,7 @@ export default function AdminCoupons() {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" size="sm" disabled={isSubmitting} className="h-8 rounded-lg">
+                <Button type="submit" size="sm" disabled={isSubmitting} className="h-9 rounded-lg">
                   {isSubmitting ? 'Activating…' : 'Activate Coupon'}
                 </Button>
               </DialogFooter>
@@ -217,7 +217,7 @@ export default function AdminCoupons() {
                 <Badge variant="outline" className="font-mono text-sm py-1 px-2.5 border-dashed border-primary/50 text-primary">
                   {coupon.code}
                 </Badge>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(coupon.id, coupon.code)}>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(coupon.id, coupon.code)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>

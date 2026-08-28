@@ -134,14 +134,14 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   };
 
   if (userLoading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-9 w-9 animate-spin text-primary" /></div>;
   }
 
   if (!profile) {
     return (
       <div className="flex h-screen flex-col items-center justify-center p-4">
         <h1 className="text-lg font-semibold mb-3">Member not found</h1>
-        <Button asChild className="h-8 rounded-lg text-xs"><Link href="/admin/users">Back to Members</Link></Button>
+        <Button asChild className="h-9 rounded-lg text-xs"><Link href="/admin/users">Back to Members</Link></Button>
       </div>
     );
   }
@@ -150,7 +150,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
     <div className="space-y-4">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild className="h-8 w-8 rounded-lg shrink-0">
+          <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-lg shrink-0">
             <Link href="/admin/users"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <Avatar className="h-10 w-10 border">
@@ -168,7 +168,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
 
         <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
           <DialogTrigger asChild>
-            <Button className="h-8 rounded-lg gap-2 text-xs shrink-0">
+            <Button className="h-9 rounded-lg gap-2 text-xs shrink-0">
               <Mail className="h-3.5 w-3.5" />
               Send Outreach Email
             </Button>
@@ -182,7 +182,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-medium text-muted-foreground">Select Template</label>
                 <Select onValueChange={setSelectedTemplateId} value={selectedTemplateId}>
-                  <SelectTrigger className="h-8 rounded-lg text-xs">
+                  <SelectTrigger className="h-9 rounded-lg text-xs">
                     <SelectValue placeholder={loadingTemplates ? "Fetching templates..." : "Choose a message template"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -206,7 +206,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               <Button
                 onClick={handleSendEmail}
                 disabled={isSending || !selectedTemplateId}
-                className="w-full h-8 rounded-lg text-xs"
+                className="w-full h-9 rounded-lg text-xs"
               >
                 {isSending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Send className="h-3.5 w-3.5 mr-2" />}
                 Dispatch to Customer
@@ -254,15 +254,15 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               <p className="text-[10px] font-medium text-muted-foreground mt-0.5">Verified order records for this member.</p>
             </div>
             <CardContent className="p-0 pt-0">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-xs">
+              <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
+                <table className="w-full min-w-[640px] text-xs">
                   <thead className="bg-muted/40 border-y border-border">
                     <tr>
-                      <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Order ID</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Date</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Status</th>
-                      <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Amount</th>
-                      <th className="px-4 py-2.5"></th>
+                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">Order ID</th>
+                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">Date</th>
+                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">Status</th>
+                      <th className="px-3 py-2 text-right font-medium text-muted-foreground">Amount</th>
+                      <th className="px-3 py-2"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -272,18 +272,18 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                       ))
                     ) : orders.map((order: any) => (
                       <tr key={order.id} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-2.5 font-mono font-medium text-primary">#{order.id.slice(-8)}</td>
-                        <td className="px-4 py-2.5 text-muted-foreground">
+                        <td className="px-3 py-2 font-mono font-medium text-primary">#{order.id.slice(-8)}</td>
+                        <td className="px-3 py-2 text-muted-foreground">
                           {order.createdAt ? format(new Date(order.createdAt), 'MMM dd, yyyy') : 'N/A'}
                         </td>
-                        <td className="px-4 py-2.5">
+                        <td className="px-3 py-2">
                           <Badge variant={order.status === 'paid' ? 'default' : 'secondary'} className="text-[10px] font-medium capitalize">
                             {order.status}
                           </Badge>
                         </td>
-                        <td className="px-4 py-2.5 text-right font-semibold">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</td>
-                        <td className="px-4 py-2.5 text-right">
-                          <Button variant="ghost" size="icon" asChild className="h-7 w-7 rounded-lg text-muted-foreground hover:text-primary">
+                        <td className="px-3 py-2 text-right font-semibold">₹{((order.totalAmount || order.total || 0) / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-lg text-muted-foreground hover:text-primary">
                             <Link href={`/admin/orders/${order.id}`}><ArrowUpRight className="h-3.5 w-3.5" /></Link>
                           </Button>
                         </td>
@@ -324,7 +324,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               )}
             </div>
-            <Button className="mt-4 w-full h-8 rounded-lg gap-2 text-xs" variant="outline" asChild>
+            <Button className="mt-4 w-full h-9 rounded-lg gap-2 text-xs" variant="outline" asChild>
               <a href={`mailto:${profile.email}`}>
                 <ExternalLink className="h-3.5 w-3.5" /> Launch Mail Client
               </a>

@@ -39,14 +39,14 @@ export default function AdminSEO() {
           <CardContent className="p-0 space-y-3">
             <div className="rounded-lg bg-background border p-2.5 flex items-center justify-between gap-2">
               <code className="text-xs truncate">{siteUrl}/sitemap.xml</code>
-              <Button variant="ghost" size="icon" asChild className="h-7 w-7 shrink-0">
+              <Button variant="ghost" size="icon" asChild className="h-9 w-9 shrink-0">
                 <a href={`${siteUrl}/sitemap.xml`} target="_blank"><ExternalLink className="h-3.5 w-3.5" /></a>
               </Button>
             </div>
             <p className="text-[10px] font-medium text-muted-foreground">
               Last regenerated: {new Date().toLocaleDateString()}
             </p>
-            <Button size="sm" variant="outline" className="w-full gap-1.5 h-8 rounded-lg text-xs">
+            <Button size="sm" variant="outline" className="w-full gap-1.5 h-9 rounded-lg text-xs">
               <RefreshCw className="h-3 w-3" />
               Force Regenerate
             </Button>
@@ -74,7 +74,7 @@ export default function AdminSEO() {
                 Sitemap: {siteUrl}/sitemap.xml
               </pre>
             </div>
-            <Button size="sm" variant="outline" className="w-full gap-1.5 h-8 rounded-lg text-xs" asChild>
+            <Button size="sm" variant="outline" className="w-full gap-1.5 h-9 rounded-lg text-xs" asChild>
               <a href={`${siteUrl}/robots.txt`} target="_blank"><ExternalLink className="h-3.5 w-3.5" /> View Live</a>
             </Button>
           </CardContent>
@@ -113,7 +113,7 @@ export default function AdminSEO() {
           <CardDescription className="text-xs">Submit your sitemap to Google for faster indexing.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          <Button asChild className="gap-1.5 h-8 rounded-lg px-3 text-xs bg-blue-600 hover:bg-blue-700">
+          <Button asChild className="gap-1.5 h-9 rounded-lg px-3 text-xs bg-blue-600 hover:bg-blue-700">
             <a href="https://search.google.com/search-console" target="_blank">
               Go to Search Console
               <ExternalLink className="h-3.5 w-3.5" />

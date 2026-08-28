@@ -126,12 +126,13 @@ const ProductBreadcrumbs = ({ category, name }: { category: string; name: string
 
 export function ProductDetailClient({ product: hydratedProduct }: { product: any }) {
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [mounted, setMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>(hydratedProduct.images?.[0] || "");
   const [lightbox, setLightbox] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
+  const [justAdded, setJustAdded] = useState(false);
 
   const [liveProduct, setLiveProduct] = useState<any>(null);
   const [liveLoading, setLiveLoading] = useState(false);
@@ -187,7 +188,9 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
 
   const handleAddToCart = () => {
     addItem({ id: product.id, name: product.name, price: product.price, imageUrl: product.images?.[0] || "", category: product.categorySlug || "Asset" });
-    toast({ title: "Added to cart" });
+    setJustAdded(true);
+    toast({ title: "Added to cart", description: product.name });
+    setTimeout(() => setJustAdded(false), 1500);
   };
 
   const handleBuyNow = () => {
@@ -196,256 +199,356 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
   };
 
   const isWishlisted = mounted ? isInWishlist(product.id) : false;
+  const isItemInCart = mounted && items.some((item) => item.id === product.id);
   const discount = product.compareAtPrice > product.price ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100) : 0;
   const savings = product.compareAtPrice > product.price ? product.compareAtPrice - product.price : 0;
 
   const nextImg = () => {
+    if (!product.images?.length) return;
     const next = (imgIndex + 1) % product.images.length;
     setImgIndex(next);
     setSelectedImage(product.images[next]);
   };
   const prevImg = () => {
+    if (!product.images?.length) return;
     const prev = (imgIndex - 1 + product.images.length) % product.images.length;
     setImgIndex(prev);
     setSelectedImage(product.images[prev]);
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background selection:bg-accent/20 selection:text-accent">
       <Navbar />
-      <main className="container mx-auto px-4 pt-16 md:pt-20 pb-24 lg:pb-10 flex-1 max-w-6xl w-full">
+      <main className="container-page pt-20 sm:pt-24 pb-28 lg:pb-16 flex-1 w-full max-w-7xl">
         <ProductBreadcrumbs category={product.categorySlug} name={product.name} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          {/* Gallery */}
-          <div className="lg:col-span-7 space-y-3">
-            <div className="relative aspect-square lg:aspect-[4/3] w-full overflow-hidden rounded-xl border bg-card shadow-sm group">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+          
+          {/* ── LEFT: PRODUCT GALLERY ──────────────────────── */}
+          <div className="lg:col-span-7 space-y-4 min-w-0">
+            {/* Main Featured Image Box */}
+            <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full overflow-hidden rounded-3xl border border-border/80 bg-white shadow-md group">
               <Image
                 src={selectedImage || "https://picsum.photos/seed/placeholder/1200/800"}
                 alt={product.name}
                 fill
-                className="object-cover cursor-zoom-in"
+                className="object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-102"
                 priority
                 onClick={() => setLightbox(true)}
               />
-              {/* Top badges */}
-              <div className="absolute top-3 left-3 flex gap-1.5">
-                <Badge variant="secondary" className="backdrop-blur bg-white/90 text-xs font-medium px-2 py-0.5 rounded-full capitalize">
+              
+              {/* Badges Overlay */}
+              <div className="absolute top-3.5 left-3.5 flex flex-wrap items-center gap-2 z-10">
+                <Badge variant="secondary" className="backdrop-blur-md bg-white/95 text-foreground font-bold text-xs px-3 py-1 rounded-full shadow-xs capitalize">
                   {product.categorySlug}
                 </Badge>
                 {discount > 0 && (
-                  <Badge className="bg-red-500 text-white border-none text-xs font-bold px-2 py-0.5 rounded-full">-{discount}%</Badge>
+                  <Badge className="bg-emerald-600 text-white border-none text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+                    Save {discount}%
+                  </Badge>
                 )}
               </div>
-              {/* Nav arrows */}
+
+              {/* Prev/Next Navigation Controls */}
               {product.images?.length > 1 && (
                 <>
-                  <button onClick={prevImg} className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-white/90 backdrop-blur shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronLeft className="h-4 w-4" />
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); prevImg(); }} 
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-foreground hover:bg-white transition-all opacity-80 hover:opacity-100 active:scale-90"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
-                  <button onClick={nextImg} className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-white/90 backdrop-blur shadow flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRightIcon className="h-4 w-4" />
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); nextImg(); }} 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-foreground hover:bg-white transition-all opacity-80 hover:opacity-100 active:scale-90"
+                    aria-label="Next image"
+                  >
+                    <ChevronRightIcon className="h-5 w-5" />
                   </button>
-                  <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur text-white text-xs px-1.5 py-0.5 rounded-full">
+                  <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-xs">
                     {imgIndex + 1} / {product.images.length}
                   </div>
                 </>
               )}
-              <button onClick={() => setLightbox(true)} className="absolute bottom-2 left-2 h-7 w-7 rounded-full bg-white/90 backdrop-blur shadow flex items-center justify-center">
-                <Eye className="h-3.5 w-3.5" />
+
+              {/* Zoom trigger icon */}
+              <button 
+                onClick={() => setLightbox(true)} 
+                className="absolute bottom-3 left-3 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-foreground hover:bg-white transition-all active:scale-90"
+                aria-label="Expand image"
+              >
+                <Eye className="h-4 w-4" />
               </button>
             </div>
 
+            {/* Thumbnail Carousel */}
             {product.images?.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin snap-x">
+              <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar snap-x">
                 {product.images.map((img: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImage(img)}
                     className={cn(
-                      "relative h-16 w-16 rounded-lg border overflow-hidden shrink-0 snap-start transition-all",
-                      selectedImage === img ? "border-foreground ring-1 ring-foreground/10" : "border-border opacity-70 hover:opacity-100"
+                      "relative h-18 w-24 rounded-2xl border overflow-hidden shrink-0 snap-start transition-all duration-200",
+                      selectedImage === img 
+                        ? "border-accent ring-2 ring-accent/30 shadow-xs" 
+                        : "border-border/70 opacity-70 hover:opacity-100 hover:border-foreground"
                     )}
                   >
-                    <Image src={img} alt={`thumb ${i + 1}`} fill className="object-cover" />
+                    <Image src={img} alt={`Thumbnail ${i + 1}`} fill className="object-cover" sizes="96px" />
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Details */}
-          <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-20 space-y-4">
-              {/* Title */}
+          {/* ── RIGHT: PURCHASING & DETAILS ────────────────── */}
+          <div className="lg:col-span-5 min-w-0">
+            <div className="lg:sticky lg:top-24 space-y-5">
+              
+              {/* Product Header */}
               <div>
-                <h1 className="text-xl md:text-2xl font-bold leading-tight tracking-tight break-words">{product.name}</h1>
-                <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
-                  <span className="inline-flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    <span className="font-semibold">{product.averageRating || "5.0"}</span>
-                    <a href="#reviews" className="text-muted-foreground hover:text-foreground underline">
+                <h1 className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-foreground font-headline break-words">
+                  {product.name}
+                </h1>
+                
+                <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-3 text-xs">
+                  <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    <span className="font-bold text-amber-900">{product.averageRating ? product.averageRating.toFixed(1) : "5.0"}</span>
+                    <a href="#reviews" className="text-muted-foreground hover:text-foreground underline underline-offset-2">
                       ({product.reviewCount || 0} reviews)
                     </a>
+                  </div>
+
+                  <span className="h-3 w-px bg-border/80" />
+
+                  <span className="inline-flex items-center gap-1 font-medium text-muted-foreground">
+                    <Download className="h-3.5 w-3.5" />
+                    {product.salesCount || 0} downloads
                   </span>
-                  <span className="h-3 w-px bg-border" />
-                  <span className="inline-flex items-center gap-1">
-                    <Download className="h-3 w-3 text-muted-foreground" />
-                    {product.salesCount || 0} sales
+
+                  <span className="h-3 w-px bg-border/80 hidden sm:inline" />
+
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Instant Delivery
                   </span>
-                  <span className="h-3 w-px bg-border hidden sm:inline" />
-                  <span className="inline-flex items-center gap-1 text-green-600">
-                    <CheckCircle2 className="h-3 w-3" /> Instant delivery
-                  </span>
-                  {liveLoading && <Loader2 className="ml-auto h-3 w-3 animate-spin text-muted-foreground" />}
+
+                  {liveLoading && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                 </div>
               </div>
 
-              {/* Price card */}
-              <div className="rounded-xl border bg-card p-4 space-y-3">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-2xl font-bold tracking-tight">₹{(product.price / 100).toLocaleString("en-IN")}</span>
+              {/* Price & Checkout Card */}
+              <div className="rounded-3xl border border-border/80 bg-white p-5 sm:p-6 space-y-4 shadow-sm">
+                
+                {/* Price Display */}
+                <div className="flex items-baseline gap-2.5 flex-wrap">
+                  <span className="text-3xl font-extrabold tracking-tight text-foreground font-headline">
+                    ₹{(product.price / 100).toLocaleString("en-IN")}
+                  </span>
                   {product.compareAtPrice > product.price && (
                     <>
-                      <span className="text-sm text-muted-foreground line-through">₹{(product.compareAtPrice / 100).toLocaleString("en-IN")}</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs font-bold">Save ₹{(savings / 100).toLocaleString("en-IN")}</Badge>
+                      <span className="text-sm sm:text-base text-muted-foreground line-through tabular-nums">
+                        ₹{(product.compareAtPrice / 100).toLocaleString("en-IN")}
+                      </span>
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded-md">
+                        Save ₹{(savings / 100).toLocaleString("en-IN")}
+                      </Badge>
                     </>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">One-time payment • Perpetual license • All future updates</p>
 
-                <div className="grid grid-cols-3 gap-2 text-center text-xs py-2 border-y">
-                  <div>
-                    <ShieldCheck className="h-4 w-4 mx-auto text-green-600" />
-                    <p className="font-medium mt-1">Secure</p>
-                    <p className="text-muted-foreground text-[11px]">SSL Checkout</p>
+                <p className="text-xs text-muted-foreground">
+                  One-time purchase • Perpetual commercial license • Free lifetime updates
+                </p>
+
+                {/* Guarantee Micro Grid */}
+                <div className="grid grid-cols-3 gap-2 text-center text-xs py-3 border-y border-border/60">
+                  <div className="p-1">
+                    <ShieldCheck className="h-4.5 w-4.5 mx-auto text-emerald-600" />
+                    <p className="font-bold text-foreground mt-1">100% Safe</p>
+                    <p className="text-muted-foreground text-[10px]">Razorpay PCI</p>
                   </div>
-                  <div>
-                    <Zap className="h-4 w-4 mx-auto text-amber-500" />
-                    <p className="font-medium mt-1">Instant</p>
-                    <p className="text-muted-foreground text-[11px]">Download now</p>
+                  <div className="p-1">
+                    <Zap className="h-4.5 w-4.5 mx-auto text-amber-500" />
+                    <p className="font-bold text-foreground mt-1">Instant</p>
+                    <p className="text-muted-foreground text-[10px]">Cloud R2 Link</p>
                   </div>
-                  <div>
-                    <Package className="h-4 w-4 mx-auto text-blue-500" />
-                    <p className="font-medium mt-1">Updates</p>
-                    <p className="text-muted-foreground text-[11px]">Lifetime free</p>
+                  <div className="p-1">
+                    <Package className="h-4.5 w-4.5 mx-auto text-blue-500" />
+                    <p className="font-bold text-foreground mt-1">Updates</p>
+                    <p className="text-muted-foreground text-[10px]">Lifetime Free</p>
                   </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{product.shortDescription}</p>
+                {product.shortDescription && (
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                    {product.shortDescription}
+                  </p>
+                )}
 
-                <div className="space-y-2">
-                  <Button className="w-full h-11 rounded-lg font-semibold" onClick={handleBuyNow}>
+                {/* Primary CTA Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  <Button 
+                    size="lg"
+                    className="w-full h-12 rounded-2xl font-bold text-sm bg-zinc-950 text-white hover:bg-zinc-800 shadow-md active:scale-[0.98] transition-all" 
+                    onClick={handleBuyNow}
+                  >
                     Buy Now — ₹{(product.price / 100).toLocaleString("en-IN")}
                   </Button>
-                  <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <Button variant="outline" className="h-10 rounded-lg font-medium" onClick={handleAddToCart}>
-                      <ShoppingCart className="mr-1.5 h-4 w-4" /> Add to Cart
+                  
+                  <div className="grid grid-cols-[1fr_auto] gap-2.5">
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="h-11 rounded-2xl font-semibold text-xs sm:text-sm border-border/80 hover:bg-muted active:scale-[0.98] transition-all" 
+                      onClick={handleAddToCart}
+                    >
+                      {justAdded ? (
+                        <>
+                          <Check className="mr-2 h-4 w-4 text-emerald-600" /> Added to Cart
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="mr-2 h-4 w-4" /> {isItemInCart ? 'Add Another' : 'Add to Cart'}
+                        </>
+                      )}
                     </Button>
+                    
                     <Button
                       variant="outline"
-                      className={cn("h-10 w-10 rounded-lg p-0", isWishlisted && "text-red-500 border-red-200 bg-red-50")}
+                      className={cn(
+                        "h-11 w-11 rounded-2xl p-0 border-border/80 active:scale-90 transition-all",
+                        isWishlisted && "text-rose-500 border-rose-200 bg-rose-50/70"
+                      )}
                       onClick={() => toggleItem(product.id)}
+                      aria-label="Toggle wishlist"
                     >
-                      <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
+                      <Heart className={cn("h-4.5 w-4.5", isWishlisted && "fill-current")} />
                     </Button>
                   </div>
-                  <p className="text-center text-[11px] text-muted-foreground flex items-center justify-center gap-1">
-                    <Lock className="h-3 w-3" /> 30-day money-back • No questions asked
+
+                  <p className="text-center text-[11px] text-muted-foreground flex items-center justify-center gap-1.5 pt-1">
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground" /> 30-day money-back guarantee • No questions asked
                   </p>
                 </div>
               </div>
 
-              {/* Meta */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* Technical Metadata Spec Cards */}
+              <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { label: "Format", val: product.fileFormat || "ZIP", icon: Layers },
-                  { label: "Version", val: product.fileVersion || "1.0", icon: Zap },
-                  { label: "License", val: "Perpetual", icon: ShieldCheck },
-                  { label: "Support", val: "Included", icon: MessageSquare },
+                  { label: "File Format", val: product.fileFormat || "ZIP Archive", icon: Layers },
+                  { label: "Current Version", val: `v${product.fileVersion || "1.0"}`, icon: Zap },
+                  { label: "Commercial License", val: "Perpetual", icon: ShieldCheck },
+                  { label: "Tech Support", val: "Included Free", icon: MessageSquare },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-lg border bg-muted/20 p-2.5 flex items-center gap-2">
-                    <item.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <div key={item.label} className="rounded-2xl border border-border/70 bg-white p-3 flex items-center gap-2.5 shadow-2xs">
+                    <div className="h-8 w-8 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
+                      <item.icon className="h-4 w-4 text-accent" />
+                    </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] text-muted-foreground leading-none">{item.label}</p>
-                      <p className="text-xs font-semibold truncate">{item.val}</p>
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground leading-none">{item.label}</p>
+                      <p className="text-xs font-bold text-foreground truncate mt-0.5">{item.val}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-muted-foreground">Share:</span>
+              {/* Share section */}
+              <div className="flex items-center justify-between px-2 pt-1">
+                <span className="text-xs font-semibold text-muted-foreground">Share this asset:</span>
                 <ProductShare product={product} />
               </div>
+
             </div>
           </div>
+
         </div>
 
-        {/* Tabs: Description / Details */}
-        <div className="mt-10">
+        {/* ── TABS: OVERVIEW / SPECS / LICENSE ────────────── */}
+        <div className="mt-14 pt-8 border-t border-border/60">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="h-8 p-1 rounded-lg">
-              <TabsTrigger value="overview" className="text-xs rounded-md">Overview</TabsTrigger>
-              <TabsTrigger value="details" className="text-xs rounded-md">Details</TabsTrigger>
-              <TabsTrigger value="license" className="text-xs rounded-md">License</TabsTrigger>
+            <TabsList className="h-10 p-1 rounded-2xl bg-muted/60 max-w-md">
+              <TabsTrigger value="overview" className="text-xs font-bold rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-xs">
+                Overview & Description
+              </TabsTrigger>
+              <TabsTrigger value="details" className="text-xs font-bold rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-xs">
+                Specifications
+              </TabsTrigger>
+              <TabsTrigger value="license" className="text-xs font-bold rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-xs">
+                Commercial License
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="overview" className="mt-4">
-              <div className="prose-content max-w-none" dangerouslySetInnerHTML={{ __html: product.description || "<p>No description provided.</p>" }} />
+
+            <TabsContent value="overview" className="mt-6">
+              <div className="rounded-3xl border border-border/80 bg-white p-6 sm:p-8 shadow-xs">
+                <div className="prose-content max-w-none" dangerouslySetInnerHTML={{ __html: product.description || "<p>No description provided for this asset.</p>" }} />
+              </div>
             </TabsContent>
-            <TabsContent value="details" className="mt-4">
-              <div className="rounded-lg border overflow-hidden">
+
+            <TabsContent value="details" className="mt-6">
+              <div className="rounded-3xl border border-border/80 bg-white overflow-hidden shadow-xs">
                 <table className="w-full text-sm">
                   <tbody>
                     {[
                       ["Category", product.categorySlug],
-                      ["Format", product.fileFormat || "ZIP"],
-                      ["Version", product.fileVersion || "1.0"],
-                      ["File size", product.fileSize ? `${(product.fileSize / 1024 / 1024).toFixed(1)} MB` : "—"],
-                      ["Sales", String(product.salesCount || 0)],
-                      ["Rating", `${product.averageRating || "5.0"} (${product.reviewCount || 0} reviews)`],
+                      ["Primary Format", product.fileFormat || "ZIP Archive"],
+                      ["Release Version", product.fileVersion || "1.0"],
+                      ["File Size", product.fileSize ? `${(product.fileSize / 1024 / 1024).toFixed(1)} MB` : "Instant Electronic Fulfillment"],
+                      ["Total Downloads", String(product.salesCount || 0)],
+                      ["Community Rating", `${product.averageRating || "5.0"} / 5.0 (${product.reviewCount || 0} reviews)`],
+                      ["Fulfillment", "Instant Cloudflare R2 Download Link"],
                     ].map(([k, v]) => (
-                      <tr key={k} className="border-b last:border-0">
-                        <td className="px-4 py-2.5 bg-muted/30 text-xs font-medium text-muted-foreground w-32">{k}</td>
-                        <td className="px-4 py-2.5 text-sm font-medium">{v}</td>
+                      <tr key={k} className="border-b border-border/60 last:border-0">
+                        <td className="px-5 py-3.5 bg-muted/20 text-xs font-bold uppercase tracking-wider text-muted-foreground w-40">{k}</td>
+                        <td className="px-5 py-3.5 text-xs sm:text-sm font-semibold text-foreground">{v}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </TabsContent>
-            <TabsContent value="license" className="mt-4">
-              <div className="rounded-lg border bg-card p-5 space-y-3">
-                <h4 className="font-semibold flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-green-600" /> Perpetual License
-                </h4>
-                <ul className="text-sm text-muted-foreground space-y-1.5 list-disc pl-5">
-                  <li>Use for personal and commercial projects, unlimited</li>
-                  <li>Lifetime updates included — no renewal</li>
-                  <li>Instant download after payment, 30-day refund</li>
-                  <li>Redistribution or resale not allowed</li>
+
+            <TabsContent value="license" className="mt-6">
+              <div className="rounded-3xl border border-border/80 bg-white p-6 sm:p-8 space-y-4 shadow-xs">
+                <h3 className="text-base font-bold flex items-center gap-2 text-foreground">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600" /> Perpetual Commercial Rights
+                </h3>
+                <ul className="text-xs sm:text-sm text-muted-foreground space-y-2 list-disc pl-5 leading-relaxed">
+                  <li>Use in unlimited personal, commercial, and client production projects.</li>
+                  <li>Lifetime updates included at zero additional cost — no renewal fees ever.</li>
+                  <li>Instant electronic fulfillment after payment with 30-day money-back guarantee.</li>
+                  <li>Direct redistribution, repackaging, or reselling of the raw source files is strictly prohibited.</li>
                 </ul>
-                <p className="text-xs text-muted-foreground pt-2 border-t">
-                  Full terms: <Link href="/terms" className="underline hover:text-foreground">Terms of Service</Link>
+                <p className="text-xs text-muted-foreground pt-3 border-t border-border/50">
+                  For complete licensing questions, visit our <Link href="/terms" className="text-accent underline font-semibold">Terms of Service</Link>.
                 </p>
               </div>
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Reviews */}
-        <section id="reviews" className="mt-10 scroll-mt-20">
+        {/* ── CUSTOMER REVIEWS ───────────────────────────── */}
+        <section id="reviews" className="mt-14 scroll-mt-24">
           <ReviewSystem productId={product.id} productName={product.name} />
         </section>
 
-        {/* Related */}
+        {/* ── RELATED PRODUCTS ───────────────────────────── */}
         {suggestedProducts.length > 0 && (
-          <section className="mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">You may also like</h2>
-              <Button variant="ghost" size="sm" asChild className="h-7 text-xs">
-                <Link href={`/products?category=${product.categorySlug}`} className="flex items-center gap-1">
-                  View all <ArrowRight className="h-3 w-3" />
+          <section className="mt-14 pt-10 border-t border-border/60">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-headline">
+                  You May Also Like
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Complementary digital assets from the {product.categorySlug} category
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild className="rounded-xl text-xs font-semibold h-8.5">
+                <Link href={`/products?category=${product.categorySlug}`} className="flex items-center gap-1.5">
+                  View all <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </Button>
             </div>
@@ -453,39 +556,44 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
           </section>
         )}
 
-        <div className="flex justify-center mt-8">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/products" className="flex items-center gap-1.5 text-xs">
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to Catalog
+        {/* Back navigation */}
+        <div className="flex justify-center mt-12">
+          <Button variant="ghost" size="sm" asChild className="rounded-xl text-xs font-semibold">
+            <Link href="/products" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" /> Back to Catalog
             </Link>
           </Button>
         </div>
       </main>
 
-      {/* Mobile sticky bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 flex items-center gap-3 z-40">
-        <div className="h-10 w-10 rounded-lg overflow-hidden relative shrink-0 border">
+      {/* ── MOBILE STICKY BOTTOM CHECKOUT BAR ─────────────── */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-border/80 shadow-2xl p-3 pb-[calc(env(safe-area-inset-bottom,0.5rem)+0.75rem)] flex items-center gap-3 z-40">
+        <div className="h-11 w-11 rounded-xl overflow-hidden relative shrink-0 border border-border/70">
           <Image src={product.images?.[0] || "https://picsum.photos/seed/placeholder/200/200"} alt="" fill className="object-cover" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold truncate leading-tight">{product.name}</p>
-          <p className="text-sm font-bold">₹{(product.price / 100).toLocaleString("en-IN")}</p>
+          <p className="text-xs font-bold text-foreground truncate leading-tight">{product.name}</p>
+          <p className="text-sm font-extrabold text-foreground tracking-tight">₹{(product.price / 100).toLocaleString("en-IN")}</p>
         </div>
-        <Button size="sm" className="shrink-0 rounded-lg px-4 font-semibold" onClick={handleBuyNow}>
-          Buy
+        <Button size="sm" className="shrink-0 rounded-xl px-5 font-bold text-xs h-10 bg-zinc-950 text-white shadow-xs" onClick={handleBuyNow}>
+          Buy Now
         </Button>
-        <Button size="sm" variant="outline" className="shrink-0 h-9 w-9 p-0 rounded-lg" onClick={handleAddToCart}>
+        <Button size="icon" variant="outline" className="shrink-0 h-10 w-10 rounded-xl border-border/80" onClick={handleAddToCart} aria-label="Add to cart">
           <ShoppingCart className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox Modal */}
       {lightbox && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(false)}>
-          <button className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white" onClick={() => setLightbox(false)}>
-            <X className="h-4 w-4" />
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setLightbox(false)}>
+          <button 
+            className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-colors" 
+            onClick={() => setLightbox(false)}
+            aria-label="Close lightbox"
+          >
+            <X className="h-5 w-5" />
           </button>
-          <div className="relative w-full max-w-4xl aspect-[4/3]">
+          <div className="relative w-full max-w-5xl aspect-[16/10]">
             <Image src={selectedImage} alt={product.name} fill className="object-contain" />
           </div>
         </div>

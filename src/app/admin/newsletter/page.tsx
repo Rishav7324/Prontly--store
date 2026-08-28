@@ -158,13 +158,13 @@ export default function AdminNewsletter() {
           <p className="text-xs text-muted-foreground">Manage your audience and trigger high-scale email broadcasts.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={exportCSV} variant="outline" size="sm" className="h-8 rounded-lg gap-2">
+          <Button onClick={exportCSV} variant="outline" size="sm" className="h-9 rounded-lg gap-2">
             <Download className="h-4 w-4" />
             Export List
           </Button>
           <Dialog open={isCampaignModalOpen} onOpenChange={setIsCampaignModalOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="h-8 rounded-lg gap-2">
+              <Button size="sm" className="h-9 rounded-lg gap-2">
                 <SendHorizontal className="h-4 w-4" />
                 New Campaign
               </Button>
@@ -209,7 +209,7 @@ export default function AdminNewsletter() {
                   onClick={handleBroadcast}
                   disabled={isBroadcasting || !broadcastData.templateId}
                   size="sm"
-                  className="w-full h-8 rounded-lg"
+                  className="w-full h-9 rounded-lg"
                 >
                   {isBroadcasting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <SendHorizontal className="h-4 w-4 mr-2" />}
                   Launch Campaign
@@ -228,7 +228,7 @@ export default function AdminNewsletter() {
               <h3 className="text-xl md:text-2xl font-semibold mt-1">{subscribers.length}</h3>
               <p className="text-[10px] font-medium text-muted-foreground mt-1">Verified Emails</p>
             </div>
-            <Users className="h-8 w-8 text-primary opacity-20" />
+            <Users className="h-9 w-9 text-primary opacity-20" />
           </CardContent>
         </Card>
       </div>
@@ -241,7 +241,7 @@ export default function AdminNewsletter() {
               placeholder="Search by email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 rounded-lg"
+              className="pl-9 h-10 rounded-lg"
             />
           </div>
         </CardHeader>
@@ -253,22 +253,22 @@ export default function AdminNewsletter() {
               ))}
             </div>
           ) : filteredSubscribers.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
                   <TableRow>
-                    <TableHead className="pl-4">Email Address</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Joined On</TableHead>
-                    <TableHead className="text-right pr-4">Actions</TableHead>
+                    <TableHead className="px-3 py-2">Email Address</TableHead>
+                    <TableHead className="px-3 py-2">Source</TableHead>
+                    <TableHead className="px-3 py-2">Joined On</TableHead>
+                    <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredSubscribers.map((sub: any) => (
                     <TableRow key={sub.id} className="transition-colors">
-                      <TableCell className="pl-4 px-3 py-2">
+                      <TableCell className="px-3 py-2">
                         <div className="flex items-center gap-3">
-                          <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center">
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
                             <Mail className="h-3.5 w-3.5 text-primary" />
                           </div>
                           <span className="text-xs font-medium">{sub.email}</span>
@@ -280,8 +280,8 @@ export default function AdminNewsletter() {
                       <TableCell className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
                         {sub.createdAt ? format(new Date(sub.createdAt), 'MMM dd, yyyy') : 'N/A'}
                       </TableCell>
-                      <TableCell className="text-right pr-4 px-3 py-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeSubscriber(sub.email)}>
+                      <TableCell className="px-3 py-2 text-right">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => removeSubscriber(sub.email)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>

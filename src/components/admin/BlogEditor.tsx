@@ -316,7 +316,7 @@ export function BlogEditor({
               <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">
                 <EditorContent editor={editor} />
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-stone-gray/10 px-3 md:px-4 py-2 text-[10px] md:text-[11px] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-stone-gray/10 px-3 md:px-4 py-2 text-[10px] md:text-[10px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1"><Type className="size-3" /> {wordCount.toLocaleString()} words</span>
                 <span>{charCount.toLocaleString()} chars</span>
                 <span className="inline-flex items-center gap-1"><Clock className="size-3" /> {readTime(form.content)}</span>
@@ -330,7 +330,7 @@ export function BlogEditor({
             <div className="hidden min-w-0 xl:block xl:sticky xl:top-24">
               <div className="rounded-2xl border border-stone-gray/10 bg-card p-5 shadow-sm">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary inline-flex items-center gap-1.5">
+                  <p className="text-[9px] font-medium uppercase tracking-wide text-primary inline-flex items-center gap-1.5">
                     <Eye className="size-3" /> Live preview
                   </p>
                   <span className="text-[9px] uppercase tracking-wider text-muted-foreground">As readers see it</span>

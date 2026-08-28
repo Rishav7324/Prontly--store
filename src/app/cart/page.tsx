@@ -13,7 +13,9 @@ import {
   Minus, 
   ArrowRight, 
   ChevronLeft,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Lock
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -36,19 +38,23 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
         <Navbar />
-        <main className="container mx-auto flex-1 px-4 pb-16 pt-36 text-center">
-          <div className="mx-auto max-w-sm space-y-5">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl border border-stone-gray/10 bg-muted/50 shadow-sm">
-              <ShoppingBag className="h-6 w-6 text-muted-foreground opacity-40" />
+        <main className="container-page flex-1 pb-20 pt-28 text-center flex flex-col items-center justify-center">
+          <div className="mx-auto max-w-md space-y-5 bg-white p-8 sm:p-10 rounded-3xl border border-border/80 shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border/70 bg-muted/40 shadow-xs">
+              <ShoppingBag className="h-8 w-8 text-muted-foreground/60" />
             </div>
-            <div className="space-y-1">
-              <h1 className="text-xl font-bold font-headline text-midnight-ink">Your cart is empty</h1>
-              <p className="text-xs text-muted-foreground">You haven't added any digital assets yet.</p>
+            <div className="space-y-1.5">
+              <h1 className="text-2xl font-bold font-headline text-foreground">Your cart is empty</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                You haven't added any digital assets yet. Explore our verified templates, prompts, and frameworks.
+              </p>
             </div>
-            <Button asChild className="h-10 rounded-lg px-6 text-sm font-medium">
-              <Link href="/products">Browse Marketplace</Link>
+            <Button asChild size="lg" className="h-11 rounded-2xl px-7 text-xs sm:text-sm font-bold bg-zinc-950 text-white shadow-sm hover:bg-zinc-800">
+              <Link href="/products" className="flex items-center gap-2">
+                Browse Marketplace <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </main>
@@ -58,103 +64,117 @@ export default function CartPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-background selection:bg-accent/20 selection:text-accent">
       <Navbar />
-      <main className="container mx-auto max-w-5xl flex-1 px-4 pb-12 pt-32">
-        <header className="mb-6 flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full bg-muted/50">
-            <Link href="/products"><ChevronLeft className="h-4 w-4" /></Link>
+      <main className="container-page max-w-6xl flex-1 pb-20 pt-24 sm:pt-28">
+        <header className="mb-8 flex items-center gap-3.5">
+          <Button variant="outline" size="icon" asChild className="h-10 w-10 rounded-2xl bg-white border-border/80 shadow-xs">
+            <Link href="/products" aria-label="Back to catalog"><ChevronLeft className="h-5 w-5" /></Link>
           </Button>
           <div>
-            <h1 className="text-xl font-bold font-headline tracking-tight text-midnight-ink">Shopping Cart</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">{getItemCount()} item{getItemCount() === 1 ? '' : 's'} ready to check out.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold font-headline tracking-tight text-foreground">Shopping Cart</h1>
+            <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
+              {getItemCount()} {getItemCount() === 1 ? 'item' : 'items'} ready for immediate electronic fulfillment
+            </p>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="space-y-3 lg:col-span-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+          
+          {/* Cart items list */}
+          <div className="space-y-3.5 lg:col-span-8">
             {items.map((item) => (
-              <Card key={item.id} className="rounded-xl border-stone-gray/10 bg-white shadow-sm overflow-hidden transition-all hover:shadow-sm">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <Link href="/cart" className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-stone-gray/10 bg-muted">
-                      <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
-                    </Link>
-                    <div className="min-w-0 flex-1 space-y-2.5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-medium text-primary">{item.category}</p>
-                          <h4 className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-midnight-ink">{item.name}</h4>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleRemove(item.id, item.name)}
-                          className="h-7 w-7 shrink-0 text-muted-foreground transition-all hover:bg-destructive/5 hover:text-destructive"
+              <div key={item.id} className="rounded-2xl border border-border/80 bg-white p-4 sm:p-5 shadow-xs transition-all hover:shadow-md">
+                <div className="flex gap-4">
+                  <Link href={`/products/${item.id}`} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-border/70 bg-muted/40 group">
+                    <Image src={item.imageUrl || 'https://picsum.photos/seed/placeholder/200/200'} alt={item.name} fill className="object-cover transition-transform group-hover:scale-105" />
+                  </Link>
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{item.category}</span>
+                        <h2 className="mt-0.5 line-clamp-2 text-sm sm:text-base font-semibold leading-snug text-foreground">
+                          {item.name}
+                        </h2>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleRemove(item.id, item.name)}
+                        className="h-8 w-8 shrink-0 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive rounded-xl"
+                        aria-label="Remove item from cart"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center rounded-xl border border-border/70 bg-muted/50 p-0.5">
+                        <button 
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-white disabled:opacity-30 active:scale-90"
+                          disabled={item.quantity <= 1}
+                          aria-label="Decrease quantity"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-8 text-center text-xs font-bold tabular-nums">{item.quantity}</span>
+                        <button 
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-white active:scale-90"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center rounded-lg border border-stone-gray/10 bg-porcelain-white/50 p-0.5">
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:bg-white"
-                            disabled={item.quantity <= 1}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </button>
-                          <span className="w-8 text-center text-xs font-semibold tabular-nums">{item.quantity}</span>
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:bg-white"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
-                        </div>
-                        <span className="text-sm font-bold tabular-nums text-midnight-ink">
-                          ₹{(item.price / 100 * item.quantity).toLocaleString('en-IN')}
-                        </span>
-                      </div>
+                      <span className="text-base sm:text-lg font-bold tabular-nums text-foreground font-headline">
+                        ₹{((item.price / 100) * item.quantity).toLocaleString('en-IN')}
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 
+          {/* Order summary right column */}
           <div className="lg:col-span-4">
-            <Card className="sticky top-32 rounded-xl border-stone-gray/10 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-semibold font-headline text-midnight-ink">Order Summary</h2>
-              <div className="space-y-2.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+            <div className="sticky top-24 rounded-3xl border border-border/80 bg-white p-6 shadow-sm space-y-5">
+              <h2 className="text-lg font-bold font-headline text-foreground">Order Summary</h2>
+              
+              <div className="space-y-3 text-xs sm:text-sm">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Subtotal ({getItemCount()} items)</span>
+                  <span className="font-semibold text-foreground">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Processing Fee</span>
-                  <span className="font-medium text-green-600">₹0.00</span>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Electronic Delivery Fee</span>
+                  <span className="font-bold text-emerald-600">FREE</span>
                 </div>
-                <div className="flex items-baseline justify-between border-t border-stone-gray/10 pt-3">
-                  <span className="text-xs font-semibold text-midnight-ink">Total</span>
-                  <span className="text-lg font-bold tracking-tight text-primary">₹{(getTotal() / 100).toLocaleString('en-IN')}</span>
+                <div className="flex items-baseline justify-between border-t border-border/60 pt-3.5">
+                  <span className="text-sm font-bold text-foreground">Total Amount</span>
+                  <span className="text-2xl font-extrabold tracking-tight text-foreground font-headline">
+                    ₹{(getTotal() / 100).toLocaleString('en-IN')}
+                  </span>
                 </div>
               </div>
 
-              <div className="mt-5 space-y-3">
-                <Button asChild className="h-10 w-full rounded-lg text-sm font-medium group">
-                  <Link href="/checkout">
+              <div className="space-y-3 pt-2">
+                <Button asChild size="lg" className="h-12 w-full rounded-2xl text-xs sm:text-sm font-bold bg-zinc-950 text-white hover:bg-zinc-800 shadow-md active:scale-[0.98] transition-all">
+                  <Link href="/checkout" className="flex items-center justify-center gap-2">
                     Proceed to Checkout
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
-                <div className="flex items-center justify-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-[10px] text-muted-foreground">Secured by Razorpay</span>
+                
+                <div className="rounded-2xl bg-muted/40 p-3 flex items-center justify-center gap-2 text-center text-[11px] text-muted-foreground">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>Secured by Razorpay • Instant Delivery</span>
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
+
         </div>
       </main>
       <Footer />

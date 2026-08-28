@@ -65,7 +65,7 @@ export default function AdminLogsPage() {
               placeholder="Search logs by email, action, or resource..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 rounded-lg"
+              className="pl-9 h-10 rounded-lg"
             />
           </div>
         </CardHeader>
@@ -77,11 +77,11 @@ export default function AdminLogsPage() {
               ))}
             </div>
           ) : filteredLogs.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader className="bg-muted/30">
                   <TableRow>
-                    <TableHead className="pl-4">Time</TableHead>
+                    <TableHead className="px-3 py-2">Time</TableHead>
                     <TableHead>Admin</TableHead>
                     <TableHead>Action</TableHead>
                     <TableHead>Resource</TableHead>
@@ -91,7 +91,7 @@ export default function AdminLogsPage() {
                 <TableBody>
                   {filteredLogs.map((log: any) => (
                     <TableRow key={log.id} className="transition-colors">
-                      <TableCell className="pl-4 px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
+                      <TableCell className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
                         {log.timestamp ? format(new Date(log.timestamp), 'MMM dd, HH:mm:ss') : 'Just now'}
                       </TableCell>
                       <TableCell className="px-3 py-2">

@@ -92,10 +92,10 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <Navbar />
-      <main className="container mx-auto max-w-5xl flex-1 px-4 pb-12 pt-32">
+      <main className="container mx-auto max-w-5xl flex-1 px-4 pb-12 pt-20">
         <header className="mb-6 flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-full bg-muted/50">
             <Link href="/cart"><ChevronLeft className="h-4 w-4" /></Link>
@@ -110,30 +110,30 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-7">
-            <Card className="rounded-xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
+            <Card className="rounded-xl border-border bg-white shadow-sm overflow-hidden">
               <CardContent className="space-y-4 p-5">
-                <div className="flex items-center justify-between border-b border-stone-gray/10 pb-3">
+                <div className="flex items-center justify-between border-b border-border pb-3">
                   <h3 className="text-sm font-semibold font-headline text-midnight-ink">Account Details</h3>
                   <Badge variant="outline" className="border-primary/20 px-2 py-0.5 text-[10px] text-primary">Verified</Badge>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Full Name</Label>
-                    <div className="flex h-10 items-center rounded-lg border border-transparent bg-muted/30 px-3 text-xs font-medium">
-                      {user?.displayName || 'Creator'}
+                    <div className="flex h-10 items-center truncate rounded-lg border border-border bg-muted/30 px-3 text-xs font-medium">
+                      <span className="truncate">{user?.displayName || 'Creator'}</span>
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Email Address</Label>
-                    <div className="flex h-10 items-center rounded-lg border border-transparent bg-muted/30 px-3 text-xs font-medium">
-                      {user?.email}
+                    <div className="flex h-10 items-center rounded-lg border border-border bg-muted/30 px-3 text-xs font-medium overflow-hidden">
+                      <span className="truncate" title={user?.email || ''}>{user?.email}</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
+            <Card className="rounded-xl border-border bg-white shadow-sm overflow-hidden">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-center gap-2 text-primary">
                   <Zap className="h-4 w-4" />
@@ -156,7 +156,7 @@ export default function CheckoutPage() {
                       type="button"
                       onClick={() => setAppliedCoupon(null)}
                       aria-label={`Remove coupon ${appliedCoupon.code}`}
-                      className="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-green-100"
+                      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-green-100"
                     >
                       <X className="h-3.5 w-3.5 text-green-600" />
                     </button>
@@ -169,13 +169,13 @@ export default function CheckoutPage() {
                       onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                       onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                       disabled={isValidating}
-                      className="h-10 rounded-lg border-stone-gray/10"
+                      className="h-10 rounded-lg border-border"
                     />
                     <Button
                       variant="outline"
                       onClick={handleApplyCoupon}
                       disabled={isValidating || !couponInput.trim()}
-                      className="h-10 rounded-lg px-4 text-sm font-medium"
+                      className="h-10 rounded-lg border-border px-4 text-sm font-medium"
                     >
                       {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
                     </Button>
@@ -194,6 +194,9 @@ export default function CheckoutPage() {
                 {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
                 {isProcessing ? 'Processing...' : `Pay Now · ${formatPrice(breakdown.total)}`}
               </Button>
+              <Link href="/cart" className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+                Edit cart
+              </Link>
               <p className="text-[10px] text-muted-foreground">
                 Instant fulfillment • SSL encrypted
               </p>
@@ -201,7 +204,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="lg:col-span-5">
-            <Card className="sticky top-32 rounded-xl border-stone-gray/10 bg-white p-5 shadow-sm overflow-hidden">
+            <Card className="sticky top-20 rounded-xl border-border bg-white p-5 shadow-sm overflow-hidden">
               <h4 className="mb-4 text-sm font-semibold font-headline text-midnight-ink">Order Summary</h4>
               <div className="space-y-3">
                 {items.map((item) => (
@@ -214,7 +217,7 @@ export default function CheckoutPage() {
                   </div>
                 ))}
                 
-                <div className="space-y-2 border-t border-stone-gray/10 pt-3">
+                <div className="space-y-2 border-t border-border pt-3">
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">{formatPrice(breakdown.subtotal)}</span>
@@ -225,7 +228,7 @@ export default function CheckoutPage() {
                       <span className="font-medium text-green-600">−{formatPrice(breakdown.discount)}</span>
                     </div>
                   )}
-                  <div className="flex items-baseline justify-between border-t border-stone-gray/10 pt-3">
+                  <div className="flex items-baseline justify-between border-t border-border pt-3">
                     <span className="text-xs font-semibold text-midnight-ink">Total</span>
                     <span className="text-lg font-bold tracking-tight text-primary">
                       {formatPrice(breakdown.total)}

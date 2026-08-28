@@ -53,14 +53,14 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   };
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-9 w-9 animate-spin text-primary" /></div>;
   }
 
   if (!order) {
     return (
       <div className="flex h-screen flex-col items-center justify-center p-4">
         <h1 className="text-lg font-semibold mb-3">Order not found</h1>
-        <Button asChild className="h-8 rounded-lg text-xs"><Link href="/admin/orders">Back to Orders</Link></Button>
+        <Button asChild className="h-9 rounded-lg text-xs"><Link href="/admin/orders">Back to Orders</Link></Button>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     <div className="space-y-4">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" size="icon" asChild className="h-8 w-8 rounded-lg shrink-0">
+          <Button variant="ghost" size="icon" asChild className="h-9 w-9 rounded-lg shrink-0">
             <Link href="/admin/orders"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div className="min-w-0">
@@ -81,12 +81,12 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" className="h-8 rounded-lg gap-2 text-xs" onClick={() => window.print()}>
+          <Button variant="outline" className="h-9 rounded-lg gap-2 text-xs" onClick={() => window.print()}>
             <Printer className="h-3.5 w-3.5" /> Print Invoice
           </Button>
           <div className="flex items-center gap-1">
-            <Button size="sm" className="h-8 rounded-lg px-3 text-xs" variant={order.status === 'paid' ? 'default' : 'ghost'} onClick={() => updateStatus('paid')}>Paid</Button>
-            <Button size="sm" className="h-8 rounded-lg px-3 text-xs" variant={order.status === 'refunded' ? 'destructive' : 'ghost'} onClick={() => updateStatus('refunded')}>Refund</Button>
+            <Button size="sm" className="h-9 rounded-lg px-3 text-xs" variant={order.status === 'paid' ? 'default' : 'ghost'} onClick={() => updateStatus('paid')}>Paid</Button>
+            <Button size="sm" className="h-9 rounded-lg px-3 text-xs" variant={order.status === 'refunded' ? 'destructive' : 'ghost'} onClick={() => updateStatus('refunded')}>Refund</Button>
           </div>
         </div>
       </header>
@@ -122,23 +122,23 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
               <p className="text-[10px] font-medium text-muted-foreground mt-0.5">{order.items?.length || 0} item(s) in this order.</p>
             </div>
             <CardContent className="p-0 pt-0">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-xs">
+              <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
+                <table className="w-full min-w-[640px] text-xs">
                   <thead className="bg-muted/40 border-y border-border">
                     <tr>
-                      <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Product</th>
-                      <th className="px-4 py-2.5 text-center font-medium text-muted-foreground">Qty</th>
-                      <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Unit Price</th>
-                      <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Total</th>
+                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">Product</th>
+                      <th className="px-3 py-2 text-center font-medium text-muted-foreground">Qty</th>
+                      <th className="px-3 py-2 text-right font-medium text-muted-foreground">Unit Price</th>
+                      <th className="px-3 py-2 text-right font-medium text-muted-foreground">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {order.items?.map((item: any) => (
                       <tr key={item.id || item.productId} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-2.5 font-medium">{item.productName}</td>
-                        <td className="px-4 py-2.5 text-center text-muted-foreground">{item.quantity}</td>
-                        <td className="px-4 py-2.5 text-right text-muted-foreground">₹{((item.price || 0) / 100).toLocaleString('en-IN')}</td>
-                        <td className="px-4 py-2.5 text-right font-semibold">₹{(((item.price || 0) * (item.quantity || 1)) / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-3 py-2 font-medium">{item.productName}</td>
+                        <td className="px-3 py-2 text-center text-muted-foreground">{item.quantity}</td>
+                        <td className="px-3 py-2 text-right text-muted-foreground">₹{((item.price || 0) / 100).toLocaleString('en-IN')}</td>
+                        <td className="px-3 py-2 text-right font-semibold">₹{(((item.price || 0) * (item.quantity || 1)) / 100).toLocaleString('en-IN')}</td>
                       </tr>
                     ))}
                   </tbody>

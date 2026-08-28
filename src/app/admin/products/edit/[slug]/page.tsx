@@ -39,7 +39,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
         <AlertCircle className="h-10 w-10 text-destructive opacity-40" />
         <h2 className="text-lg md:text-xl font-semibold">Product not found</h2>
         <p className="text-xs text-muted-foreground">The asset with identifier &quot;{slug}&quot; could not be resolved.</p>
-        <Button asChild variant="outline" className="h-8 rounded-lg text-xs">
+        <Button asChild variant="outline" className="h-9 rounded-lg text-xs">
           <Link href="/admin/products">Back to Products</Link>
         </Button>
       </div>

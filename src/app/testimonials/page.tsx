@@ -20,13 +20,13 @@ export default function TestimonialsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-14 max-w-5xl">
+      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-14 max-w-5xl">
         <header className="max-w-xl mb-10">
           <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary bg-primary/5 px-2 py-0">
             <Sparkles className="h-3 w-3 mr-1" />
             Verified Customer Stories
           </Badge>
-          <h1 className="text-lg md:text-xl font-semibold font-headline mb-3 leading-snug tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-semibold font-headline mb-3 leading-snug tracking-tight">
             The Wall of <span className="text-primary">Love.</span>
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">

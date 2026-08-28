@@ -14,7 +14,12 @@ import {
   Loader2,
   Home,
   CreditCard,
-  Server
+  Server,
+  Settings,
+  Mail,
+  Receipt,
+  Sparkles,
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logAdminAction } from '@/lib/admin-logs';
@@ -35,6 +40,8 @@ export default function AdminSettings() {
     siteName: 'Prontly Store',
     siteDescription: 'Premium Digital Asset Marketplace',
     logoUrl: '',
+    contactEmail: '',
+    gstNumber: '',
     razorpayKeyId: '',
     announcementBar: { isActive: false, text: '', link: '', backgroundColor: '#5b52d6', textColor: '#ffffff' },
     homepageHeroCopy: { headline: "", subheadline: "", badge: "" },
@@ -72,7 +79,7 @@ export default function AdminSettings() {
         adminId: user.uid, adminEmail: user.email || 'unknown',
         action: 'UPDATE', resourceType: 'SETTINGS', resourceId: 'main', details: { type: 'global_config' }
       });
-      toast({ title: "Settings saved" });
+      toast({ title: "Settings Saved", description: "Global store configurations updated successfully." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Save Failed", description: error?.message });
     } finally {
@@ -80,128 +87,234 @@ export default function AdminSettings() {
     }
   };
 
-  if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 pb-16">
-      <header className="flex items-center justify-between">
+    <div className="space-y-6 pb-12">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
         <div>
-          <h1 className="text-lg md:text-xl font-semibold">Store Settings</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Global configuration for your digital marketplace.</p>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-bold text-accent mb-1.5 uppercase">
+            STORE ENGINE
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-headline">
+            System Settings
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Configure store branding, payment gateway credentials, and automated notifications.
+          </p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving} className="gap-1.5 h-8 rounded-lg px-3 text-xs">
-          {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving} 
+          className="h-10 rounded-2xl px-5 text-xs font-bold bg-zinc-950 text-white hover:bg-zinc-800 shadow-md active:scale-[0.98] transition-all gap-2"
+        >
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Changes
         </Button>
-      </header>
+      </div>
 
-      <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 rounded-lg h-auto flex flex-wrap">
-          <TabsTrigger value="general" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><Globe className="h-3.5 w-3.5" /> General</TabsTrigger>
-          <TabsTrigger value="homepage" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><Home className="h-3.5 w-3.5" /> Homepage</TabsTrigger>
-          <TabsTrigger value="payments" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><CreditCard className="h-3.5 w-3.5" /> Payments</TabsTrigger>
-          <TabsTrigger value="email" className="gap-1.5 px-3 py-1.5 rounded-md text-xs"><Server className="h-3.5 w-3.5" /> SMTP</TabsTrigger>
+      {/* Tabs */}
+      <Tabs defaultValue="general" className="space-y-5">
+        <TabsList className="bg-muted/50 p-1.5 rounded-2xl h-auto flex flex-wrap gap-1 border border-border/60">
+          <TabsTrigger value="general" className="gap-2 px-3.5 py-2 rounded-xl text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-xs">
+            <Globe className="h-3.5 w-3.5 text-accent" /> General Branding
+          </TabsTrigger>
+          <TabsTrigger value="homepage" className="gap-2 px-3.5 py-2 rounded-xl text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-xs">
+            <Home className="h-3.5 w-3.5 text-accent" /> Hero Copy
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2 px-3.5 py-2 rounded-xl text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-xs">
+            <CreditCard className="h-3.5 w-3.5 text-accent" /> Gateway
+          </TabsTrigger>
+          <TabsTrigger value="email" className="gap-2 px-3.5 py-2 rounded-xl text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-xs">
+            <Server className="h-3.5 w-3.5 text-accent" /> SMTP Sender
+          </TabsTrigger>
+          <TabsTrigger value="invoices" className="gap-2 px-3.5 py-2 rounded-xl text-xs font-bold data-[state=active]:bg-white data-[state=active]:shadow-xs">
+            <Receipt className="h-3.5 w-3.5 text-accent" /> Invoice Specs
+          </TabsTrigger>
         </TabsList>
 
+        {/* Tab 1: General */}
         <TabsContent value="general" className="space-y-4">
-          <Card className="rounded-xl shadow-sm p-4 border-0">
-            <CardHeader className="p-0 pb-3 space-y-0.5">
-              <CardTitle className="text-sm font-semibold">Store Identity</CardTitle>
-              <CardDescription className="text-xs">Basic branding shown across your storefront.</CardDescription>
+          <Card className="rounded-3xl border border-border/80 bg-white shadow-xs p-5 sm:p-6">
+            <CardHeader className="p-0 pb-4 border-b border-border/60">
+              <CardTitle className="text-base font-bold font-headline text-foreground">
+                Store Identity & Tax
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Branding elements displayed across the customer-facing storefront and emails.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-0 space-y-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="siteName" className="text-[10px] font-medium text-muted-foreground">Site Name</Label>
-                <Input id="siteName" value={formData.siteName || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+            <CardContent className="p-0 pt-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="siteName" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Store Name</Label>
+                  <Input id="siteName" value={formData.siteName || ''} onChange={handleChange} className="h-10 rounded-xl text-xs" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contactEmail" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Support Contact Email</Label>
+                  <Input id="contactEmail" value={formData.contactEmail || ''} onChange={handleChange} className="h-10 rounded-xl text-xs" />
+                </div>
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="siteDescription" className="text-[10px] font-medium text-muted-foreground">Site Description</Label>
-                <Input id="siteDescription" value={formData.siteDescription || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
+
+              <div className="space-y-1.5">
+                <Label htmlFor="siteDescription" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Site Description (SEO)</Label>
+                <Input id="siteDescription" value={formData.siteDescription || ''} onChange={handleChange} className="h-10 rounded-xl text-xs" />
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="logoUrl" className="text-[10px] font-medium text-muted-foreground">Logo URL</Label>
-                <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="contactEmail" className="text-[10px] font-medium text-muted-foreground">Contact Email</Label>
-                <Input id="contactEmail" value={formData.contactEmail || ''} onChange={handleChange} className="h-9 rounded-lg text-xs" />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="gstNumber" className="text-[10px] font-medium text-muted-foreground">GST Number</Label>
-                <Input id="gstNumber" value={formData.gstNumber || ''} onChange={handleChange} className="h-9 rounded-lg text-xs font-mono" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="logoUrl" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Storefront Logo URL</Label>
+                  <Input id="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="h-10 rounded-xl text-xs font-mono" placeholder="https://..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="gstNumber" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">GSTIN / Tax Identification</Label>
+                  <Input id="gstNumber" value={formData.gstNumber || ''} onChange={handleChange} className="h-10 rounded-xl text-xs font-mono" placeholder="22AAAAA0000A1Z5" />
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Tab 2: Homepage */}
         <TabsContent value="homepage" className="space-y-4">
-          <Card className="rounded-xl shadow-sm p-4 border-0">
-            <CardHeader className="p-0 pb-3 space-y-0.5">
-              <CardTitle className="text-sm font-semibold">Hero Copy</CardTitle>
-              <CardDescription className="text-xs">Headline content shown on the storefront homepage.</CardDescription>
+          <Card className="rounded-3xl border border-border/80 bg-white shadow-xs p-5 sm:p-6">
+            <CardHeader className="p-0 pb-4 border-b border-border/60">
+              <CardTitle className="text-base font-bold font-headline text-foreground">
+                Homepage Hero Text
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Top landing section marketing messaging.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-0 space-y-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="headline" className="text-[10px] font-medium text-muted-foreground">Headline</Label>
+            <CardContent className="p-0 pt-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="headline" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Primary Headline</Label>
                 <Input
                   id="headline"
                   value={formData.homepageHeroCopy?.headline || ''}
                   onChange={(e) => setFormData((prev: any) => ({ ...prev, homepageHeroCopy: { ...prev.homepageHeroCopy, headline: e.target.value } }))}
-                  className="h-9 rounded-lg text-xs"
+                  className="h-10 rounded-xl text-xs"
+                  placeholder="Master AI with Precision-Crafted Prompts"
                 />
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="subheadline" className="text-[10px] font-medium text-muted-foreground">Subheadline</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="subheadline" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Subheadline</Label>
                 <Input
                   id="subheadline"
                   value={formData.homepageHeroCopy?.subheadline || ''}
                   onChange={(e) => setFormData((prev: any) => ({ ...prev, homepageHeroCopy: { ...prev.homepageHeroCopy, subheadline: e.target.value } }))}
-                  className="h-9 rounded-lg text-xs"
+                  className="h-10 rounded-xl text-xs"
+                  placeholder="Verified, production-tested prompts and templates."
                 />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Tab 3: Payments */}
         <TabsContent value="payments" className="space-y-4">
-          <Card className="rounded-xl shadow-sm p-4 border-0">
-            <CardHeader className="p-0 pb-3 space-y-0.5">
-              <CardTitle className="text-sm font-semibold">Payment Gateway</CardTitle>
-              <CardDescription className="text-xs">Credentials for processing checkout payments.</CardDescription>
+          <Card className="rounded-3xl border border-border/80 bg-white shadow-xs p-5 sm:p-6">
+            <CardHeader className="p-0 pb-4 border-b border-border/60">
+              <CardTitle className="text-base font-bold font-headline text-foreground">
+                Razorpay Payment Gateway
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Public API credentials for the Razorpay Checkout SDK.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="grid gap-1.5">
-                <Label htmlFor="razorpayKeyId" className="text-[10px] font-medium text-muted-foreground">Razorpay Key ID</Label>
-                <Input id="razorpayKeyId" value={formData.razorpayKeyId || ''} onChange={handleChange} className="h-9 rounded-lg text-xs font-mono" />
+            <CardContent className="p-0 pt-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="razorpayKeyId" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Razorpay Key ID</Label>
+                <Input 
+                  id="razorpayKeyId" 
+                  value={formData.razorpayKeyId || ''} 
+                  onChange={handleChange} 
+                  className="h-10 rounded-xl text-xs font-mono" 
+                  placeholder="rzp_test_..." 
+                />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Tab 4: Email */}
         <TabsContent value="email" className="space-y-4">
-          <Card className="rounded-xl shadow-sm p-4 border-0">
-            <CardHeader className="p-0 pb-3 space-y-0.5">
-              <CardTitle className="text-sm font-semibold">Verified Sender</CardTitle>
-              <CardDescription className="text-xs">Identity used for transactional and broadcast email.</CardDescription>
+          <Card className="rounded-3xl border border-border/80 bg-white shadow-xs p-5 sm:p-6">
+            <CardHeader className="p-0 pb-4 border-b border-border/60">
+              <CardTitle className="text-base font-bold font-headline text-foreground">
+                Email Dispatch Identity
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Address and name used for order receipts and download link delivery.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-0 space-y-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="fromEmail" className="text-[10px] font-medium text-muted-foreground">From Email</Label>
-                <Input
-                  id="fromEmail"
-                  value={formData.emailSettings?.fromEmail || ''}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, emailSettings: { ...prev.emailSettings, fromEmail: e.target.value } }))}
-                  className="h-9 rounded-lg text-xs font-mono"
-                />
+            <CardContent className="p-0 pt-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="fromEmail" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">From Address</Label>
+                  <Input
+                    id="fromEmail"
+                    value={formData.emailSettings?.fromEmail || ''}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, emailSettings: { ...prev.emailSettings, fromEmail: e.target.value } }))}
+                    className="h-10 rounded-xl text-xs font-mono"
+                    placeholder="orders@prontly.store"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="senderName" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sender Display Name</Label>
+                  <Input
+                    id="senderName"
+                    value={formData.emailSettings?.senderName || ''}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, emailSettings: { ...prev.emailSettings, senderName: e.target.value } }))}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="Prontly Store"
+                  />
+                </div>
               </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="senderName" className="text-[10px] font-medium text-muted-foreground">Sender Name</Label>
-                <Input
-                  id="senderName"
-                  value={formData.emailSettings?.senderName || ''}
-                  onChange={(e) => setFormData((prev: any) => ({ ...prev, emailSettings: { ...prev.emailSettings, senderName: e.target.value } }))}
-                  className="h-9 rounded-lg text-xs"
-                />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 5: Invoices */}
+        <TabsContent value="invoices" className="space-y-4">
+          <Card className="rounded-3xl border border-border/80 bg-white shadow-xs p-5 sm:p-6">
+            <CardHeader className="p-0 pb-4 border-b border-border/60">
+              <CardTitle className="text-base font-bold font-headline text-foreground">
+                PDF Invoice Configuration
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Business details printed on customer tax invoices.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 pt-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Business Legal Name</Label>
+                  <Input
+                    value={formData.invoiceSettings?.businessName || ''}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, invoiceSettings: { ...prev.invoiceSettings, businessName: e.target.value } }))}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="Prontly Technologies Pvt Ltd"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Registered Address</Label>
+                  <Input
+                    value={formData.invoiceSettings?.address || ''}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, invoiceSettings: { ...prev.invoiceSettings, address: e.target.value } }))}
+                    className="h-10 rounded-xl text-xs"
+                    placeholder="Bengaluru, Karnataka, India"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

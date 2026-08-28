@@ -63,15 +63,15 @@ function SuccessContent() {
 
   if (!user || isLoading || !order) {
     return (
-      <div className="flex h-[70vh] items-center justify-center">
+      <div className="flex h-[55vh] max-h-[600px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] items-start sm:items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md rounded-xl border border-border/60 bg-card shadow-sm">
+    <main className="flex min-h-[calc(100vh-4rem)] items-start sm:items-center justify-center overflow-hidden px-4 py-10">
+      <div className="w-full max-w-[calc(100vw-32px)] md:max-w-md rounded-t-[2rem] rounded-b-xl md:rounded-[3rem] border border-border/60 bg-card shadow-sm overflow-hidden">
         <div className="p-5 flex flex-col items-center text-center">
           <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-500" />
 
@@ -132,11 +132,11 @@ function SuccessContent() {
 
 export default function OrderSuccessPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <Navbar />
       <Suspense
         fallback={
-          <div className="flex h-screen items-center justify-center">
+          <div className="flex h-[55vh] max-h-[600px] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         }

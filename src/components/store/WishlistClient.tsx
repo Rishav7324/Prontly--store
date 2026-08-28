@@ -70,7 +70,7 @@ export function WishlistClient() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-4 rounded-xl border border-dashed border-stone-gray/20 bg-muted/5 py-14 text-center">
+        <div className="flex flex-col items-center justify-center space-y-4 rounded-xl border border-dashed border-border bg-muted/5 py-14 text-center overflow-hidden">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Heart className="h-5 w-5 text-muted-foreground opacity-40" />
           </div>

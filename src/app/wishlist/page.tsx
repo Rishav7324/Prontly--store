@@ -15,9 +15,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function WishlistPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-16">
+      <main className="flex-1 container mx-auto max-w-5xl px-4 pb-12 pt-20">
         <WishlistClient />
       </main>
       <Footer />

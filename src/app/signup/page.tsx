@@ -127,7 +127,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-5 py-10">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="mb-4 flex items-center gap-2 group">
@@ -145,7 +145,7 @@ export default function SignupPage() {
           <p className="mt-1 text-xs text-muted-foreground">Join the marketplace in seconds</p>
         </div>
 
-        <Card className="rounded-xl border-stone-gray/10 bg-white shadow-sm overflow-hidden">
+        <Card className="rounded-xl border-stone-gray/10 bg-card shadow-sm overflow-hidden">
           <CardHeader className="p-5 pb-3 space-y-1">
             <CardTitle className="text-sm font-semibold">New account</CardTitle>
             <CardDescription className="text-xs">Enter your details below</CardDescription>
@@ -222,13 +222,13 @@ export default function SignupPage() {
                 <span className="w-full border-t border-stone-gray/10" />
               </div>
               <div className="relative flex justify-center text-[10px] text-muted-foreground">
-                <span className="bg-white px-3">or</span>
+                <span className="bg-card px-3">or</span>
               </div>
             </div>
 
             <Button 
               variant="outline" 
-              className="h-10 w-full rounded-lg border-stone-gray/20 bg-white text-sm font-medium hover:bg-porcelain-white" 
+              className="h-10 w-full rounded-lg border-stone-gray/20 bg-card text-sm font-medium hover:bg-porcelain-white" 
               onClick={handleGoogleSignup} 
               disabled={loading}
             >
