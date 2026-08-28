@@ -105,22 +105,30 @@ function SuccessContent() {
           )}
 
           <div className="mt-5 grid w-full grid-cols-1 gap-2">
-            <Button asChild className="h-10 rounded-lg w-full sm:w-auto font-medium">
+            <Button asChild className="h-10 rounded-xl w-full font-bold bg-zinc-950 text-white hover:bg-zinc-800 shadow-xs">
               <Link href="/dashboard/downloads">Go to My Downloads</Link>
             </Button>
 
-            {order.invoicePdfBase64 ? (
-              <Button
-                variant="outline"
-                className="h-10 rounded-lg w-full sm:w-auto"
-                onClick={() => downloadInvoice(order.invoicePdfBase64 as string, orderId || '')}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                View invoice
-              </Button>
-            ) : null}
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl w-full border-border/80 font-semibold shadow-2xs hover:bg-muted"
+              onClick={async () => {
+                try {
+                  const { generateInvoicePdf } = await import('@/lib/payment/invoice');
+                  const pdfBase64 = await generateInvoicePdf(order);
+                  downloadInvoice(pdfBase64, order.id || orderId || 'order');
+                } catch (err) {
+                  if (order.invoicePdfBase64) {
+                    downloadInvoice(order.invoicePdfBase64 as string, orderId || '');
+                  }
+                }
+              }}
+            >
+              <FileDown className="mr-2 h-4 w-4 text-amber-500" />
+              Download Tax Invoice (PDF)
+            </Button>
 
-            <Button variant="ghost" asChild className="h-10 rounded-lg w-full sm:w-auto text-xs">
+            <Button variant="ghost" asChild className="h-10 rounded-xl w-full text-xs font-semibold">
               <Link href="/products">Back to store</Link>
             </Button>
           </div>

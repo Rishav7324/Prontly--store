@@ -81,8 +81,24 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" className="h-9 rounded-lg gap-2 text-xs" onClick={() => window.print()}>
-            <Printer className="h-3.5 w-3.5" /> Print Invoice
+          <Button
+            variant="outline"
+            className="h-9 rounded-lg gap-2 text-xs"
+            onClick={async () => {
+              try {
+                const { generateInvoicePdf } = await import('@/lib/payment/invoice');
+                const pdfBase64 = await generateInvoicePdf(order);
+                const link = document.createElement('a');
+                link.href = `data:application/pdf;base64,${pdfBase64}`;
+                link.download = `tax-invoice-${order.id.slice(-8)}.pdf`;
+                link.click();
+                toast({ title: "Invoice Downloaded", description: `tax-invoice-${order.id.slice(-8)}.pdf` });
+              } catch (e) {
+                toast({ variant: "destructive", title: "Download Failed" });
+              }
+            }}
+          >
+            <Printer className="h-3.5 w-3.5 text-amber-500" /> Download PDF Invoice
           </Button>
           <div className="flex items-center gap-1">
             <Button size="sm" className="h-9 rounded-lg px-3 text-xs" variant={order.status === 'paid' ? 'default' : 'ghost'} onClick={() => updateStatus('paid')}>Paid</Button>
