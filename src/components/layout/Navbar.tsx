@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -78,11 +79,47 @@ export function Navbar() {
     }
   };
 
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ['navbar-search-products'],
+    queryFn: async () => {
+      const res = await fetch('/api/products');
+      const json = await res.json();
+      return json.success ? json.data : [];
+    },
+    staleTime: 120000,
+  });
+
+  const searchSuggestions = useMemo(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return (allProducts as any[])
+      .filter((p: any) =>
+        p.name?.toLowerCase().includes(q) ||
+        p.categorySlug?.toLowerCase().includes(q) ||
+        p.shortDescription?.toLowerCase().includes(q)
+      )
+      .slice(0, 5);
+  }, [allProducts, searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
       setIsMobileMenuOpen(false);
+      setSearchFocused(false);
     }
   };
 
@@ -117,7 +154,7 @@ export function Navbar() {
                   fill 
                   sizes="32px"
                   className="object-cover" 
-                  priority
+                  priority 
                 />
               </div>
               <div className="flex flex-col">
@@ -153,22 +190,82 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Search Bar */}
-          <form onSubmit={handleSearch} className="hidden lg:flex flex-1 max-w-[260px] mx-3 min-w-0">
-            <div className="relative w-full group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-accent transition-colors" />
-              <Input 
-                ref={searchInputRef}
-                placeholder="Search assets, templates…" 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-8.5 bg-muted/60 hover:bg-muted/80 border-border/40 hover:border-border rounded-xl pl-8 pr-11 text-xs focus-visible:ring-1 focus-visible:ring-accent transition-all placeholder:text-muted-foreground/70" 
-              />
-              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:inline-flex h-4.5 select-none items-center gap-0.5 rounded border border-border/80 bg-white px-1.5 font-mono text-[9px] font-medium text-muted-foreground shadow-2xs">
-                <span className="text-[10px]">⌘</span>K
-              </kbd>
-            </div>
-          </form>
+          {/* Desktop Search Bar with Instant Autocomplete */}
+          <div ref={searchContainerRef} className="hidden lg:block relative flex-1 max-w-[280px] mx-3 min-w-0">
+            <form onSubmit={handleSearch} className="w-full">
+              <div className="relative w-full group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                <Input 
+                  ref={searchInputRef}
+                  placeholder="Search assets, templates…" 
+                  value={searchQuery} 
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchFocused(true);
+                  }}
+                  onFocus={() => setSearchFocused(true)}
+                  className="w-full h-8.5 bg-muted/60 hover:bg-muted/80 border-border/40 hover:border-border rounded-xl pl-8 pr-11 text-xs focus-visible:ring-1 focus-visible:ring-accent transition-all placeholder:text-muted-foreground/70" 
+                />
+                <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:inline-flex h-4.5 select-none items-center gap-0.5 rounded border border-border/80 bg-white px-1.5 font-mono text-[9px] font-medium text-muted-foreground shadow-2xs">
+                  <span className="text-[10px]">⌘</span>K
+                </kbd>
+              </div>
+            </form>
+
+            {/* Instant Search Suggestions Popover */}
+            {searchFocused && searchQuery.trim().length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl border border-border/80 shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150 p-2 space-y-1">
+                {searchSuggestions.length > 0 ? (
+                  <>
+                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Suggested Assets
+                    </div>
+                    {searchSuggestions.map((product: any) => (
+                      <Link
+                        key={product.id}
+                        href={`/products/${product.slug || product.id}`}
+                        onClick={() => {
+                          setSearchFocused(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-muted/60 transition-colors group"
+                      >
+                        <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-muted shrink-0 border border-border/60">
+                          <Image
+                            src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/100/100'}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-foreground truncate group-hover:text-accent transition-colors">
+                            {product.name}
+                          </p>
+                          <span className="text-[10px] text-muted-foreground uppercase font-semibold">
+                            {product.categorySlug || 'Asset'}
+                          </span>
+                        </div>
+                        <span className="text-xs font-extrabold text-foreground font-headline shrink-0">
+                          ₹{((product.price || 0) / 100).toLocaleString('en-IN')}
+                        </span>
+                      </Link>
+                    ))}
+                    <button
+                      onClick={handleSearch}
+                      className="w-full text-center py-2 text-[11px] font-bold text-accent hover:underline border-t border-border/50 mt-1 block"
+                    >
+                      View all results for &quot;{searchQuery}&quot; →
+                    </button>
+                  </>
+                ) : (
+                  <div className="py-4 text-center text-xs text-muted-foreground">
+                    No matching assets found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* User & Action Items */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">

@@ -5,8 +5,10 @@ import { DownloadButton } from './DownloadButton';
 import type { DownloadRecord } from '@/types/download';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { format, parseISO, isValid } from 'date-fns';
-import { Package, Clock, Calendar } from 'lucide-react';
+import { Package, Clock, Calendar, ShieldCheck } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface DownloadCardProps {
   record: DownloadRecord;
@@ -105,14 +107,42 @@ export function DownloadCard({ record }: DownloadCardProps) {
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-border/60">
-          <DownloadButton
-            productId={record.productId}
-            orderId={record.orderId}
-            downloadCount={record.downloadCount}
-            downloadLimit={record.downloadLimit}
-            isActive={record.isActive}
-          />
+        <div className="mt-4 pt-4 border-t border-border/60 flex flex-col sm:flex-row items-center gap-2">
+          <div className="flex-1 w-full">
+            <DownloadButton
+              productId={record.productId}
+              orderId={record.orderId}
+              downloadCount={record.downloadCount}
+              downloadLimit={record.downloadLimit}
+              isActive={record.isActive}
+            />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                const { generateLicenseCertificatePdf } = await import('@/lib/pdf/license-generator');
+                await generateLicenseCertificatePdf({
+                  licenseId: `LIC-${(record.orderId || 'VAULT').slice(-6)}-${record.productId.slice(-4)}`,
+                  productName: record.productName,
+                  licenseeEmail: 'Registered Customer',
+                  orderId: record.orderId,
+                  purchaseDate: record.purchasedAt || new Date(),
+                  fileVersion: record.fileVersion || '1.0',
+                });
+                toast({ title: "License Downloaded", description: `Commercial certificate for "${record.productName}" saved.` });
+              } catch (e) {
+                toast({ variant: "destructive", title: "Certificate error", description: "Failed to build PDF certificate." });
+              }
+            }}
+            className="w-full sm:w-auto h-9 rounded-xl px-3 text-xs font-semibold border-border/80 hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 shadow-2xs"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-amber-500" />
+            License PDF
+          </Button>
         </div>
       </CardContent>
     </Card>
