@@ -4,6 +4,7 @@ import { products, blogPosts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export const revalidate = 3600;
+export const maxDuration = 30;
 
 /**
  * Safe helper to ensure valid W3C Date objects for Google Search Console.
@@ -94,14 +95,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (process.env.DATABASE_URL) {
       const db = getDb();
       
-      const prods = await db
-        .select({
-          slug: products.slug,
-          updatedAt: products.updatedAt,
-          createdAt: products.createdAt,
-        })
-        .from(products)
-        .where(eq(products.isPublished, true));
+      const [prods, blogs] = await Promise.all([
+        db
+          .select({
+            slug: products.slug,
+            updatedAt: products.updatedAt,
+            createdAt: products.createdAt,
+          })
+          .from(products)
+          .where(eq(products.isPublished, true)),
+        db
+          .select({
+            slug: blogPosts.slug,
+            updatedAt: blogPosts.updatedAt,
+            publishedAt: blogPosts.publishedAt,
+          })
+          .from(blogPosts)
+          .where(eq(blogPosts.status, "published")),
+      ]);
 
       for (const p of prods) {
         if (!p.slug) continue;
@@ -112,15 +123,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.85,
         });
       }
-
-      const blogs = await db
-        .select({
-          slug: blogPosts.slug,
-          updatedAt: blogPosts.updatedAt,
-          publishedAt: blogPosts.publishedAt,
-        })
-        .from(blogPosts)
-        .where(eq(blogPosts.status, "published"));
 
       for (const b of blogs) {
         if (!b.slug) continue;
