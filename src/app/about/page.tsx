@@ -25,10 +25,10 @@ export default function AboutPage() {
           <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary bg-primary/5 px-2 py-0">
             Our Mission
           </Badge>
-          <h1 className="text-2xl md:text-3xl font-semibold font-headline mb-3 leading-snug tracking-tight text-midnight-ink">
+          <h1 className="text-2xl md:text-3xl font-semibold font-headline mb-3 leading-snug tracking-tight text-foreground">
             Accelerating the <span className="text-primary">Creative Class.</span>
           </h1>
-          <p className="text-sm text-slate-blue leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Prontly is a specialized digital marketplace dedicated to high-performance assets. We bridge the gap between complex AI systems and professional creative workflows.
           </p>
         </header>
@@ -36,7 +36,7 @@ export default function AboutPage() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
           <div className="lg:col-span-8 space-y-8">
             <div className="prose-content rounded-xl shadow-sm border p-4 bg-card">
-              <h2 className="text-base md:text-lg font-semibold font-headline text-midnight-ink mb-3">The Prontly Standard</h2>
+              <h2 className="text-base md:text-lg font-semibold font-headline text-foreground mb-3">The Prontly Standard</h2>
               <p>
                 In an era dominated by noise, Prontly stands for technical precision. We noticed that while digital assets are abundant, verified, production-ready tools are rare. Most creators spend more time "fixing" assets than using them.
               </p>
@@ -72,7 +72,7 @@ export default function AboutPage() {
                   <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary mb-3">
                     <item.icon className="h-4 w-4" />
                   </div>
-                  <h4 className="text-sm font-semibold text-midnight-ink mb-1">{item.title}</h4>
+                  <h4 className="text-sm font-semibold text-foreground mb-1">{item.title}</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
@@ -87,7 +87,7 @@ export default function AboutPage() {
               <div className="relative z-10 space-y-3">
                 <h3 className="text-sm md:text-base font-semibold leading-snug">Ready to build your next breakthrough?</h3>
                 <p className="text-xs text-white/60 leading-relaxed">Join 5,000+ professional creators who trust Prontly for their technical infrastructure.</p>
-                <Button asChild className="w-full bg-white text-midnight-ink hover:bg-white/90 h-9 rounded-lg font-medium text-xs">
+                <Button asChild className="w-full bg-white text-foreground hover:bg-white/90 h-9 rounded-lg font-medium text-xs">
                   <Link href="/products">Explore Catalog</Link>
                 </Button>
               </div>
@@ -97,7 +97,7 @@ export default function AboutPage() {
 
         <section className="py-10 border-t">
           <div className="text-center max-w-xl mx-auto space-y-2">
-            <h2 className="text-lg md:text-xl font-semibold font-headline text-midnight-ink">Global Infrastructure. Local Roots.</h2>
+            <h2 className="text-lg md:text-xl font-semibold font-headline text-foreground">Global Infrastructure. Local Roots.</h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
               We operate out of Patna, Bihar, utilizing world-class cloud architecture to serve a global audience of modern creators.
             </p>

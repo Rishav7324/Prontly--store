@@ -104,7 +104,7 @@ export default function CheckoutPage() {
             <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
               <ShieldCheck className="h-3.5 w-3.5" /> Secure Checkout
             </div>
-            <h1 className="mt-0.5 text-xl font-bold font-headline tracking-tight text-midnight-ink">Finalize Order</h1>
+            <h1 className="mt-0.5 text-xl font-bold font-headline tracking-tight text-foreground">Finalize Order</h1>
           </div>
         </header>
 
@@ -113,7 +113,7 @@ export default function CheckoutPage() {
             <Card className="rounded-xl border-border bg-white shadow-sm overflow-hidden">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-center justify-between border-b border-border pb-3">
-                  <h3 className="text-sm font-semibold font-headline text-midnight-ink">Account Details</h3>
+                  <h3 className="text-sm font-semibold font-headline text-foreground">Account Details</h3>
                   <Badge variant="outline" className="border-primary/20 px-2 py-0.5 text-[10px] text-primary">Verified</Badge>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -137,7 +137,7 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-center gap-2 text-primary">
                   <Zap className="h-4 w-4" />
-                  <h3 className="text-sm font-semibold font-headline text-midnight-ink">Promo Code</h3>
+                  <h3 className="text-sm font-semibold font-headline text-foreground">Promo Code</h3>
                 </div>
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-3 py-2">
@@ -205,12 +205,12 @@ export default function CheckoutPage() {
 
           <div className="lg:col-span-5">
             <Card className="sticky top-20 rounded-xl border-border bg-white p-5 shadow-sm overflow-hidden">
-              <h4 className="mb-4 text-sm font-semibold font-headline text-midnight-ink">Order Summary</h4>
+              <h4 className="mb-4 text-sm font-semibold font-headline text-foreground">Order Summary</h4>
               <div className="space-y-3">
                 {items.map((item) => (
                   <div key={item.id} className="flex items-start justify-between gap-3 pb-3 last:pb-0">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-midnight-ink">{item.name}</p>
+                      <p className="truncate text-xs font-medium text-foreground">{item.name}</p>
                       <p className="text-[10px] text-muted-foreground">{item.category} × {item.quantity}</p>
                     </div>
                     <span className="text-xs font-semibold">{formatPrice(item.price * item.quantity)}</span>
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
                     </div>
                   )}
                   <div className="flex items-baseline justify-between border-t border-border pt-3">
-                    <span className="text-xs font-semibold text-midnight-ink">Total</span>
+                    <span className="text-xs font-semibold text-foreground">Total</span>
                     <span className="text-lg font-bold tracking-tight text-primary">
                       {formatPrice(breakdown.total)}
                     </span>
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
 
               <div className="mt-4 flex items-start gap-2 rounded-lg border border-primary/10 bg-primary/5 p-3">
                 <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                <p className="text-[10px] leading-relaxed text-slate-blue">
+                <p className="text-[10px] leading-relaxed text-muted-foreground">
                   By completing this purchase you authorize instant electronic fulfillment. A perpetual digital license will be issued to your library.
                 </p>
               </div>

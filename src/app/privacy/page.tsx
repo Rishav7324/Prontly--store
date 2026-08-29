@@ -16,12 +16,12 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-20 max-w-3xl">
-        <h1 className="text-4xl font-bold font-headline mb-4 text-midnight-ink">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold font-headline mb-4 text-foreground">Privacy Policy</h1>
         <p className="text-muted-foreground mb-12 text-sm italic">Last updated: May 20, 2026</p>
 
         <div className="prose-content space-y-10">
           <section>
-            <h2 className="text-2xl font-bold mb-4 text-midnight-ink">1. Data Collection & DPDPA 2023 Compliance</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">1. Data Collection & DPDPA 2023 Compliance</h2>
             <p>
               In accordance with India's <strong>Digital Personal Data Protection Act (DPDPA) 2023</strong>, we act as a <strong>Data Fiduciary</strong> for the information you provide. We collect only the minimum personal data required to fulfill your digital orders and provide perpetual library access.
             </p>
@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4 text-midnight-ink">2. Purpose of Processing</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">2. Purpose of Processing</h2>
             <p>
               Your data is processed strictly based on your consent or for legitimate business purposes as defined under Indian law:
             </p>
@@ -47,7 +47,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4 text-midnight-ink">3. Data Principal Rights</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">3. Data Principal Rights</h2>
             <p>
               Under DPDPA 2023, you (the <strong>Data Principal</strong>) have the following rights:
             </p>
@@ -60,14 +60,14 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4 text-midnight-ink">4. Data Localisation & Security</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">4. Data Localisation & Security</h2>
             <p>
               Your personal data is stored securely using cloud infrastructure provided by Firebase (Google Cloud). Transaction records are retained for a minimum of 7 years as required by Indian taxation laws. We use industry-standard encryption to protect your information from unauthorized access or disclosure.
             </p>
           </section>
 
           <section className="p-8 bg-muted/30 rounded-2xl border border-stone-gray/10">
-            <h2 className="text-xl font-bold mb-4 text-midnight-ink">5. Grievance Redressal Officer</h2>
+            <h2 className="text-xl font-bold mb-4 text-foreground">5. Grievance Redressal Officer</h2>
             <p className="text-sm leading-relaxed">
               If you have any questions or wish to exercise your data rights, please contact our designated Grievance Officer:
             </p>

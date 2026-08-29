@@ -118,21 +118,21 @@ export default function LoginPage() {
                 className="object-cover"
               />
             </div>
-            <span className="font-script text-lg font-bold tracking-tight text-midnight-ink">Prontly Store</span>
+            <span className="font-script text-lg font-bold tracking-tight text-foreground">Prontly Store</span>
           </Link>
-          <h1 className="text-xl font-bold font-headline text-midnight-ink">Sign in</h1>
+          <h1 className="text-xl font-bold font-headline text-foreground">Sign in</h1>
           <p className="mt-1 text-xs text-muted-foreground">Manage your digital assets and library</p>
         </div>
 
-        <Card className="rounded-xl border-stone-gray/10 bg-card shadow-sm overflow-hidden">
+        <Card className="rounded-2xl border-border/80 bg-card shadow-sm overflow-hidden">
           <CardHeader className="p-5 pb-3 space-y-1">
-            <CardTitle className="text-sm font-semibold">Welcome back</CardTitle>
-            <CardDescription className="text-xs">Enter your registered email</CardDescription>
+            <CardTitle className="text-sm font-semibold text-foreground">Welcome back</CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">Enter your registered email</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 px-5 pb-5 pt-0">
             <form onSubmit={handleEmailLogin} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs">Email</Label>
+                <Label htmlFor="email" className="text-xs font-semibold text-foreground">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -140,13 +140,13 @@ export default function LoginPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-10"
+                  className="h-10 rounded-xl"
                 />
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-xs">Password</Label>
-                  <Link href="/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                  <Label htmlFor="password" className="text-xs font-semibold text-foreground">Password</Label>
+                  <Link href="/forgot-password" className="text-xs text-accent hover:underline font-semibold">
                     Forgot password?
                   </Link>
                 </div>
@@ -156,26 +156,26 @@ export default function LoginPage() {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-10"
+                  className="h-10 rounded-xl"
                 />
               </div>
-              <Button type="submit" className="h-10 w-full rounded-lg text-sm font-medium" disabled={loading}>
+              <Button type="submit" className="h-10 w-full rounded-xl text-sm font-semibold bg-zinc-950 text-white hover:bg-zinc-800" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Sign in'}
               </Button>
             </form>
             
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-stone-gray/10" />
+                <span className="w-full border-t border-border/60" />
               </div>
               <div className="relative flex justify-center text-[10px] text-muted-foreground">
-                <span className="bg-card px-3">or</span>
+                <span className="bg-card px-3 font-medium">or</span>
               </div>
             </div>
 
             <Button 
               variant="outline" 
-              className="h-10 w-full rounded-lg border-stone-gray/20 bg-card text-sm font-medium hover:bg-porcelain-white" 
+              className="h-10 w-full rounded-xl border-border/80 bg-card text-sm font-semibold hover:bg-muted text-foreground" 
               onClick={handleGoogleLogin} 
               disabled={loading}
             >
@@ -188,10 +188,10 @@ export default function LoginPage() {
               Continue with Google
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-stone-gray/5 bg-porcelain-white/50 p-4">
-            <p className="text-xs text-muted-foreground">
+          <CardFooter className="flex justify-center border-t border-border/50 bg-muted/20 p-4">
+            <p className="text-xs text-muted-foreground font-medium">
               New here?{' '}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
+              <Link href="/signup" className="font-semibold text-foreground hover:underline">
                 Create account
               </Link>
             </p>

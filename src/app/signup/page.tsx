@@ -139,32 +139,32 @@ export default function SignupPage() {
                 className="object-cover"
               />
             </div>
-            <span className="font-script text-lg font-bold tracking-tight text-midnight-ink">Prontly Store</span>
+            <span className="font-script text-lg font-bold tracking-tight text-foreground">Prontly Store</span>
           </Link>
-          <h1 className="text-xl font-bold font-headline text-midnight-ink">Create account</h1>
+          <h1 className="text-xl font-bold font-headline text-foreground">Create account</h1>
           <p className="mt-1 text-xs text-muted-foreground">Join the marketplace in seconds</p>
         </div>
 
-        <Card className="rounded-xl border-stone-gray/10 bg-card shadow-sm overflow-hidden">
+        <Card className="rounded-2xl border-border/80 bg-card shadow-sm overflow-hidden">
           <CardHeader className="p-5 pb-3 space-y-1">
-            <CardTitle className="text-sm font-semibold">New account</CardTitle>
-            <CardDescription className="text-xs">Enter your details below</CardDescription>
+            <CardTitle className="text-sm font-semibold text-foreground">New account</CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">Enter your details below</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 px-5 pb-5 pt-0">
             <form onSubmit={handleSignup} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-xs">Full name</Label>
+                <Label htmlFor="name" className="text-xs font-semibold text-foreground">Full name</Label>
                 <Input 
                   id="name" 
                   placeholder="e.g. John Doe" 
                   required 
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="h-10"
+                  className="h-10 rounded-xl"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs">Email address</Label>
+                <Label htmlFor="email" className="text-xs font-semibold text-foreground">Email address</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -172,30 +172,30 @@ export default function SignupPage() {
                   required 
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="h-10"
+                  className="h-10 rounded-xl"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-xs">Password</Label>
+                  <Label htmlFor="password" className="text-xs font-semibold text-foreground">Password</Label>
                   <Input 
                     id="password" 
                     type="password" 
                     required 
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="h-10"
+                    className="h-10 rounded-xl"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="confirm" className="text-xs">Confirm</Label>
+                  <Label htmlFor="confirm" className="text-xs font-semibold text-foreground">Confirm</Label>
                   <Input 
                     id="confirm" 
                     type="password" 
                     required 
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                    className="h-10"
+                    className="h-10 rounded-xl"
                   />
                 </div>
               </div>
@@ -208,27 +208,27 @@ export default function SignupPage() {
                   className="border-primary mt-0.5 h-4 w-4 rounded-md"
                 />
                 <label htmlFor="terms" className="text-xs leading-snug text-muted-foreground">
-                  I agree to the <Link href="/terms" className="font-medium text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-medium text-primary hover:underline">Privacy Policy</Link>
+                  I agree to the <Link href="/terms" className="font-semibold text-foreground hover:underline">Terms of Service</Link> and <Link href="/privacy" className="font-semibold text-foreground hover:underline">Privacy Policy</Link>
                 </label>
               </div>
 
-              <Button type="submit" className="h-10 w-full rounded-lg text-sm font-medium" disabled={loading}>
+              <Button type="submit" className="h-10 w-full rounded-xl text-sm font-semibold bg-zinc-950 text-white hover:bg-zinc-800" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Create account'}
               </Button>
             </form>
             
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-stone-gray/10" />
+                <span className="w-full border-t border-border/60" />
               </div>
               <div className="relative flex justify-center text-[10px] text-muted-foreground">
-                <span className="bg-card px-3">or</span>
+                <span className="bg-card px-3 font-medium">or</span>
               </div>
             </div>
 
             <Button 
               variant="outline" 
-              className="h-10 w-full rounded-lg border-stone-gray/20 bg-card text-sm font-medium hover:bg-porcelain-white" 
+              className="h-10 w-full rounded-xl border-border/80 bg-card text-sm font-semibold hover:bg-muted text-foreground" 
               onClick={handleGoogleSignup} 
               disabled={loading}
             >
@@ -241,10 +241,10 @@ export default function SignupPage() {
               Sign up with Google
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-center border-t border-stone-gray/5 bg-porcelain-white/50 p-4">
-            <p className="text-xs text-muted-foreground">
+          <CardFooter className="flex justify-center border-t border-border/50 bg-muted/20 p-4">
+            <p className="text-xs text-muted-foreground font-medium">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-primary hover:underline">
+              <Link href="/login" className="font-semibold text-foreground hover:underline">
                 Sign in
               </Link>
             </p>

@@ -172,17 +172,17 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
                   onClick={() => setStarFilter(starFilter === starLevel ? null : starLevel)}
                   className={cn(
                     "w-full group flex items-center gap-4 py-1.5 transition-all text-left",
-                    starFilter === starLevel ? "opacity-100" : "opacity-60 hover:opacity-100"
+                    starFilter === starLevel ? "opacity-100" : "opacity-70 hover:opacity-100"
                   )}
                 >
-                  <span className="text-[10px] font-bold text-midnight-ink w-4">{starLevel}</span>
-                  <div className="flex-1 h-1.5 bg-powder-blue rounded-full overflow-hidden">
+                  <span className="text-xs font-bold text-foreground w-4">{starLevel}</span>
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-deep-violet rounded-full transition-all duration-500" 
+                      className="h-full bg-accent rounded-full transition-all duration-500" 
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-slate-blue font-mono w-8 text-right">{Math.round(percentage)}%</span>
+                  <span className="text-xs text-muted-foreground font-mono w-8 text-right font-medium">{Math.round(percentage)}%</span>
                 </button>
               );
             })}
@@ -192,51 +192,51 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
         {/* Right: Write Review */}
         <div className="flex-1 w-full">
            {user ? (
-             <div className="p-8 rounded border border-stone-gray/10 bg-porcelain-white/50 space-y-6">
+             <div className="p-6 sm:p-8 rounded-2xl border border-border/80 bg-card shadow-xs space-y-5">
                 <div className="space-y-1">
-                   <h4 className="text-lg font-bold text-midnight-ink">Share your audit</h4>
-                   <p className="text-slate-blue text-sm">How was your experience with this digital infrastructure?</p>
+                   <h4 className="text-base font-bold text-foreground">Share your feedback</h4>
+                   <p className="text-muted-foreground text-xs">How was your experience with this asset?</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                   <div className="flex gap-1">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                   <div className="flex gap-1.5">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           type="button"
                           onMouseEnter={() => !isSubmitting && setRating(star)}
                           onClick={() => setRating(star)}
-                          className="transition-transform active:scale-90"
+                          className="transition-transform active:scale-90 p-1"
                           disabled={isSubmitting}
                         >
                           <Star className={cn(
-                            "h-8 w-8 transition-colors", 
-                            star <= rating ? "text-yellow-500 fill-current" : "text-stone-gray/20"
+                            "h-7 w-7 transition-colors", 
+                            star <= rating ? "text-amber-400 fill-amber-400" : "text-border"
                           )} />
                         </button>
                       ))}
                     </div>
 
                     <Textarea 
-                      placeholder="Write your technical review..."
+                      placeholder="Write your review..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className="min-h-[120px] bg-white border-stone-gray/10 rounded focus:ring-deep-violet text-sm"
+                      className="min-h-[110px] bg-background border-border rounded-xl text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-accent"
                       required
                       disabled={isSubmitting}
                     />
 
-                    <Button type="submit" className="h-10 px-8 rounded bg-deep-violet font-bold gap-2" disabled={isSubmitting}>
+                    <Button type="submit" className="h-10 px-6 rounded-xl bg-zinc-950 text-white hover:bg-zinc-800 font-bold text-xs gap-2 shadow-xs" disabled={isSubmitting}>
                       {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                       Publish Review
                     </Button>
                 </form>
              </div>
            ) : (
-             <div className="p-12 text-center border border-dashed border-stone-gray/20 rounded bg-porcelain-white">
-                <User className="h-8 w-8 text-ghost-gray mx-auto mb-4" />
-                <p className="text-slate-blue text-sm mb-6">Sign in to contribute your experience to the community.</p>
-                <Button variant="outline" className="h-10 px-8 rounded border-stone-gray/20" asChild>
+             <div className="p-8 sm:p-12 text-center border border-dashed border-border rounded-2xl bg-muted/20">
+                <User className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-60" />
+                <p className="text-foreground text-xs sm:text-sm font-semibold mb-4">Sign in to leave a verified customer review.</p>
+                <Button variant="outline" className="h-9 px-6 rounded-xl border-border/80 text-xs font-semibold" asChild>
                   <Link href="/login">Sign In</Link>
                 </Button>
              </div>
@@ -245,16 +245,16 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
       </div>
 
       {/* Community Feed */}
-      <div className="space-y-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-stone-gray/10 pb-4">
-           <h3 className="text-xs font-black uppercase text-ghost-gray tracking-[0.2em] flex items-center gap-2">
-             <MessageSquare className="h-4 w-4 text-deep-violet" />
-             Community Log
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+           <h3 className="text-xs font-bold uppercase text-foreground tracking-wider flex items-center gap-2">
+             <MessageSquare className="h-4 w-4 text-accent" />
+             Verified Reviews ({processedReviews.length})
            </h3>
            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Filter className="h-3 w-3 text-ghost-gray" />
-                <span className="text-[10px] font-bold text-slate-blue uppercase whitespace-nowrap">Filter:</span>
+              <div className="flex items-center gap-1.5">
+                <Filter className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[11px] font-bold text-muted-foreground uppercase whitespace-nowrap">Filter:</span>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {[5, 4, 3, 2, 1].map(s => (
@@ -262,8 +262,8 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
                     key={s} 
                     onClick={() => setStarFilter(starFilter === s ? null : s)}
                     className={cn(
-                      "text-[10px] font-bold px-2.5 py-0.5 rounded border transition-all min-w-[34px] text-center",
-                      starFilter === s ? "bg-deep-violet border-deep-violet text-white" : "border-stone-gray/20 text-slate-blue hover:bg-powder-blue"
+                      "text-xs font-bold px-2.5 py-1 rounded-lg border transition-all min-w-[36px] text-center",
+                      starFilter === s ? "bg-zinc-950 border-zinc-950 text-white" : "border-border/80 text-foreground bg-white hover:bg-muted"
                     )}
                   >
                     {s}★
@@ -274,46 +274,46 @@ export function ReviewSystem({ productId, productName }: ReviewSystemProps) {
         </div>
 
         {loading ? (
-          <div className="space-y-6">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded" />)}
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 w-full rounded-2xl" />)}
           </div>
         ) : processedReviews.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {processedReviews.map((review: any) => (
-              <div key={review.id} className="p-6 rounded border border-stone-gray/10 bg-white space-y-4 hover:border-deep-violet/30 transition-all">
+              <div key={review.id} className="p-5 rounded-2xl border border-border/70 bg-card space-y-3 hover:border-border transition-all shadow-2xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border border-stone-gray/10">
+                    <Avatar className="h-9 w-9 border border-border/60">
                       <AvatarImage src={review.userAvatar} />
-                      <AvatarFallback className="bg-powder-blue text-deep-violet font-bold text-xs uppercase">
+                      <AvatarFallback className="bg-muted text-foreground font-bold text-xs uppercase">
                         {review.userName?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-bold text-midnight-ink flex items-center gap-1.5">
+                      <p className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
                         {review.userName}
-                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                       </p>
-                      <p className="text-[10px] text-ghost-gray uppercase font-bold tracking-tighter">
-                        {review.createdAt ? format(new Date(review.createdAt), 'MMM dd, yyyy') : 'RECENT'}
+                      <p className="text-[10px] text-muted-foreground font-medium">
+                        {review.createdAt ? format(new Date(review.createdAt), 'dd MMM yyyy') : 'Recent'}
                       </p>
                     </div>
                   </div>
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={cn("h-3 w-3", i < review.rating ? "text-yellow-500 fill-current" : "text-stone-gray/20")} />
+                      <Star key={i} className={cn("h-3.5 w-3.5", i < review.rating ? "text-amber-400 fill-amber-400" : "text-border")} />
                     ))}
                   </div>
                 </div>
-                <p className="text-slate-blue text-sm leading-relaxed italic">
+                <p className="text-foreground/90 text-xs sm:text-sm leading-relaxed">
                   "{review.comment}"
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center text-slate-blue italic text-sm">
-            No technical logs matching your current filter criteria.
+          <div className="py-12 text-center text-muted-foreground text-xs sm:text-sm">
+            No reviews matching your filter.
           </div>
         )}
       </div>

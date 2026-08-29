@@ -27,10 +27,10 @@ export default function ContactPage() {
           <Badge variant="outline" className="mb-2 text-[10px] font-medium border-primary/50 text-primary px-2 py-0">
             Support Center
           </Badge>
-          <h1 className="text-2xl md:text-3xl font-semibold font-headline mb-3 leading-snug tracking-tight text-midnight-ink">
+          <h1 className="text-2xl md:text-3xl font-semibold font-headline mb-3 leading-snug tracking-tight text-foreground">
             Get in <span className="text-primary">Touch.</span>
           </h1>
-          <p className="text-sm text-slate-blue leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Have a question about an asset or need technical assistance? Our team typically responds to all inquiries within 24 hours.
           </p>
         </header>

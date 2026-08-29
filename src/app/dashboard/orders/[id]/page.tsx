@@ -264,29 +264,29 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <CardContent className="p-4 space-y-6 relative z-10">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/40">Gross Subtotal</span>
-                    <span className="font-mono">₹{(currentOrder.subtotal / 100).toLocaleString('en-IN')}</span>
+                    <span className="text-white/80">Gross Subtotal</span>
+                    <span className="font-mono text-white">₹{(currentOrder.subtotal / 100).toLocaleString('en-IN')}</span>
                   </div>
                   {currentOrder.discountAmount > 0 && (
-                    <div className="flex justify-between items-center text-xs font-medium text-green-400">
+                    <div className="flex justify-between items-center text-xs font-medium text-emerald-400">
                       <span>Incentive ({currentOrder.couponCode || 'PROMO'})</span>
                       <span className="font-mono">-₹{(currentOrder.discountAmount / 100).toLocaleString('en-IN')}</span>
                     </div>
                   )}
-                  <div className="pt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[10px] font-medium text-white/60">Net Value</span>
-                    <span className="text-xl md:text-2xl font-semibold tracking-tight">₹{((currentOrder.totalAmount || 0) / 100).toLocaleString('en-IN')}</span>
+                  <div className="pt-4 border-t border-white/20 flex justify-between items-baseline">
+                    <span className="text-[10px] font-medium text-white/80">Net Value</span>
+                    <span className="text-xl md:text-2xl font-bold tracking-tight text-white">₹{((currentOrder.totalAmount || 0) / 100).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Button className="w-full h-9 bg-white text-midnight-ink hover:bg-white/90 rounded-lg gap-2 font-medium transition-all active:scale-[0.98]" asChild>
+                  <Button className="w-full h-10 bg-white text-zinc-950 hover:bg-white/90 rounded-xl gap-2 font-bold transition-all active:scale-[0.98] shadow-sm" asChild>
                     <Link href="/dashboard/downloads">
-                      <Download className="h-3.5 w-3.5" />
+                      <Download className="h-3.5 w-3.5 text-accent" />
                       Open Digital Vault
                     </Link>
                   </Button>
-                  <p className="text-[10px] text-center text-white/30 leading-relaxed">
+                  <p className="text-[10px] text-center text-white/70 leading-relaxed">
                     Professional Digital License • Perpetual Usage • Instant Global Fulfillment
                   </p>
                 </div>
