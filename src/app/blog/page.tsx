@@ -10,12 +10,46 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
+import { getDb } from '@/lib/db';
+import { blogPosts } from '@/lib/db/schema';
+import { desc, eq } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
+
 async function getPosts() {
+  // 1. Primary: Query Neon PostgreSQL
+  try {
+    if (process.env.DATABASE_URL) {
+      const db = getDb();
+      const rows = await db
+        .select()
+        .from(blogPosts)
+        .where(eq(blogPosts.status, 'published'))
+        .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt));
+
+      if (rows && rows.length > 0) {
+        return rows.map((r: any) => ({
+          id: r.id || r.firestoreId,
+          title: r.title,
+          slug: r.slug,
+          excerpt: r.excerpt,
+          featuredImage: r.featuredImage,
+          status: r.status,
+          publishedAt: r.publishedAt || r.createdAt,
+          tags: Array.isArray(r.tags) ? r.tags : [],
+        }));
+      }
+    }
+  } catch (dbErr) {
+    console.warn('[BLOG_DB_FETCH_ERR]:', dbErr);
+  }
+
+  // 2. Fallback: Query Firestore REST API
   try {
     const projectId = firebaseConfig.projectId;
     const res = await fetch(
       `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/blog_posts?pageSize=100`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: 60 } }
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -32,7 +66,8 @@ async function getPosts() {
           publishedAt: fields.publishedAt?.timestampValue || fields.createdAt?.timestampValue,
           tags: fields.tags?.arrayValue?.values?.map((v: any) => v.stringValue) || []
         };
-      });
+      })
+      .filter((p: any) => p.status === 'published');
   } catch (error) {
     console.error('[BLOG_FETCH_ERR]:', error);
     return [];
