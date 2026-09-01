@@ -43,15 +43,19 @@ export async function POST(req: NextRequest) {
       if (p) pid = p.id;
     }
 
+    const cleanUserName = String(userName || 'Verified User').trim().slice(0, 60);
+    const cleanComment = String(comment || '').trim().slice(0, 1000);
+    const cleanRating = Math.min(5, Math.max(1, Math.round(Number(rating))));
+
     const [row] = await db
       .insert(reviews)
       .values({
         productId: pid,
-        userId,
-        userName: userName || 'Verified User',
-        userAvatar: userAvatar || null,
-        rating: Math.min(5, Math.max(1, Number(rating))),
-        comment: comment || '',
+        userId: String(userId).slice(0, 128),
+        userName: cleanUserName,
+        userAvatar: userAvatar ? String(userAvatar).slice(0, 500) : null,
+        rating: cleanRating,
+        comment: cleanComment,
         isApproved: true,
       })
       .returning();

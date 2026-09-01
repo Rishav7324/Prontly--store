@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { orders, orderItems, products, users, siteSettings } from '@/lib/db/schema';
 import { eq, desc, inArray, sql } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth/verify';
 
 export const dynamic = 'force-dynamic';
 
 /** GET /api/admin/orders — all orders with items (admin) */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    await requireAdmin(req.headers.get('authorization'));
     const db = getDb();
     const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
     if (rows.length === 0) return NextResponse.json({ success: true, data: [] });
@@ -18,13 +20,15 @@ export async function GET() {
       data: rows.map((o) => ({ ...o, items: items.filter((i) => i.orderId === o.id) })),
     });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
+    return NextResponse.json({ success: false, error: e.message }, { status });
   }
 }
 
 /** PATCH /api/admin/orders — { id, status } update + refund email side-effect handled client-side or here later */
 export async function PATCH(req: NextRequest) {
   try {
+    await requireAdmin(req.headers.get('authorization'));
     const body = await req.json();
     if (!body.id || !body.status) {
       return NextResponse.json({ success: false, error: 'id and status required' }, { status: 400 });
@@ -42,6 +46,7 @@ export async function PATCH(req: NextRequest) {
     if (!row) return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
     return NextResponse.json({ success: true, data: row });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
+    return NextResponse.json({ success: false, error: e.message }, { status });
   }
 }

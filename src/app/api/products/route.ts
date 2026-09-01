@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
 import { products } from '@/lib/db/schema';
-
+import { sql } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth/verify';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/products — admin create (ProductForm) */
 export async function POST(req: NextRequest) {
   try {
+    await requireAdmin(req.headers.get('authorization'));
     const b = await req.json();
     const db = getDb();
     const slug = (b.slug || b.name || 'product').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -86,6 +88,7 @@ export async function POST(req: NextRequest) {
     }).returning();
     return NextResponse.json({ success: true, data: row });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
+    return NextResponse.json({ success: false, error: e.message }, { status });
   }
 }

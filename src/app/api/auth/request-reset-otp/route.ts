@@ -18,6 +18,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
+    // 1. Check for recent OTP request (60 second cooldown)
+    const recent = await getDb()
+      .select()
+      .from(passwordResetOtps)
+      .where(eq(passwordResetOtps.email, email.toLowerCase()))
+      .orderBy(desc(passwordResetOtps.createdAt))
+      .limit(1);
+
+    if (recent.length > 0 && recent[0].createdAt) {
+      const timeSinceLast = Date.now() - new Date(recent[0].createdAt).getTime();
+      if (timeSinceLast < 60 * 1000) {
+        return NextResponse.json(
+          { error: 'Please wait 60 seconds before requesting another verification code.' },
+          { status: 429 }
+        );
+      }
+    }
+
     // User existence check via Neon (no Firebase Admin needed)
     const existing = await getDb().select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
     if (existing.length === 0) {

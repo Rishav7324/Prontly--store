@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { blogPosts } from '@/lib/db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { requireAdmin } from '@/lib/auth/verify';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,7 @@ function cleanSlug(s: string) {
 /** POST /api/blog — admin create */
 export async function POST(req: NextRequest) {
   try {
+    await requireAdmin(req.headers.get('authorization'));
     const body = await req.json();
     const db = getDb();
     const [row] = await db
@@ -53,13 +55,15 @@ export async function POST(req: NextRequest) {
       .returning();
     return NextResponse.json({ success: true, data: row });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
+    return NextResponse.json({ success: false, error: e.message }, { status });
   }
 }
 
 /** PUT /api/blog?id= — admin update */
 export async function PUT(req: NextRequest) {
   try {
+    await requireAdmin(req.headers.get('authorization'));
     const id = req.nextUrl.searchParams.get('firestoreId') || undefined;
     const body = await req.json();
     const db = getDb();
@@ -85,13 +89,15 @@ export async function PUT(req: NextRequest) {
       .returning();
     return NextResponse.json({ success: true, data: row });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
+    return NextResponse.json({ success: false, error: e.message }, { status });
   }
 }
 
 /** DELETE /api/blog?id=<firestore_id|uuid> */
 export async function DELETE(req: NextRequest) {
   try {
+    await requireAdmin(req.headers.get('authorization'));
     const id = req.nextUrl.searchParams.get('id');
     if (!id) return NextResponse.json({ success: false }, { status: 400 });
     const db = getDb();
@@ -99,6 +105,7 @@ export async function DELETE(req: NextRequest) {
     await db.delete(blogPosts).where(eq(blogPosts.id, id as any));
     return NextResponse.json({ success: true });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
+    return NextResponse.json({ success: false, error: e.message }, { status });
   }
 }
