@@ -174,7 +174,7 @@ export default function AdminProducts() {
                     {processedProducts.map((product: any) => (
                       <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
                         <TableCell className="px-6 py-3.5">
-                          <div className="relative h-12 w-12 rounded-xl bg-muted overflow-hidden border border-border/70 shadow-2xs">
+                          <div className="relative h-15 w-12 aspect-[4/5] rounded-xl bg-muted overflow-hidden border border-border/70 shadow-2xs">
                             <Image
                               src={product.images?.[0] || 'https://picsum.photos/seed/placeholder/100/100'}
                               alt={product.name}

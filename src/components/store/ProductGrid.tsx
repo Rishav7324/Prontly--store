@@ -9,7 +9,7 @@ export function ProductGrid({ products, loading }: { products: any[]; loading?: 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 min-w-0 max-w-full">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="rounded-2xl overflow-hidden border border-border/60 bg-white shadow-xs">
-            <div className="aspect-[4/3] sm:aspect-[3/4] bg-muted/60 animate-pulse" />
+            <div className="aspect-[4/5] bg-muted/60 animate-pulse" />
             <div className="p-4 space-y-3">
               <div className="flex justify-between items-center">
                 <div className="h-3 w-16 bg-muted rounded-md animate-pulse" />

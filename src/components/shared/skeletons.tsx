@@ -48,7 +48,7 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
     <div className="grid grid-cols-2 gap-3 md:gap-4 lg:gap-5 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="rounded-lg overflow-hidden border border-border/50">
-          <div className={cn('aspect-[4/3]', pulse)} />
+          <div className={cn('aspect-[4/5]', pulse)} />
           <div className="p-3 space-y-2">
             <div className={cn(pulse, 'h-2.5 w-1/3')} />
             <div className={cn(pulse, 'h-3 w-full')} />
@@ -166,7 +166,7 @@ export function ArticleSkeleton() {
 export function DetailSplit() {
   return (
     <div className="container mx-auto px-4 pt-24 pb-12 max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className={cn('aspect-square rounded-lg', pulse)} />
+      <div className={cn('aspect-[4/5] rounded-3xl', pulse)} />
       <div className="space-y-4">
         <div className={cn(pulse, 'h-6 w-3/4')} />
         <div className={cn(pulse, 'h-3 w-1/3')} />

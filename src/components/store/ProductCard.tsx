@@ -73,8 +73,8 @@ export function ProductCard({
   return (
     <Link href={`/products/${slug || id}`} className="group/card block h-full min-w-0 select-none">
       <div className="relative flex flex-col h-full rounded-2xl border border-border/70 bg-white shadow-xs transition-all duration-300 hover:border-accent/40 hover:shadow-lg hover:-translate-y-1 overflow-hidden">
-        {/* Media Container */}
-        <div className="relative aspect-[4/3] sm:aspect-[3/4] w-full bg-muted/40 overflow-hidden">
+        {/* Media Container - 4:5 Aspect Ratio */}
+        <div className="relative aspect-[4/5] w-full bg-muted/40 overflow-hidden">
           {images?.[0] ? (
             <Image
               src={images[0]}

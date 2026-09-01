@@ -322,14 +322,14 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {formData.images.map((img: string | StaticImport, i: Key | null | undefined) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border/60 group bg-muted shadow-sm">
+                  <div key={i} className="relative aspect-[4/5] rounded-xl overflow-hidden border border-border/60 group bg-muted shadow-sm">
                     <Image src={img} alt="Preview" fill className="object-cover" />
                     <button type="button" onClick={() => setFormData(prev => ({ ...prev, images: prev.images.filter((_: any, idx: any) => idx !== i) }))} className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 ))}
                 {formData.images.length < 5 && (
                   <label className={cn(
-                    "aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors relative",
+                    "aspect-[4/5] border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors relative",
                     isUploading.image && "pointer-events-none opacity-60 bg-muted/30"
                   )}>
                     {isUploading.image ? (

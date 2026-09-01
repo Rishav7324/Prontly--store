@@ -86,7 +86,7 @@ export default function CartPage() {
             {items.map((item) => (
               <div key={item.id} className="rounded-2xl border border-border/80 bg-white p-4 sm:p-5 shadow-xs transition-all hover:shadow-md">
                 <div className="flex gap-4">
-                  <Link href={`/products/${item.id}`} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-border/70 bg-muted/40 group">
+                  <Link href={`/products/${item.id}`} className="relative aspect-[4/5] h-24 w-20 shrink-0 overflow-hidden rounded-2xl border border-border/70 bg-muted/40 group">
                     <Image src={item.imageUrl || 'https://picsum.photos/seed/placeholder/200/200'} alt={item.name} fill className="object-cover transition-transform group-hover:scale-105" />
                   </Link>
                   <div className="min-w-0 flex-1 space-y-3">

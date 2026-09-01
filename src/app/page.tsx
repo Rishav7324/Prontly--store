@@ -239,7 +239,7 @@ export default async function Home() {
 
                       {/* Floating Accent Card 1 (Desktop) */}
                       {displayProducts[1] && (
-                        <div className="absolute -bottom-5 -left-8 w-[140px] aspect-square rounded-2xl overflow-hidden border-2 border-white bg-white shadow-xl rotate-[-3deg] hidden xl:block hover:rotate-0 transition-transform duration-300">
+                        <div className="absolute -bottom-5 -left-8 w-[140px] aspect-[4/5] rounded-2xl overflow-hidden border-2 border-white bg-white shadow-xl rotate-[-3deg] hidden xl:block hover:rotate-0 transition-transform duration-300">
                           <Image src={displayProducts[1]?.images?.[0] || ''} alt="" fill className="object-cover" sizes="140px" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
                             <span className="text-[10px] font-bold text-white line-clamp-1">{displayProducts[1]?.name}</span>
@@ -249,7 +249,7 @@ export default async function Home() {
 
                       {/* Floating Accent Card 2 (Desktop) */}
                       {displayProducts[2] && (
-                        <div className="absolute -top-4 -right-6 w-[110px] aspect-[4/3] rounded-2xl overflow-hidden border-2 border-white bg-white shadow-lg rotate-[3deg] hidden xl:block hover:rotate-0 transition-transform duration-300">
+                        <div className="absolute -top-4 -right-6 w-[110px] aspect-[4/5] rounded-2xl overflow-hidden border-2 border-white bg-white shadow-lg rotate-[3deg] hidden xl:block hover:rotate-0 transition-transform duration-300">
                           <Image src={displayProducts[2]?.images?.[0] || ''} alt="" fill className="object-cover" sizes="110px" />
                         </div>
                       )}

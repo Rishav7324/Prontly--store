@@ -63,7 +63,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             <div className="divide-y divide-border/60 py-3">
               {items.map((item) => (
                 <div key={item.id} className="group flex gap-3.5 py-3.5">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-muted/40">
+                  <div className="relative h-20 w-16 aspect-[4/5] shrink-0 overflow-hidden rounded-xl border border-border/70 bg-muted/40">
                     <Image src={item.imageUrl || 'https://picsum.photos/seed/placeholder/200/200'} alt={item.name} fill className="object-cover" />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">

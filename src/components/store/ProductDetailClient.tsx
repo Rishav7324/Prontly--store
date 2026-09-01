@@ -227,8 +227,8 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
           
           {/* ── LEFT: PRODUCT GALLERY ──────────────────────── */}
           <div className="lg:col-span-7 space-y-4 min-w-0">
-            {/* Main Featured Image Box */}
-            <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full overflow-hidden rounded-3xl border border-border/80 bg-white shadow-md group">
+            {/* Main Featured Image Box - 4:5 Aspect Ratio */}
+            <div className="relative aspect-[4/5] w-full max-w-xl mx-auto overflow-hidden rounded-3xl border border-border/80 bg-white shadow-md group">
               <Image
                 src={selectedImage || "https://picsum.photos/seed/placeholder/1200/800"}
                 alt={product.name}
@@ -285,13 +285,13 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
 
             {/* Thumbnail Carousel */}
             {product.images?.length > 1 && (
-              <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar snap-x">
+              <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar snap-x max-w-xl mx-auto">
                 {product.images.map((img: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImage(img)}
                     className={cn(
-                      "relative h-18 w-24 rounded-2xl border overflow-hidden shrink-0 snap-start transition-all duration-200",
+                      "relative aspect-[4/5] h-20 rounded-2xl border overflow-hidden shrink-0 snap-start transition-all duration-200",
                       selectedImage === img 
                         ? "border-accent ring-2 ring-accent/30 shadow-xs" 
                         : "border-border/70 opacity-70 hover:opacity-100 hover:border-foreground"
