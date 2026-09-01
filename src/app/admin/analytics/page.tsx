@@ -474,6 +474,7 @@ export default function AdminAnalytics() {
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#ffffff', border: '1px solid hsl(var(--border))', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: '600' }}
+                      itemStyle={{ color: '#09090b' }}
                       formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Gross Revenue']}
                     />
                     <Area type="monotone" dataKey="revenue" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAnalyticsRev)" name="Revenue" />
@@ -485,6 +486,7 @@ export default function AdminAnalytics() {
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#ffffff', border: '1px solid hsl(var(--border))', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: '600' }}
+                      itemStyle={{ color: '#09090b' }}
                       formatter={(value) => [`${Number(value)} Orders`, 'Fulfillment Units']}
                     />
                     <Bar dataKey="orders" fill="#8b5cf6" radius={[6, 6, 0, 0]} maxBarSize={36} name="Orders" />

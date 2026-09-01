@@ -318,7 +318,7 @@ export function ProductDetailClient({ product: hydratedProduct }: { product: any
                   {product.reviewCount && product.reviewCount > 0 ? (
                     <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-lg">
                       <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      <span className="font-bold text-amber-900">{product.averageRating ? product.averageRating.toFixed(1) : "5.0"}</span>
+                      <span className="font-bold text-amber-800">{product.averageRating ? product.averageRating.toFixed(1) : "5.0"}</span>
                       <a href="#reviews" className="text-muted-foreground hover:text-foreground underline underline-offset-2">
                         ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
                       </a>
