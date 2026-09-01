@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { uploadFileAction } from '@/app/actions/r2-actions';
+import { uploadFileDirectlyToR2 } from '@/lib/upload/direct-upload';
 import { optimizeImage } from '@/lib/image-optimizer';
 
 export default function UserSettingsPage() {
@@ -81,20 +81,20 @@ export default function UserSettingsPage() {
 
     try {
       // 1. Optimize image client-side (Limit to 400px width for avatars)
-      setUploadProgress(30);
+      setUploadProgress(20);
       const optimized = await optimizeImage(file, 400, 0.8);
       const optimizedFile = new File([optimized.blob], `profile-${user.uid}.webp`, { type: 'image/webp' });
+      const key = `profiles/${user.uid}/${Date.now()}.webp`;
 
-      // 2. Prepare upload
-      const uploadData = new FormData();
-      uploadData.append('file', optimizedFile);
-      uploadData.append('key', `profiles/${user.uid}/${Date.now()}.webp`);
-
-      setUploadProgress(60);
-      const result = await uploadFileAction(uploadData);
+      // 2. Direct upload to Cloudflare R2
+      const result = await uploadFileDirectlyToR2({
+        file: optimizedFile,
+        key,
+        onProgress: (p) => setUploadProgress(20 + Math.round(p * 0.8)),
+      });
 
       if (result.success && result.url) {
-        setUploadProgress(90);
+        setUploadProgress(100);
         // 3. Update local state immediately
         setFormData(prev => ({ ...prev, photoURL: result.url! }));
         

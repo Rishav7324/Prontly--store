@@ -55,7 +55,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { uploadFileAction } from '@/app/actions/r2-actions';
+import { uploadFileDirectlyToR2 } from '@/lib/upload/direct-upload';
 import { optimizeImage } from '@/lib/image-optimizer';
 import { cn, generateSlug } from '@/lib/utils';
 
@@ -168,10 +168,11 @@ export function BlogEditor({
           const slugPart = form.slug || generateSlug(form.title) || `post-${Date.now()}`;
           const f = new File([optimized.blob], `${slugPart}-${Date.now()}.webp`, { type: 'image/webp' });
           const key = `blog/content/${slugPart}/${f.name}`;
-          const fd = new FormData();
-          fd.append('file', f);
-          fd.append('key', key);
-          const r = await uploadFileAction(fd);
+          
+          const r = await uploadFileDirectlyToR2({
+            file: f,
+            key,
+          });
           resolve(r.success ? r.url! : null);
         } catch {
           resolve(null);

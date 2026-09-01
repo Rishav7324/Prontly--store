@@ -49,7 +49,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { uploadFileAction } from '@/app/actions/r2-actions';
+import { uploadFileDirectlyToR2 } from '@/lib/upload/direct-upload';
 import { optimizeImage } from '@/lib/image-optimizer';
 import { cn } from '@/lib/utils';
 
@@ -162,15 +162,18 @@ export function RichTextEditor({
         const optimized = await optimizeImage(file);
         const slugPart = (uploadSlug || `img-${Date.now()}`).replace(/[^a-z0-9-]/gi, '-');
         const f = new File([optimized.blob], `${slugPart}-${Date.now()}.webp`, { type: 'image/webp' });
-        const fd = new FormData();
-        fd.append('file', f);
-        fd.append('key', `products/desc/${slugPart}/${f.name}`);
-        const res = await uploadFileAction(fd);
-        if (!res.success || !res.url) throw new Error();
+        const key = `products/desc/${slugPart}/${f.name}`;
+        
+        const res = await uploadFileDirectlyToR2({
+          file: f,
+          key,
+        });
+
+        if (!res.success || !res.url) throw new Error(res.error || 'Failed to upload');
         chain().setImage({ src: res.url }).run();
-        toast({ title: 'Image uploaded' });
-      } catch {
-        toast({ variant: 'destructive', title: 'Upload failed' });
+        toast({ title: 'Image inserted', description: 'Embedded into editor.' });
+      } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Upload failed', description: error.message || 'Could not upload image.' });
       }
     };
     input.click();

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFileAction } from '@/app/actions/r2-actions';
+import { uploadFileDirectlyToR2 } from '@/lib/upload/direct-upload';
 import { logAdminAction } from '@/lib/admin-logs';
 import { generateProductCopy } from '@/ai/flows/generate-product-copy';
 import { RichTextEditor } from '@/components/shared/RichTextEditor';
@@ -43,6 +44,8 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSlugLocked, setIsSlugLocked] = useState(!!id);
+  const [isUploading, setIsUploading] = useState<{ [key: string]: boolean }>({});
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -91,9 +94,20 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'source' | 'preview' | 'banner') => {
     const file = e.target.files?.[0];
-    if (!file || !formData.name) return;
+    if (!file) return;
+
+    if (!formData.name.trim()) {
+      toast({ 
+        variant: "destructive", 
+        title: "Product Name Required", 
+        description: "Please enter the asset name before uploading files." 
+      });
+      return;
+    }
 
     const tempSlug = formData.slug || generateSlug(formData.name);
+    setIsUploading(prev => ({ ...prev, [type]: true }));
+    setUploadProgress(prev => ({ ...prev, [type]: 0 }));
 
     try {
       let uploadFile = file;
@@ -104,26 +118,48 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
         uploadFile = new File([optimized.blob], `${tempSlug}-${Date.now()}.webp`, { type: 'image/webp' });
         finalKey = `products/${type}s/${tempSlug}/${uploadFile.name}`;
       } else {
-        const ext = file.name.split('.').pop();
-        finalKey = `products/files/${type}/${tempSlug}-${type}.${ext}`;
+        const ext = file.name.split('.').pop() || 'zip';
+        finalKey = `products/files/${type}/${tempSlug}-${type}-${Date.now()}.${ext}`;
       }
 
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', uploadFile);
-      uploadFormData.append('key', finalKey);
-
-      const result = await uploadFileAction(uploadFormData);
+      const result = await uploadFileDirectlyToR2({
+        file: uploadFile,
+        key: finalKey,
+        onProgress: (percent) => {
+          setUploadProgress(prev => ({ ...prev, [type]: percent }));
+        }
+      });
 
       if (result.success && result.url) {
         if (type === 'image') setFormData(prev => ({ ...prev, images: [...prev.images, result.url!] }));
         if (type === 'banner') setFormData(prev => ({ ...prev, bannerImage: result.url! }));
-        if (type === 'source') setFormData(prev => ({ ...prev, fileKey: result.url!, fileSize: uploadFile.size }));
+        if (type === 'source') setFormData(prev => ({ 
+          ...prev, 
+          fileKey: result.url!, 
+          fileSize: uploadFile.size,
+          fileFormat: prev.fileFormat || file.name.split('.').pop()?.toUpperCase() || 'ZIP'
+        }));
         if (type === 'preview') setFormData(prev => ({ ...prev, previewFileKey: result.url! }));
 
-        toast({ title: "Resource Synced", description: file.name });
+        const formattedSize = uploadFile.size > 1024 * 1024
+          ? `${(uploadFile.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${(uploadFile.size / 1024).toFixed(0)} KB`;
+
+        toast({ title: "Upload Complete", description: `${file.name} (${formattedSize}) synced to Cloudflare R2.` });
+      } else {
+        throw new Error(result.error || 'Failed to upload to Cloudflare R2.');
       }
-    } catch (error) {
-      toast({ variant: "destructive", title: "Upload Fault" });
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      toast({ 
+        variant: "destructive", 
+        title: "Upload Failed", 
+        description: error.message || "Failed to stream file to storage." 
+      });
+    } finally {
+      setIsUploading(prev => ({ ...prev, [type]: false }));
+      // Reset input element so re-selecting the same file works
+      e.target.value = '';
     }
   };
 
@@ -276,7 +312,14 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
           </CardHeader>
           <CardContent className="px-0 pb-0 pt-4 space-y-6">
             <div className="space-y-2.5">
-              <Label className="text-[10px] font-medium text-muted-foreground">Gallery Images (Max 5)</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] font-medium text-muted-foreground">Gallery Images (Max 5)</Label>
+                {isUploading.image && (
+                  <span className="text-[10px] font-semibold text-primary animate-pulse flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Uploading image ({uploadProgress.image || 0}%)
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {formData.images.map((img: string | StaticImport, i: Key | null | undefined) => (
                   <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border/60 group bg-muted shadow-sm">
@@ -285,10 +328,22 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
                   </div>
                 ))}
                 {formData.images.length < 5 && (
-                  <label className="aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
-                    <Upload className="h-4 w-4 text-muted-foreground mb-1" />
-                    <span className="text-[10px] font-medium text-muted-foreground">Upload</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'image')} />
+                  <label className={cn(
+                    "aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors relative",
+                    isUploading.image && "pointer-events-none opacity-60 bg-muted/30"
+                  )}>
+                    {isUploading.image ? (
+                      <>
+                        <Loader2 className="h-4 w-4 text-primary animate-spin mb-1" />
+                        <span className="text-[10px] font-semibold text-primary">{uploadProgress.image || 0}%</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 text-muted-foreground mb-1" />
+                        <span className="text-[10px] font-medium text-muted-foreground">Upload</span>
+                      </>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" disabled={isUploading.image} onChange={(e) => handleFileUpload(e, 'image')} />
                   </label>
                 )}
               </div>
@@ -296,28 +351,101 @@ export function ProductForm({ initialData, id }: ProductFormProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground">Main Asset File (Private)</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-medium text-muted-foreground">Main Asset File (Private & Fast Edge)</Label>
+                  {isUploading.source && (
+                    <span className="text-[10px] font-bold text-primary tabular-nums">
+                      {uploadProgress.source || 0}%
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <div className="h-9 flex-1 min-w-0 bg-muted/40 border border-border/60 rounded-lg flex items-center px-3 font-mono text-[10px] text-muted-foreground truncate">
-                    {formData.fileKey ? formData.fileKey.split('/').pop() : 'Awaiting upload'}
+                    {isUploading.source ? (
+                      <span className="text-primary font-semibold flex items-center gap-1.5 truncate">
+                        <Loader2 className="h-3 w-3 animate-spin shrink-0" /> Streaming to R2 ({uploadProgress.source || 0}%)
+                      </span>
+                    ) : formData.fileKey ? (
+                      <span className="text-foreground font-medium truncate">
+                        {formData.fileKey.split('/').pop()} {formData.fileSize ? `(${(formData.fileSize / (1024 * 1024)).toFixed(1)} MB)` : ''}
+                      </span>
+                    ) : (
+                      'Awaiting upload (ZIP, RAR, TAR, PDF up to 5GB+)'
+                    )}
                   </div>
-                  <Button type="button" variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg relative overflow-hidden shrink-0">
-                    <Upload className="h-3.5 w-3.5" />
-                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'source')} />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={isUploading.source}
+                    className="h-9 w-9 p-0 rounded-lg relative overflow-hidden shrink-0"
+                  >
+                    {isUploading.source ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <Upload className="h-3.5 w-3.5" />}
+                    <input 
+                      type="file" 
+                      className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+                      disabled={isUploading.source}
+                      onChange={(e) => handleFileUpload(e, 'source')} 
+                    />
                   </Button>
                 </div>
+                {isUploading.source && (
+                  <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className="bg-primary h-full transition-all duration-150 rounded-full" 
+                      style={{ width: `${uploadProgress.source || 0}%` }}
+                    />
+                  </div>
+                )}
               </div>
+
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground">Preview Asset (Public)</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-medium text-muted-foreground">Preview Asset (Public)</Label>
+                  {isUploading.preview && (
+                    <span className="text-[10px] font-bold text-primary tabular-nums">
+                      {uploadProgress.preview || 0}%
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <div className="h-9 flex-1 min-w-0 bg-muted/40 border border-border/60 rounded-lg flex items-center px-3 font-mono text-[10px] text-muted-foreground truncate">
-                    {formData.previewFileKey ? formData.previewFileKey.split('/').pop() : 'Optional'}
+                    {isUploading.preview ? (
+                      <span className="text-primary font-semibold flex items-center gap-1.5 truncate">
+                        <Loader2 className="h-3 w-3 animate-spin shrink-0" /> Uploading ({uploadProgress.preview || 0}%)
+                      </span>
+                    ) : formData.previewFileKey ? (
+                      <span className="text-foreground font-medium truncate">
+                        {formData.previewFileKey.split('/').pop()}
+                      </span>
+                    ) : (
+                      'Optional preview sample'
+                    )}
                   </div>
-                  <Button type="button" variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg relative overflow-hidden shrink-0">
-                    <Upload className="h-3.5 w-3.5" />
-                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, 'preview')} />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={isUploading.preview}
+                    className="h-9 w-9 p-0 rounded-lg relative overflow-hidden shrink-0"
+                  >
+                    {isUploading.preview ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <Upload className="h-3.5 w-3.5" />}
+                    <input 
+                      type="file" 
+                      className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+                      disabled={isUploading.preview}
+                      onChange={(e) => handleFileUpload(e, 'preview')} 
+                    />
                   </Button>
                 </div>
+                {isUploading.preview && (
+                  <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className="bg-primary h-full transition-all duration-150 rounded-full" 
+                      style={{ width: `${uploadProgress.preview || 0}%` }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

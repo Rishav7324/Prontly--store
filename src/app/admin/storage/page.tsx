@@ -12,10 +12,13 @@ import {
   RefreshCw, 
   File, 
   ImageIcon, 
-  FileArchive,
-  Download,
-  Copy,
-  Check
+  FileArchive, 
+  Download, 
+  Copy, 
+  Check,
+  Upload,
+  Loader2,
+  HardDrive
 } from "lucide-react";
 import {
   Table,
@@ -26,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { listStorageFiles, deleteStorageFile } from '@/app/actions/r2-actions';
+import { uploadFileDirectlyToR2 } from '@/lib/upload/direct-upload';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -34,6 +38,8 @@ export default function AdminStorage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const fetchFiles = async () => {
     setLoading(true);
@@ -50,6 +56,44 @@ export default function AdminStorage() {
   useEffect(() => {
     fetchFiles();
   }, []);
+
+  const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const key = `storage/uploads/${Date.now()}-${cleanName}`;
+
+      const res = await uploadFileDirectlyToR2({
+        file,
+        key,
+        onProgress: (p) => setUploadProgress(p),
+      });
+
+      if (res.success) {
+        toast({ 
+          title: "Asset Uploaded", 
+          description: `${file.name} successfully streamed to Cloudflare R2.` 
+        });
+        await fetchFiles();
+      } else {
+        throw new Error(res.error || 'Failed to upload asset.');
+      }
+    } catch (error: any) {
+      toast({ 
+        variant: "destructive", 
+        title: "Upload Failed", 
+        description: error.message || "Failed to upload file." 
+      });
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
 
   const handleDelete = async (key: string) => {
     if (!confirm('Permanently delete this file from storage?')) return;
@@ -75,8 +119,8 @@ export default function AdminStorage() {
 
   const getFileIcon = (key: string) => {
     const ext = key.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext!)) return <ImageIcon className="h-3.5 w-3.5 text-blue-500" />;
-    if (['zip', 'rar', '7z'].includes(ext!)) return <FileArchive className="h-3.5 w-3.5 text-orange-500" />;
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext!)) return <ImageIcon className="h-3.5 w-3.5 text-blue-500" />;
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext!)) return <FileArchive className="h-3.5 w-3.5 text-orange-500" />;
     return <File className="h-3.5 w-3.5 text-muted-foreground" />;
   };
 
@@ -87,11 +131,53 @@ export default function AdminStorage() {
           <h1 className="text-lg md:text-xl font-semibold">Storage</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Browse and manage assets in your Cloudflare R2 bucket.</p>
         </div>
-        <Button onClick={fetchFiles} disabled={loading} variant="outline" className="gap-1.5 h-9 rounded-lg text-xs">
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="default" 
+            disabled={isUploading}
+            className="gap-1.5 h-9 rounded-lg text-xs font-semibold relative overflow-hidden bg-zinc-950 text-white hover:bg-zinc-800"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Uploading {uploadProgress}%</span>
+              </>
+            ) : (
+              <>
+                <Upload className="h-3.5 w-3.5" />
+                <span>Upload Asset</span>
+              </>
+            )}
+            <input 
+              type="file" 
+              className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+              disabled={isUploading}
+              onChange={handleDirectUpload}
+            />
+          </Button>
+          <Button onClick={fetchFiles} disabled={loading} variant="outline" className="gap-1.5 h-9 rounded-lg text-xs">
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </header>
+
+      {isUploading && (
+        <Card className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-primary flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Streaming file directly to Cloudflare R2 Edge...
+            </span>
+            <span className="font-mono font-bold text-primary">{uploadProgress}%</span>
+          </div>
+          <div className="w-full bg-primary/10 rounded-full h-2 overflow-hidden">
+            <div 
+              className="bg-primary h-full transition-all duration-150 rounded-full" 
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="rounded-xl shadow-sm p-4 border-primary/20 bg-primary/5">

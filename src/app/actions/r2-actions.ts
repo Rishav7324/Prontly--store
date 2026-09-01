@@ -5,7 +5,40 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2, R2_BUCKET_NAME } from '@/lib/r2';
 
 /**
- * Robust server-side file upload to Cloudflare R2.
+ * Generates a presigned PUT URL for direct client-to-R2 upload (supports 5GB+ files without server body limits).
+ */
+export async function getPresignedUploadUrlAction(params: {
+  key: string;
+  contentType: string;
+}) {
+  try {
+    if (!params.key) {
+      return { success: false, error: 'Key is required.' };
+    }
+
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: params.key,
+      ContentType: params.contentType || 'application/octet-stream',
+    });
+
+    const presignedUrl = await getSignedUrl(r2, command, { expiresIn: 3600 });
+    const publicUrl = `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://cdn.prontly.in'}/${params.key}`;
+
+    return {
+      success: true,
+      presignedUrl,
+      publicUrl,
+      key: params.key,
+    };
+  } catch (error: any) {
+    console.error('Failed to create R2 presigned URL:', error);
+    return { success: false, error: error.message || 'Could not generate secure upload link.' };
+  }
+}
+
+/**
+ * Robust server-side file upload to Cloudflare R2 (fallback).
  */
 export async function uploadFileAction(formData: FormData) {
   try {
