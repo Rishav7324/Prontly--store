@@ -94,14 +94,14 @@ export function ProductCard({
           <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
 
           {/* Badges */}
-          <div className="absolute top-2.5 left-2.5 flex flex-wrap items-center gap-1.5 z-10">
+          <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 flex flex-wrap items-center gap-1 z-10">
             {discount && (
-              <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs tracking-tight">
+              <span className="bg-emerald-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 rounded-full shadow-xs tracking-tight">
                 −{discount}%
               </span>
             )}
             {isFeatured && (
-              <span className="bg-zinc-950/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs tracking-tight">
+              <span className="bg-zinc-950/90 backdrop-blur-sm text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 rounded-full shadow-xs tracking-tight">
                 Featured
               </span>
             )}
@@ -113,26 +113,26 @@ export function ProductCard({
             onClick={handleWishlist}
             aria-label="Toggle wishlist"
             className={cn(
-              'absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 hover:bg-white hover:shadow-md z-10',
+              'absolute top-2 right-2 sm:top-2.5 sm:right-2.5 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/90 backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 hover:bg-white hover:shadow-md z-10',
               mounted && isInWishlist(id) ? 'text-rose-500' : 'text-slate-500 hover:text-rose-500'
             )}
           >
-            <Heart className={cn('h-4 w-4 transition-transform', mounted && isInWishlist(id) && 'fill-current scale-110')} />
+            <Heart className={cn('h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform', mounted && isInWishlist(id) && 'fill-current scale-110')} />
           </button>
         </div>
 
         {/* Card Body */}
-        <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between min-w-0 bg-white">
+        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between min-w-0 bg-white">
           <div>
             {/* Header info */}
-            <div className="flex items-center justify-between gap-2 mb-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-accent truncate">
+            <div className="flex items-center justify-between gap-1.5 mb-1 sm:mb-1.5">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-accent truncate">
                 {category}
               </span>
               {reviewCount && reviewCount > 0 ? (
                 <div className="flex items-center gap-1 shrink-0 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="text-[10px] font-bold text-amber-900 tabular-nums">
+                  <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-amber-400 text-amber-400" />
+                  <span className="text-[9px] sm:text-[10px] font-bold text-amber-900 tabular-nums">
                     {rating ? rating.toFixed(1) : '5.0'}
                   </span>
                 </div>
@@ -146,20 +146,20 @@ export function ProductCard({
 
             {/* Description */}
             {shortDescription && (
-              <p className="text-[11px] text-muted-foreground line-clamp-1 mt-1 break-words">
+              <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1 mt-1 break-words">
                 {shortDescription}
               </p>
             )}
           </div>
 
           {/* Bottom Price & Action Row */}
-          <div className="flex items-center justify-between pt-3 mt-2 border-t border-border/50 gap-2">
-            <div className="min-w-0 flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-sm sm:text-base font-bold tabular-nums text-foreground tracking-tight">
+          <div className="flex items-center justify-between pt-2.5 sm:pt-3 mt-2 border-t border-border/50 gap-1.5">
+            <div className="min-w-0 flex items-baseline gap-1 flex-wrap">
+              <span className="text-xs sm:text-base font-bold tabular-nums text-foreground tracking-tight">
                 ₹{(priceRaw / 100).toLocaleString('en-IN')}
               </span>
               {compareAtPrice && compareAtPrice > priceRaw && (
-                <span className="text-[11px] text-muted-foreground/80 line-through tabular-nums">
+                <span className="text-[10px] sm:text-[11px] text-muted-foreground/80 line-through tabular-nums">
                   ₹{(compareAtPrice / 100).toLocaleString('en-IN')}
                 </span>
               )}
@@ -170,7 +170,7 @@ export function ProductCard({
               type="button"
               size="icon"
               className={cn(
-                'h-8 w-8 rounded-xl shrink-0 transition-all duration-200 active:scale-90 shadow-xs',
+                'h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl shrink-0 transition-all duration-200 active:scale-90 shadow-xs',
                 justAdded
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   : isItemInCart
@@ -181,9 +181,9 @@ export function ProductCard({
               aria-label={isItemInCart ? "In cart" : "Add to cart"}
             >
               {justAdded ? (
-                <Check className="h-4 w-4 animate-in zoom-in" />
+                <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-in zoom-in" />
               ) : (
-                <ShoppingCart className="h-3.5 w-3.5" />
+                <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               )}
             </Button>
           </div>
