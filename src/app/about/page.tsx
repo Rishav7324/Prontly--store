@@ -87,7 +87,7 @@ export default function AboutPage() {
               <div className="relative z-10 space-y-3">
                 <h3 className="text-sm md:text-base font-semibold leading-snug">Ready to build your next breakthrough?</h3>
                 <p className="text-xs text-white/60 leading-relaxed">Join 5,000+ professional creators who trust Prontly for their technical infrastructure.</p>
-                <Button asChild className="w-full bg-white text-foreground hover:bg-white/90 h-9 rounded-lg font-medium text-xs">
+                <Button asChild className="w-full bg-white text-zinc-950 hover:bg-zinc-100 h-9 rounded-lg font-bold text-xs">
                   <Link href="/products">Explore Catalog</Link>
                 </Button>
               </div>

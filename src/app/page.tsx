@@ -130,10 +130,10 @@ export default async function Home() {
                   Digital assets<br className="hidden sm:inline" />
                   {' '}that help you{' '}
                   <span className="relative inline-block whitespace-nowrap">
-                    <span className="relative z-10 bg-gradient-to-r from-amber-800 via-amber-600 to-amber-700 bg-clip-text text-transparent">
+                    <span className="relative z-10 text-amber-800 dark:text-amber-400 font-extrabold">
                       ship 10x faster
                     </span>
-                    <span className="absolute bottom-1.5 left-0 right-0 h-2.5 bg-amber-200/50 -rotate-1 rounded-sm -z-0" />
+                    <span className="absolute bottom-1.5 left-0 right-0 h-2.5 bg-amber-200/40 -rotate-1 rounded-sm -z-0" />
                   </span>
                 </h1>
 

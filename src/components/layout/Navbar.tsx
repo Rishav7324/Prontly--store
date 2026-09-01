@@ -325,17 +325,17 @@ export function Navbar() {
                   </div>
                   <DropdownMenuSeparator />
                   {isAdmin && (
-                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-accent/10 focus:text-accent">
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-muted focus:text-foreground">
                       <Link href="/admin"><ShieldCheck className="h-4 w-4 mr-2 text-accent" /> Admin Portal</Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-accent/10 focus:text-accent">
+                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-muted focus:text-foreground">
                     <Link href="/dashboard"><LayoutDashboard className="h-4 w-4 mr-2 text-muted-foreground" /> Dashboard</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-accent/10 focus:text-accent">
+                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-muted focus:text-foreground">
                     <Link href="/dashboard/downloads"><Package className="h-4 w-4 mr-2 text-muted-foreground" /> My Downloads</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-accent/10 focus:text-accent">
+                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-xs py-2 focus:bg-muted focus:text-foreground">
                     <Link href="/dashboard/settings"><Settings className="h-4 w-4 mr-2 text-muted-foreground" /> Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
