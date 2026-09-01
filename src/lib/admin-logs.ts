@@ -12,6 +12,8 @@ interface LogActionProps {
   details?: Record<string, any>;
 }
 
+import { adminFetch } from './auth/admin-fetch';
+
 /**
  * Fire-and-forget audit log via /api/admin/logs. No db handle required.
  */
@@ -24,7 +26,7 @@ export function logAdminAction({
   details,
 }: LogActionProps): void {
   if (typeof window === 'undefined') return;
-  fetch('/api/admin/logs', {
+  adminFetch('/api/admin/logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ adminId, adminEmail, action, resourceType, resourceId, details }),

@@ -40,12 +40,7 @@ import Link from 'next/link';
 import { logAdminAction } from '@/lib/admin-logs';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,7 +50,7 @@ export default function AdminProducts() {
 
   const { data: allProducts = [], isLoading: loading } = useQuery({
     queryKey: ['admin-products'],
-    queryFn: () => fetcher('/api/products'),
+    queryFn: () => adminJsonFetcher('/api/products'),
     refetchInterval: 15000,
   });
 

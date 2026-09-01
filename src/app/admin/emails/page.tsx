@@ -35,6 +35,7 @@ import {
   deleteResendContact
 } from '@/app/actions/brevo-actions';
 import { toast } from '@/hooks/use-toast';
+import { adminJsonFetcher } from '@/lib/auth/admin-fetch';
 import {
   Dialog,
   DialogContent,
@@ -74,9 +75,8 @@ export default function AdminEmailsPage() {
   // Sender identity resolved from store settings API (no Firestore)
   const [settings, setSettings] = useState<any>(null);
   useEffect(() => {
-    fetch('/api/admin/settings')
-      .then((r) => r.json())
-      .then((json) => setSettings(json.data || null))
+    adminJsonFetcher('/api/admin/settings')
+      .then((data) => setSettings(data || null))
       .catch(() => {});
   }, []);
 

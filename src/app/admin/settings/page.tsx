@@ -23,17 +23,14 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logAdminAction } from '@/lib/admin-logs';
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminSettings() {
   const { user } = useUser();
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['admin-settings'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/settings');
-      const json = await res.json();
-      return json.data || null;
-    },
+    queryFn: () => adminJsonFetcher('/api/admin/settings'),
   });
 
   const [formData, setFormData] = useState<any>({
@@ -67,7 +64,7 @@ export default function AdminSettings() {
     setIsSaving(true);
 
     try {
-      const res = await fetch('/api/admin/settings', {
+      const res = await adminFetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

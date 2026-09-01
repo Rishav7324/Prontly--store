@@ -32,13 +32,19 @@ export async function verifyAuthToken(authHeader: string | null): Promise<AuthUs
 }
 
 /**
- * Check if user is admin/super-admin via Neon users table
+ * Check if user is admin/super-admin via Neon users table (by uid or email)
  */
-export async function isAdmin(uid: string): Promise<boolean> {
+export async function isAdmin(uid: string, email?: string | null): Promise<boolean> {
   try {
     const db = getDb();
-    const [row] = await db.select({ role: users.role }).from(users).where(eq(users.uid, uid)).limit(1);
-    return row?.role === 'admin' || row?.role === 'super-admin';
+    const [row] = await db.select({ role: users.role, email: users.email }).from(users).where(eq(users.uid, uid)).limit(1);
+    if (row?.role === 'admin' || row?.role === 'super-admin') return true;
+
+    if (email) {
+      const [byEmail] = await db.select({ role: users.role }).from(users).where(eq(users.email, email.toLowerCase())).limit(1);
+      if (byEmail?.role === 'admin' || byEmail?.role === 'super-admin') return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -49,7 +55,7 @@ export async function isAdmin(uid: string): Promise<boolean> {
  */
 export async function requireAdmin(authHeader: string | null): Promise<AuthUser> {
   const user = await verifyAuthToken(authHeader);
-  const admin = await isAdmin(user.uid);
+  const admin = await isAdmin(user.uid, user.email);
   if (!admin) throw new Error('FORBIDDEN: Admin role required');
   return user;
 }

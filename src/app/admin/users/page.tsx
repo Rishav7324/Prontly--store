@@ -40,12 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +48,7 @@ export default function AdminUsers() {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: () => fetcher('/api/admin/users'),
+    queryFn: () => adminJsonFetcher('/api/admin/users'),
     refetchInterval: 30000,
   });
 
@@ -68,7 +63,7 @@ export default function AdminUsers() {
 
   const toggleUserStatus = async (uid: string, currentStatus: boolean, name: string) => {
     try {
-      const res = await fetch('/api/admin/users', {
+      const res = await adminFetch('/api/admin/users', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, isActive: !currentStatus }),

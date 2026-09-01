@@ -52,14 +52,9 @@ import {
 } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { adminJsonFetcher } from '@/lib/auth/admin-fetch';
 
 type TimeRange = '24h' | '7d' | '30d' | '90d' | '1y' | 'all';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
 
 export default function AdminAnalytics() {
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
@@ -67,13 +62,13 @@ export default function AdminAnalytics() {
 
   const { data: orders = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: () => fetcher('/api/admin/orders'),
+    queryFn: () => adminJsonFetcher('/api/admin/orders'),
     refetchInterval: 30000,
   });
 
   const { data: usersList = [] } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: () => fetcher('/api/admin/users'),
+    queryFn: () => adminJsonFetcher('/api/admin/users'),
     refetchInterval: 60000,
   });
 

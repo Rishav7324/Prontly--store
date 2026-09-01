@@ -41,33 +41,28 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher } from "@/lib/auth/admin-fetch";
 
 export default function AdminDashboard() {
   const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: () => fetcher('/api/admin/orders'),
+    queryFn: () => adminJsonFetcher('/api/admin/orders'),
     refetchInterval: 15000,
   });
 
   const { data: allProducts = [], isLoading: productsLoading } = useQuery({
     queryKey: ['admin-products'],
-    queryFn: () => fetcher('/api/products'),
+    queryFn: () => adminJsonFetcher('/api/products'),
   });
 
   const { data: users = [] } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: () => fetcher('/api/admin/users'),
+    queryFn: () => adminJsonFetcher('/api/admin/users'),
   });
 
   const { data: allLogs = [], isLoading: logsLoading } = useQuery({
     queryKey: ['admin-logs'],
-    queryFn: () => fetcher('/api/admin/logs'),
+    queryFn: () => adminJsonFetcher('/api/admin/logs'),
     refetchInterval: 30000,
   });
 

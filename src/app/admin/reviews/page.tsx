@@ -23,12 +23,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import Link from 'next/link';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher } from '@/lib/auth/admin-fetch';
 
 export default function AdminReviewsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,12 +31,12 @@ export default function AdminReviewsPage() {
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ['admin-products'],
-    queryFn: () => fetcher('/api/products'),
+    queryFn: () => adminJsonFetcher('/api/products'),
   });
 
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
     queryKey: ['reviews', selectedProductId],
-    queryFn: () => fetcher(`/api/reviews?productId=${encodeURIComponent(selectedProductId)}`),
+    queryFn: () => adminJsonFetcher(`/api/reviews?productId=${encodeURIComponent(selectedProductId)}`),
     enabled: !!selectedProductId,
   });
 

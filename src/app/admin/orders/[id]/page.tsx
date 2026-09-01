@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -23,11 +24,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   // Order is resolved from the admin orders list (each row carries items[])
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/orders');
-      const json = await res.json();
-      return json.success ? json.data : [];
-    },
+    queryFn: () => adminJsonFetcher('/api/admin/orders'),
     refetchInterval: 15000,
   });
 
@@ -39,7 +36,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   const updateStatus = async (newStatus: string) => {
     if (!order) return;
     try {
-      const res = await fetch('/api/admin/orders', {
+      const res = await adminFetch('/api/admin/orders', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: order.id, status: newStatus }),

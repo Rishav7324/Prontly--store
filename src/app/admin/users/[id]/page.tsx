@@ -39,12 +39,7 @@ import {
 } from "@/components/ui/select";
 import { listTemplates, sendTestEmail } from '@/app/actions/brevo-actions';
 import { toast } from '@/hooks/use-toast';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher } from '@/lib/auth/admin-fetch';
 
 export default function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -57,7 +52,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   // Profile resolved from the users list API
   const { data: users = [], isLoading: userLoading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: () => fetcher('/api/admin/users'),
+    queryFn: () => adminJsonFetcher('/api/admin/users'),
   });
 
   const profile = useMemo(
@@ -67,16 +62,12 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
 
   const { data: settings } = useQuery({
     queryKey: ['admin-settings'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/settings');
-      const json = await res.json();
-      return json.data || null;
-    },
+    queryFn: () => adminJsonFetcher('/api/admin/settings'),
   });
 
   const { data: allOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: () => fetcher('/api/admin/orders'),
+    queryFn: () => adminJsonFetcher('/api/admin/orders'),
     refetchInterval: 15000,
   });
 

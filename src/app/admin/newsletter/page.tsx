@@ -39,10 +39,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { listTemplates, sendNewsletterCampaign } from '@/app/actions/brevo-actions';
 import { Label } from '@/components/ui/label';
+import { adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminNewsletter() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,8 +58,8 @@ export default function AdminNewsletter() {
   const { data: settingsPayload, isLoading } = useQuery({
     queryKey: ['admin-settings-subscribers'],
     queryFn: async () => {
-      const res = await fetch('/api/admin/settings?subscribers=1');
-      const json = await res.json();
+      const res = await adminFetch('/api/admin/settings?subscribers=1');
+      const json = await res.json().catch(() => ({}));
       return {
         settings: json.data || null,
         subscribers: (json.subscribers || []) as any[],
@@ -82,8 +82,8 @@ export default function AdminNewsletter() {
   const removeSubscriber = async (email: string) => {
     if (!confirm('Remove subscriber?')) return;
     try {
-      const res = await fetch(`/api/admin/settings?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
-      const json = await res.json();
+      const res = await adminFetch(`/api/admin/settings?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
+      const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
       toast({ title: 'Subscriber Removed', description: email });
       queryClient.invalidateQueries({ queryKey: ['admin-settings-subscribers'] });

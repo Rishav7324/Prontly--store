@@ -25,12 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminCoupons() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +34,7 @@ export default function AdminCoupons() {
 
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ['admin-coupons'],
-    queryFn: () => fetcher('/api/admin/coupons'),
+    queryFn: () => adminJsonFetcher('/api/admin/coupons'),
     refetchInterval: 30000,
   });
 
@@ -72,7 +67,7 @@ export default function AdminCoupons() {
         payload.maxUsageCount = Number(formData.maxUsageCount);
       }
 
-      const res = await fetch('/api/admin/coupons', {
+      const res = await adminFetch('/api/admin/coupons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -94,7 +89,7 @@ export default function AdminCoupons() {
   const handleDelete = async (id: string, code: string) => {
     if (!confirm('Delete this coupon code?')) return;
     try {
-      const res = await fetch(`/api/admin/coupons?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/coupons?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
       toast({ title: 'Coupon Removed', description: code });

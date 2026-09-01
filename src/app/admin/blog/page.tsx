@@ -34,12 +34,7 @@ import {
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminBlog() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,7 +42,7 @@ export default function AdminBlog() {
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['admin-blog'],
-    queryFn: () => fetcher('/api/blog'),
+    queryFn: () => adminJsonFetcher('/api/blog'),
     refetchInterval: 30000,
   });
 
@@ -66,7 +61,7 @@ export default function AdminBlog() {
     if (!confirm('Delete this blog post?')) return;
     try {
       // API accepts firestore id or uuid
-      const res = await fetch(`/api/blog?id=${encodeURIComponent(post.firestoreId || post.id)}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/blog?id=${encodeURIComponent(post.firestoreId || post.id)}`, { method: 'DELETE' });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
       toast({ title: 'Article deleted', description: post.title });

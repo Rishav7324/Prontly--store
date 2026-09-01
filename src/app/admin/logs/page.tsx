@@ -19,19 +19,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher } from '@/lib/auth/admin-fetch';
 
 export default function AdminLogsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ['admin-logs'],
-    queryFn: () => fetcher('/api/admin/logs'),
+    queryFn: () => adminJsonFetcher('/api/admin/logs'),
     refetchInterval: 30000,
   });
 

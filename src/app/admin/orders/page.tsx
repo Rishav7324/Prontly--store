@@ -43,12 +43,7 @@ import Link from 'next/link';
 import { generateInvoicePdf, sendRefundEmail } from '@/app/actions/email-actions';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,17 +53,13 @@ export default function AdminOrders() {
 
   const { data: allOrders = [], isLoading } = useQuery({
     queryKey: ['admin-orders'],
-    queryFn: () => fetcher('/api/admin/orders'),
+    queryFn: () => adminJsonFetcher('/api/admin/orders'),
     refetchInterval: 15000,
   });
 
   const { data: settings } = useQuery({
     queryKey: ['admin-settings'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/settings');
-      const json = await res.json();
-      return json.data || null;
-    },
+    queryFn: () => adminJsonFetcher('/api/admin/settings'),
   });
 
   const processedOrders = useMemo(() => {
@@ -91,7 +82,7 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (id: string, newStatus: string) => {
     try {
-      const res = await fetch('/api/admin/orders', {
+      const res = await adminFetch('/api/admin/orders', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: newStatus }),

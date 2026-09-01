@@ -37,12 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { logAdminAction } from '@/lib/admin-logs';
 import { toast } from '@/hooks/use-toast';
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.success ? json.data : [];
-};
+import { adminJsonFetcher, adminFetch } from '@/lib/auth/admin-fetch';
 
 export default function AdminCategories() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +49,7 @@ export default function AdminCategories() {
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['admin-categories'],
-    queryFn: () => fetcher('/api/admin/categories'),
+    queryFn: () => adminJsonFetcher('/api/admin/categories'),
     refetchInterval: 30000,
   });
 
@@ -98,7 +93,7 @@ export default function AdminCategories() {
     try {
       let resourceId = editingCategory?.id || '';
       if (editingCategory) {
-        const res = await fetch('/api/admin/categories', {
+        const res = await adminFetch('/api/admin/categories', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: editingCategory.id, ...formData }),
@@ -110,7 +105,7 @@ export default function AdminCategories() {
           action: 'UPDATE', resourceType: 'CATEGORY', resourceId, details: { name: formData.name }
         });
       } else {
-        const res = await fetch('/api/admin/categories', {
+        const res = await adminFetch('/api/admin/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
@@ -139,7 +134,7 @@ export default function AdminCategories() {
   const handleDelete = async (id: string, name: string) => {
     if (!user || !confirm(`Permanently delete category "${name}"?`)) return;
     try {
-      const res = await fetch(`/api/admin/categories?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/categories?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Delete failed');
       logAdminAction({

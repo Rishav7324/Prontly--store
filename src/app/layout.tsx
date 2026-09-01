@@ -1,5 +1,5 @@
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
@@ -11,6 +11,12 @@ import { InstallPwaBanner } from '@/components/store/InstallPwaBanner';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
+export const viewport: Viewport = {
+  themeColor: '#09090b',
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: {
     default: 'Prontly Store | Premium Digital Marketplace',
@@ -19,7 +25,6 @@ export const metadata: Metadata = {
   description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets. Professional tools for modern creators.',
   metadataBase: new URL(SITE_URL),
   manifest: '/manifest.json',
-  themeColor: '#09090b',
   icons: {
     icon: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
     apple: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
