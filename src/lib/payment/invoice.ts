@@ -3,9 +3,9 @@ import { formatPrice } from './gst';
 
 /**
  * @fileOverview Ultra-Premium PDF Tax Invoice & Proof of Purchase Generator.
- * Creates luxury branded invoices for digital asset acquisitions.
+ * Supports custom background images, luxury watermarks, and high-contrast vector styling.
  */
-export async function generateInvoicePdf(order: any): Promise<string> {
+export async function generateInvoicePdf(order: any, options?: { bgImageBase64?: string; watermark?: boolean }): Promise<string> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -14,32 +14,63 @@ export async function generateInvoicePdf(order: any): Promise<string> {
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const darkBg = '#09090b';
-  const goldAccent = '#d97706';
-  const slateMuted = '#64748b';
-  const emeraldPaid = '#059669';
 
-  // 1. Subtle Outer Border & Background
+  // 1. Base White Canvas
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-  // Header Luxury Dark Block
+  // 2. Custom Background Image if provided (full-page or header)
+  const bgImg = options?.bgImageBase64 || order?.bgImageBase64 || order?.invoiceBg;
+  if (bgImg && typeof bgImg === 'string' && bgImg.startsWith('data:image')) {
+    try {
+      doc.addImage(bgImg, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+      // Subtle semi-transparent white overlay to ensure text readability
+      doc.setFillColor(255, 255, 255);
+      doc.setGState(new (doc as any).GState({ opacity: 0.88 }));
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      doc.setGState(new (doc as any).GState({ opacity: 1.0 }));
+    } catch (e) {
+      console.warn('[PDF] Could not draw custom background image:', e);
+    }
+  }
+
+  // 3. Subtle Luxury Watermark in Center (8% opacity geometric brand stamp)
+  try {
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.75);
+    // Outer decorative octagon / concentric watermark
+    doc.circle(pageWidth / 2, 145, 48, 'S');
+    doc.circle(pageWidth / 2, 145, 42, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(28);
+    doc.setTextColor(241, 245, 249);
+    doc.text('PRONTLY VERIFIED', pageWidth / 2, 147, { align: 'center' });
+  } catch (_e) {}
+
+  // 4. Header Luxury Dark Texture Block
   doc.setFillColor(9, 9, 11);
   doc.rect(0, 0, pageWidth, 48, 'F');
 
-  // Gold Trim Line under header
-  doc.setFillColor(217, 119, 6);
+  // Decorative luxury diagonal lines in header for premium feel
+  doc.setDrawColor(24, 24, 27);
+  doc.setLineWidth(0.3);
+  for (let i = -20; i < pageWidth + 50; i += 8) {
+    doc.line(i, 0, i + 30, 48);
+  }
+
+  // 5. Gold Accent Trim Line under header
+  doc.setFillColor(217, 119, 6); // amber-600
   doc.rect(0, 48, pageWidth, 2.5, 'F');
 
-  // Header Text
+  // Header Title & Verification
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
   doc.text('TAX INVOICE', 20, 24);
 
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(217, 119, 6);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(245, 158, 11); // gold
   doc.text('OFFICIAL PROOF OF PURCHASE', 20, 32);
 
   doc.setTextColor(255, 255, 255);
@@ -65,9 +96,9 @@ export async function generateInvoicePdf(order: any): Promise<string> {
 
   const orderRef = `#${(order.id || '').slice(-8).toUpperCase()}`;
 
-  let y = 65;
+  let y = 64;
 
-  // Metadata Card
+  // Metadata Card Container
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.5);
@@ -93,7 +124,7 @@ export async function generateInvoicePdf(order: any): Promise<string> {
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(5, 150, 105);
-  doc.text('PAID / SETTLED', 42, y + 26.2, { align: 'center' });
+  doc.text('● PAID / SETTLED', 42, y + 26.2, { align: 'center' });
 
   // Table Header
   y += 44;

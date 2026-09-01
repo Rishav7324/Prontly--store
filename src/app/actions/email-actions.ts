@@ -85,5 +85,5 @@ export async function sendNewOrderAlert(order: any) {
  * Server action to generate ultra-premium tax invoice PDF base64.
  */
 export async function generateInvoicePdf(order: any, settings?: any) {
-  return createInvoicePdf(order);
+  return createInvoicePdf(order, settings);
 }
