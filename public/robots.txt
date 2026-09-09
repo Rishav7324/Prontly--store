@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+Disallow: /reset-password
+Disallow: /verify-email
+
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+Sitemap: https://store.prontly.in/sitemap.xml
