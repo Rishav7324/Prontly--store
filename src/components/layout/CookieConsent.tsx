@@ -18,8 +18,9 @@ export function CookieConsent() {
   const handleConsent = (type: 'all' | 'necessary') => {
     localStorage.setItem('cookieConsent', type);
     setShowBanner(false);
+    window.dispatchEvent(new Event('cookie-consent-updated'));
     
-    // If user accepted all, we reload to trigger GA4 script which checks localStorage
+    // If user accepted all, we reload to trigger GA4 + Meta Pixel scripts which check localStorage
     if (type === 'all') {
       window.location.reload();
     }

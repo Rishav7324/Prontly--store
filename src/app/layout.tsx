@@ -8,6 +8,7 @@ import { CookieConsent } from '@/components/layout/CookieConsent';
 import { getGlobalSchema } from '@/lib/seo/schema-builder';
 import { WebMCPProvider } from '@/components/ai/WebMCPProvider';
 import { InstallPwaBanner } from '@/components/store/InstallPwaBanner';
+import { MetaPixel } from '@/components/analytics/MetaPixel';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
 
@@ -125,6 +126,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
         <FirebaseClientProvider>
           <WebMCPProvider />
+          <MetaPixel />
           {children}
           <InstallPwaBanner />
           <Toaster />
