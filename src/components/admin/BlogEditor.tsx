@@ -130,7 +130,7 @@ export function BlogEditor({
           'prose-content max-w-none min-h-[320px] px-4 md:px-6 py-4 focus:outline-none',
       },
     },
-    onUpdate: ({ editor }) => onFormChange({ ...form, content: editor.getHTML() }),
+    onUpdate: ({ editor }: { editor: any }) => onFormChange({ ...form, content: editor.getHTML() }),
   });
 
   useEffect(() => {
@@ -262,8 +262,8 @@ export function BlogEditor({
 
           {/* Editor + Preview grid */}
           <div className="grid items-start gap-4 min-w-0 xl:grid-cols-2">
-            <div className="flex h-[60vh] md:h-[70vh] min-h-[360px] min-w-0 flex-col rounded-2xl border border-stone-gray/10 bg-card shadow-sm overflow-hidden">
-              <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-gray/10 p-2 overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex h-[60vh] md:h-[70vh] min-h-[360px] min-w-0 flex-col rounded-2xl border border-stone-gray/10 bg-card shadow-sm overflow-hidden relative">
+              <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-stone-gray/10 bg-card/95 backdrop-blur-sm p-2 overflow-x-auto no-scrollbar max-w-full shrink-0">
                 {toolbarBtn(editor?.isActive('bold') ?? false, () => editor?.chain().focus().toggleBold().run(), 'Bold', <Bold className="size-3.5" />)}
                 {toolbarBtn(editor?.isActive('italic') ?? false, () => editor?.chain().focus().toggleItalic().run(), 'Italic', <Italic className="size-3.5" />)}
                 {toolbarBtn(editor?.isActive('underline') ?? false, () => editor?.chain().focus().toggleUnderline().run(), 'Underline', <UnderlineIcon className="size-3.5" />)}
@@ -314,10 +314,13 @@ export function BlogEditor({
                 {toolbarBtn(false, () => editor?.chain().focus().undo().run(), 'Undo', <Undo2 className="size-3.5" />)}
                 {toolbarBtn(false, () => editor?.chain().focus().redo().run(), 'Redo', <Redo2 className="size-3.5" />)}
               </div>
-              <div className="min-h-0 flex-1 overflow-auto custom-scrollbar">
-                <EditorContent editor={editor} />
+              <div
+                className="min-h-0 flex-1 overflow-y-auto custom-scrollbar overscroll-contain cursor-text"
+                onClick={() => editor?.commands.focus()}
+              >
+                <EditorContent editor={editor} className="min-h-full" />
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-stone-gray/10 px-3 md:px-4 py-2 text-[10px] md:text-[10px] text-muted-foreground">
+              <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-stone-gray/10 bg-card/95 backdrop-blur-sm px-3 md:px-4 py-2 text-[10px] md:text-[10px] text-muted-foreground shrink-0">
                 <span className="inline-flex items-center gap-1"><Type className="size-3" /> {wordCount.toLocaleString()} words</span>
                 <span>{charCount.toLocaleString()} chars</span>
                 <span className="inline-flex items-center gap-1"><Clock className="size-3" /> {readTime(form.content)}</span>
@@ -338,7 +341,7 @@ export function BlogEditor({
                 </div>
                 {form.content ? (
                   <div
-                    className="prose-content min-w-0 max-h-[70vh] overflow-auto custom-scrollbar"
+                    className="prose-content min-w-0 max-h-[60vh] md:max-h-[65vh] overflow-y-auto custom-scrollbar overscroll-contain"
                     dangerouslySetInnerHTML={{ __html: form.content }}
                   />
                 ) : (

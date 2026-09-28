@@ -94,6 +94,9 @@ interface RichTextEditorProps {
   className?: string;
   /** slug used for R2 image upload path */
   uploadSlug?: string;
+  /** Tailwind classes for height constraints */
+  minHeight?: string;
+  maxHeight?: string;
 }
 
 export function RichTextEditor({
@@ -102,6 +105,8 @@ export function RichTextEditor({
   placeholder = 'Write product description…',
   className,
   uploadSlug,
+  minHeight = 'min-h-[280px]',
+  maxHeight = 'max-h-[460px]',
 }: RichTextEditorProps) {
   const [previewMode, setPreviewMode] = useState(false);
 
@@ -128,10 +133,10 @@ export function RichTextEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: cn('prose-content min-h-[280px] px-4 py-3 focus:outline-none', className),
+        class: cn('prose-content min-h-[260px] px-4 py-3 focus:outline-none', className),
       },
     },
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    onUpdate: ({ editor }: { editor: any }) => onChange(editor.getHTML()),
   });
 
   /* Sync external content changes */
@@ -278,22 +283,39 @@ export function RichTextEditor({
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+      <div className="relative overflow-hidden rounded-lg border border-border bg-card shadow-sm flex flex-col">
         {!previewMode && (
-          <div className="flex flex-wrap items-center gap-0.5 overflow-x-auto border-b border-border p-1.5 no-scrollbar">
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 overflow-x-auto border-b border-border bg-card/95 backdrop-blur-sm p-1.5 no-scrollbar shrink-0">
             {fmt}<Divider />{headings}<Divider />{lists}<Divider />{align}<Divider />
             {insert}<Divider />{history}
           </div>
         )}
 
         {previewMode ? (
-          <div className="prose-content min-h-[280px] max-h-[420px] overflow-auto px-4 py-3 custom-scrollbar"
-            dangerouslySetInnerHTML={{ __html: content || '<p class="text-muted-foreground italic">Nothing to preview.</p>' }} />
+          <div
+            className={cn(
+              'prose-content overflow-y-auto px-4 py-3 custom-scrollbar overscroll-contain',
+              minHeight,
+              maxHeight
+            )}
+            dangerouslySetInnerHTML={{
+              __html: content || '<p class="text-muted-foreground italic">Nothing to preview.</p>',
+            }}
+          />
         ) : (
-          <EditorContent editor={editor} />
+          <div
+            className={cn(
+              'overflow-y-auto custom-scrollbar overscroll-contain cursor-text',
+              minHeight,
+              maxHeight
+            )}
+            onClick={() => editor.commands.focus()}
+          >
+            <EditorContent editor={editor} className="min-h-full" />
+          </div>
         )}
 
-        <div className="flex items-center gap-3 border-t border-border px-3 py-1.5 text-[10px] text-muted-foreground">
+        <div className="sticky bottom-0 z-10 flex items-center gap-3 border-t border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 text-[10px] text-muted-foreground shrink-0">
           <span>{words} words</span>
           <span className="inline-flex items-center gap-1"><Clock className="size-3" />{Math.max(1, Math.ceil(words / 200))} min</span>
           <span className="ml-auto">{content?.length || 0} chars</span>
