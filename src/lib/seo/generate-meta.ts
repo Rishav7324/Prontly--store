@@ -31,19 +31,22 @@ export function generateMeta({
   const fullTitle = `${title} | Prontly`.slice(0, 60);
   const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`;
   
-  // Construct dynamic viral OpenGraph image URL for products
-  let ogImageUrl = image || DEFAULT_OG_IMAGE;
-  if (type === 'product') {
+  // Product OG image must be the product image itself; auto-generate via /api/og only if no image exists
+  let ogImageUrl: string;
+  if (image && typeof image === 'string' && image.trim().length > 0) {
+    const trimmed = image.trim();
+    ogImageUrl = trimmed.startsWith('http')
+      ? trimmed
+      : `${SITE_URL}${trimmed.startsWith('/') ? trimmed : '/' + trimmed}`;
+  } else {
+    // Dynamic branded fallback OG image for products, articles, or generic pages
     const params = new URLSearchParams({
       title: title.slice(0, 70),
-      category: category || 'Digital Asset',
-      type: 'Asset',
+      category: category || (type === 'product' ? 'Digital Asset' : 'Prontly'),
+      type: type === 'product' ? 'Asset' : 'Store',
     });
     if (price) {
       params.set('price', ((price || 0) / 100).toLocaleString('en-IN'));
-    }
-    if (image && image.startsWith('http')) {
-      params.set('image', image);
     }
     ogImageUrl = `${SITE_URL}/api/og?${params.toString()}`;
   }

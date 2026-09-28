@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhookSignature } from '@/lib/razorpay/client';
 import { generateInvoicePdf } from '@/lib/payment/invoice';
 import { sendOrderConfirmationEmail, sendDeliveryEmail, sendNewOrderAlert } from '@/app/actions/email-actions';
-import { getDb, getPgDb } from '@/lib/db';
+import { getDb, getPgDb, isDatabaseConfigured } from '@/lib/db';
 import { orders, orderItems, products, downloads, users, analytics } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 

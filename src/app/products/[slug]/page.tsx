@@ -122,7 +122,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: product.name,
     description: product.shortDescription || `Acquire professional digital assets for your workflow.`,
     path: `/products/${slug}`,
-    image: product.images[0],
+    image: (Array.isArray(product.images) && product.images[0]) ? product.images[0] : (product.bannerImage || undefined),
     price: product.price,
     category: product.categorySlug,
     type: 'product'

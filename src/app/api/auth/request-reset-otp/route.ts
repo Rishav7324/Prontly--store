@@ -4,7 +4,7 @@ import { sendEmail } from '@/services/email/service';
 import { otpTemplate } from '@/services/email/templates';
 import { getDb } from '@/lib/db';
 import { passwordResetOtps, users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 /**
  * Secure OTP Request Handler.

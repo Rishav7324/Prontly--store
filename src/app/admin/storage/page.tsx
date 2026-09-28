@@ -75,9 +75,12 @@ export default function AdminStorage() {
       });
 
       if (res.success) {
+        const sizeInfo = res.originalSize && res.size && res.isWebPConverted
+          ? ` (Compressed ${Math.round(res.originalSize / 1024)}KB → ${Math.round(res.size / 1024)}KB WebP)`
+          : '';
         toast({ 
-          title: "Asset Uploaded", 
-          description: `${file.name} successfully streamed to Cloudflare R2.` 
+          title: res.isWebPConverted ? "Image Converted to WebP & Uploaded" : "Asset Uploaded", 
+          description: `${file.name}${sizeInfo} successfully streamed to Cloudflare R2.` 
         });
         await fetchFiles();
       } else {

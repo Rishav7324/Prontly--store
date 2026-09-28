@@ -1,15 +1,17 @@
 import { S3Client } from '@aws-sdk/client-s3';
 
-if (!process.env.R2_ACCOUNT_ID) throw new Error('R2_ACCOUNT_ID missing');
-if (!process.env.R2_ACCESS_KEY_ID) throw new Error('R2_ACCESS_KEY_ID missing');
-if (!process.env.R2_SECRET_ACCESS_KEY) throw new Error('R2_SECRET_ACCESS_KEY missing');
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
 
 export const r2Client = new S3Client({
-  region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  region: 'auto',
+  endpoint: R2_ACCOUNT_ID
+    ? `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+    : 'https://missing-id.r2.cloudflarestorage.com',
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    accessKeyId: R2_ACCESS_KEY_ID || 'missing',
+    secretAccessKey: R2_SECRET_ACCESS_KEY || 'missing',
   },
 });
 

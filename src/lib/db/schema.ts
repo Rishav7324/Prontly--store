@@ -175,6 +175,7 @@ export const orders = pgTable(
     invoiceUrl: text('invoice_url'),
     invoicePdfBase64: text('invoice_pdf_base64'),
     paidAt: timestamp('paid_at', { withTimezone: true }),
+    refundedAt: timestamp('refunded_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },

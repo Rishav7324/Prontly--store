@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { hashOTP, generateResetToken } from '@/lib/otp-utils';
-import { getDb } from '@/lib/db';
+import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { passwordResetOtps, passwordResetSessions } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
@@ -40,6 +40,8 @@ export async function POST(req: Request) {
       });
       return NextResponse.json({ success: true, resetToken });
     }
+
+    return NextResponse.json({ error: 'Authentication service unavailable' }, { status: 503 });
 
   } catch (error: any) {
     console.error('SERVER_OTP_VERIFY_FAILURE:', error.message);

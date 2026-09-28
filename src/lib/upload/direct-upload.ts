@@ -1,4 +1,5 @@
 import { getPresignedUploadUrlAction } from '@/app/actions/r2-actions';
+import { convertToWebP } from '@/lib/image-optimizer';
 
 export interface DirectUploadOptions {
   file: File;
@@ -12,11 +13,14 @@ export interface DirectUploadResult {
   key?: string;
   size?: number;
   error?: string;
+  originalSize?: number;
+  isWebPConverted?: boolean;
 }
 
 /**
- * Uploads any size file (1KB to 5GB+) directly from browser to Cloudflare R2
+ * Uploads any size file directly from browser to Cloudflare R2
  * using presigned PUT URLs with real-time upload progress tracking.
+ * Automatically intercepts and converts all images to WebP before upload.
  */
 export async function uploadFileDirectlyToR2({
   file,
@@ -24,10 +28,33 @@ export async function uploadFileDirectlyToR2({
   onProgress,
 }: DirectUploadOptions): Promise<DirectUploadResult> {
   try {
-    // 1. Get presigned upload URL from server action (instant ~50ms)
+    let uploadFile = file;
+    let targetKey = key;
+    let isWebPConverted = false;
+    const originalSize = file.size;
+
+    // Automatic WebP Conversion Pipeline for all images (excluding SVG vectors)
+    if (
+      typeof window !== 'undefined' &&
+      file.type?.toLowerCase().startsWith('image/') &&
+      !file.type.toLowerCase().includes('svg')
+    ) {
+      try {
+        uploadFile = await convertToWebP(file);
+        // Ensure destination key has .webp extension
+        targetKey = targetKey.replace(/\.[^/.]+$/, '') + '.webp';
+        isWebPConverted = true;
+      } catch (webpErr) {
+        console.warn('[R2_UPLOAD_WEBP_FALLBACK]: Could not convert image to WebP, uploading original:', webpErr);
+      }
+    }
+
+    const contentType = uploadFile.type || 'application/octet-stream';
+
+    // 1. Get presigned upload URL from server action
     const presignedRes = await getPresignedUploadUrlAction({
-      key,
-      contentType: file.type || 'application/octet-stream',
+      key: targetKey,
+      contentType,
     });
 
     if (!presignedRes.success || !presignedRes.presignedUrl || !presignedRes.publicUrl) {
@@ -38,7 +65,7 @@ export async function uploadFileDirectlyToR2({
     await new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('PUT', presignedRes.presignedUrl!, true);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.setRequestHeader('Content-Type', contentType);
 
       if (xhr.upload && onProgress) {
         xhr.upload.onprogress = (event) => {
@@ -66,14 +93,16 @@ export async function uploadFileDirectlyToR2({
         reject(new Error('Upload connection timed out.'));
       };
 
-      xhr.send(file);
+      xhr.send(uploadFile);
     });
 
     return {
       success: true,
       url: presignedRes.publicUrl,
       key: presignedRes.key,
-      size: file.size,
+      size: uploadFile.size,
+      originalSize,
+      isWebPConverted,
     };
   } catch (error: any) {
     console.error('[DIRECT_R2_UPLOAD_ERROR]:', error);
