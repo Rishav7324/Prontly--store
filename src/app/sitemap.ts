@@ -1,23 +1,25 @@
 import { MetadataRoute } from 'next';
 import { isDatabaseConfigured, getDb } from '@/lib/db';
-import { products, categories, blogPosts } from '@/lib/db/schema';
+import { products, blogPosts } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const revalidate = 3600; // Hourly ISR cache
 
-function safeDate(input: unknown): Date | undefined {
+function safeDate(input: unknown): string | undefined {
   if (!input) return undefined;
   const d = input instanceof Date ? input : new Date(String(input));
-  return Number.isNaN(d.getTime()) ? undefined : d;
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString().split('.')[0] + 'Z';
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in').replace(/\/$/, '');
+  const nowIso = new Date().toISOString().split('.')[0] + 'Z';
 
   const routes: MetadataRoute.Sitemap = [
-    { url: siteUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${siteUrl}/products`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${siteUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${siteUrl}/`, lastModified: nowIso, changeFrequency: 'daily', priority: 1.0 },
+    { url: `${siteUrl}/products`, lastModified: nowIso, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${siteUrl}/blog`, lastModified: nowIso, changeFrequency: 'daily', priority: 0.8 },
     { url: `${siteUrl}/about`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/contact`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/testimonials`, changeFrequency: 'monthly', priority: 0.6 },
@@ -33,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const db = getDb();
-    const [prods, cats, blogs] = await Promise.all([
+    const [prods, blogs] = await Promise.all([
       db
         .select({
           slug: products.slug,
@@ -42,13 +44,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })
         .from(products)
         .where(eq(products.isPublished, true)),
-      db
-        .select({
-          slug: categories.slug,
-          updatedAt: categories.updatedAt,
-        })
-        .from(categories)
-        .where(eq(categories.isActive, true)),
       db
         .select({
           slug: blogPosts.slug,
@@ -66,16 +61,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: safeDate(p.updatedAt || p.createdAt),
         changeFrequency: 'weekly',
         priority: 0.9,
-      });
-    }
-
-    for (const c of cats) {
-      if (!c.slug) continue;
-      routes.push({
-        url: `${siteUrl}/products?category=${encodeURIComponent(c.slug)}`,
-        lastModified: safeDate(c.updatedAt),
-        changeFrequency: 'weekly',
-        priority: 0.8,
       });
     }
 
