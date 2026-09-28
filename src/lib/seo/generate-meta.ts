@@ -28,8 +28,8 @@ export function generateMeta({
   noIndex = false,
   type = 'website',
 }: GenerateMetaProps): Metadata {
-  const fullTitle = `${title} | Prontly`.slice(0, 60);
-  const canonical = `${SITE_URL}${path.startsWith('/') ? path : '/' + path}`;
+  const cleanPath = path.startsWith('/') ? path : '/' + path;
+  const canonicalUrl = `${SITE_URL.replace(/\/$/, '')}${cleanPath}`;
   
   // Product OG image must be the product image itself; auto-generate via /api/og only if no image exists
   let ogImageUrl: string;
@@ -37,7 +37,7 @@ export function generateMeta({
     const trimmed = image.trim();
     ogImageUrl = trimmed.startsWith('http')
       ? trimmed
-      : `${SITE_URL}${trimmed.startsWith('/') ? trimmed : '/' + trimmed}`;
+      : `${SITE_URL.replace(/\/$/, '')}${trimmed.startsWith('/') ? trimmed : '/' + trimmed}`;
   } else {
     // Dynamic branded fallback OG image for products, articles, or generic pages
     const params = new URLSearchParams({
@@ -48,7 +48,7 @@ export function generateMeta({
     if (price) {
       params.set('price', ((price || 0) / 100).toLocaleString('en-IN'));
     }
-    ogImageUrl = `${SITE_URL}/api/og?${params.toString()}`;
+    ogImageUrl = `${SITE_URL.replace(/\/$/, '')}/api/og?${params.toString()}`;
   }
 
   const ogType = type === 'article' ? 'article' : 'website';
@@ -56,9 +56,9 @@ export function generateMeta({
   return {
     title: fullTitle,
     description: description.slice(0, 160),
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(SITE_URL.replace(/\/$/, '')),
     alternates: {
-      canonical,
+      canonical: cleanPath,
     },
     robots: noIndex 
       ? { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } }
@@ -66,7 +66,7 @@ export function generateMeta({
     openGraph: {
       title: fullTitle,
       description: description.slice(0, 160),
-      url: canonical,
+      url: canonicalUrl,
       siteName: 'Prontly Store',
       images: [
         {
