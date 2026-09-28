@@ -25,6 +25,9 @@ export const metadata: Metadata = {
   },
   description: 'Discover, preview, and purchase high-quality AI prompts, templates, and digital assets. Professional tools for modern creators.',
   metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: '/',
+  },
   manifest: '/manifest.json',
   icons: {
     icon: 'https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png',
