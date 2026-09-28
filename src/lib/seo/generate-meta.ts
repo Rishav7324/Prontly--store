@@ -30,6 +30,8 @@ export function generateMeta({
 }: GenerateMetaProps): Metadata {
   const cleanPath = path.startsWith('/') ? path : '/' + path;
   const canonicalUrl = `${SITE_URL.replace(/\/$/, '')}${cleanPath}`;
+  const pageTitle = title.trim().slice(0, 60);
+  const ogFullTitle = `${pageTitle} | Prontly Store`.slice(0, 70);
   
   // Product OG image must be the product image itself; auto-generate via /api/og only if no image exists
   let ogImageUrl: string;
@@ -54,7 +56,7 @@ export function generateMeta({
   const ogType = type === 'article' ? 'article' : 'website';
 
   return {
-    title: fullTitle,
+    title: pageTitle,
     description: description.slice(0, 160),
     metadataBase: new URL(SITE_URL.replace(/\/$/, '')),
     alternates: {
@@ -64,7 +66,7 @@ export function generateMeta({
       ? { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } }
       : { index: true, follow: true, googleBot: { index: true, follow: true } },
     openGraph: {
-      title: fullTitle,
+      title: ogFullTitle,
       description: description.slice(0, 160),
       url: canonicalUrl,
       siteName: 'Prontly Store',
@@ -81,7 +83,7 @@ export function generateMeta({
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle,
+      title: ogFullTitle,
       description: description.slice(0, 160),
       site: '@prontly',
       creator: '@prontly',
