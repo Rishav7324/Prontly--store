@@ -13,9 +13,9 @@ export async function GET(req: NextRequest) {
     const category = (searchParams.get('category') || 'Premium Marketplace').slice(0, 40);
     const image = searchParams.get('image');
 
-    // Satori / Next.js ImageResponse does NOT support WebP. Only render if PNG/JPEG/SVG.
-    const isWebP = !!image && (image.toLowerCase().includes('.webp') || image.toLowerCase().endsWith('.webp'));
-    const canRenderImage = !!image && !isWebP;
+    // Satori / Next.js ImageResponse does NOT support WebP. Only render if standard PNG, JPEG, SVG.
+    const isSupportedFormat = !!image && (image.endsWith('.png') || image.endsWith('.jpg') || image.endsWith('.jpeg') || image.endsWith('.svg'));
+    const canRenderImage = isSupportedFormat && !image.toLowerCase().includes('.webp');
 
     return new ImageResponse(
       (

@@ -112,11 +112,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!product) return {};
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+  const priceInRupees = Math.round(product.price > 1000 ? product.price / 100 : product.price);
+
+  const ogParams = new URLSearchParams({
+    title: product.name,
+    category: product.categorySlug || 'Digital Asset',
+    type: 'Asset',
+    price: priceInRupees.toString(),
+  });
+  const generatedOgImage = `${SITE_URL.replace(/\/$/, '')}/api/og?${ogParams.toString()}`;
+
   return generateMeta({
     title: `${product.name} — Instant Download`,
     description: product.shortDescription || `Download ${product.name} instantly with commercial license included.`,
     path: `/p/${slug}`,
-    image: (Array.isArray(product.images) && product.images[0]) ? product.images[0] : (product.bannerImage || undefined),
+    image: generatedOgImage,
     price: product.price,
     category: product.categorySlug,
     type: 'product',
