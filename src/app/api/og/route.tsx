@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
     const category = (searchParams.get('category') || 'Premium Marketplace').slice(0, 40);
     const image = searchParams.get('image');
 
+    // Satori / Next.js ImageResponse does NOT support WebP. Only render if PNG/JPEG/SVG.
+    const isWebP = !!image && (image.toLowerCase().includes('.webp') || image.toLowerCase().endsWith('.webp'));
+    const canRenderImage = !!image && !isWebP;
+
     return new ImageResponse(
       (
         <div
@@ -105,7 +109,8 @@ export async function GET(req: NextRequest) {
               </p>
             </div>
 
-            {image && (
+            {/* Right Side Visual */}
+            {canRenderImage ? (
               <div
                 style={{
                   display: 'flex',
@@ -118,7 +123,72 @@ export async function GET(req: NextRequest) {
                   backgroundColor: '#1C1917',
                 }}
               >
-                <img src={image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Asset" />
+                <img
+                  src={image}
+                  width="360"
+                  height="360"
+                  style={{ width: '360px', height: '360px', objectFit: 'cover' }}
+                  alt="Asset"
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '340px',
+                  height: '340px',
+                  borderRadius: '28px',
+                  border: '2px solid rgba(161, 98, 7, 0.4)',
+                  backgroundColor: '#1C1917',
+                  backgroundImage: 'radial-gradient(circle at 50% 35%, rgba(161, 98, 7, 0.28) 0%, rgba(28, 25, 23, 0.95) 75%)',
+                  boxShadow: '0 25px 60px rgba(0,0,0,0.7)',
+                  padding: '24px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '96px',
+                    height: '96px',
+                    borderRadius: '24px',
+                    backgroundColor: 'rgba(161, 98, 7, 0.2)',
+                    border: '2px solid rgba(217, 119, 6, 0.5)',
+                    fontSize: '44px',
+                    color: '#F59E0B',
+                    marginBottom: '20px',
+                  }}
+                >
+                  ⚡
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontSize: '20px',
+                    fontWeight: 800,
+                    color: '#F59E0B',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    textAlign: 'center',
+                  }}
+                >
+                  {category}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    fontSize: '14px',
+                    color: '#A8A29E',
+                    marginTop: '8px',
+                    fontWeight: 600,
+                  }}
+                >
+                  Verified Digital Asset
+                </div>
               </div>
             )}
           </div>

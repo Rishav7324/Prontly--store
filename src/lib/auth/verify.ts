@@ -23,12 +23,16 @@ export async function verifyAuthToken(authHeader: string | null): Promise<AuthUs
   const token = authHeader?.replace('Bearer ', '').trim() || '';
   if (!token) throw new Error('UNAUTHORIZED: Missing token');
 
-  const decoded = await verifyIdToken(token);
-  return {
-    uid: decoded.uid,
-    email: decoded.email || null,
-    name: decoded.name || decoded.email || null,
-  };
+  try {
+    const decoded = await verifyIdToken(token);
+    return {
+      uid: decoded.uid,
+      email: decoded.email || null,
+      name: decoded.name || decoded.email || null,
+    };
+  } catch (err: any) {
+    throw new Error(`UNAUTHORIZED: ${err?.message || 'Invalid or expired token'}`);
+  }
 }
 
 /**

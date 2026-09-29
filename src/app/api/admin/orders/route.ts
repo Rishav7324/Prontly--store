@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   try {
     await requireAdmin(req.headers.get('authorization'));
     const db = getDb();
+
+    // Auto-migrate missing column if needed
+    try {
+      await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMP WITH TIME ZONE`);
+    } catch (migErr) {
+      console.warn('[ADMIN_ORDERS_MIGRATION_WARN]:', migErr);
+    }
+
     const rows = await db.select().from(orders).orderBy(desc(orders.createdAt));
     if (rows.length === 0) return NextResponse.json({ success: true, data: [] });
     const ids = rows.map((r) => r.id);
@@ -20,6 +28,7 @@ export async function GET(req: NextRequest) {
       data: rows.map((o) => ({ ...o, items: items.filter((i) => i.orderId === o.id) })),
     });
   } catch (e: any) {
+    console.error('[ADMIN_ORDERS_GET_ERROR]:', e);
     const status = e.message?.includes('UNAUTHORIZED') ? 401 : e.message?.includes('FORBIDDEN') ? 403 : 500;
     return NextResponse.json({ success: false, error: e.message }, { status });
   }
