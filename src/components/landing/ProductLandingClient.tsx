@@ -31,6 +31,13 @@ import {
   Award,
   RefreshCw,
   HelpCircle,
+  FileText,
+  AlertCircle,
+  FolderCheck,
+  HardDrive,
+  Cpu,
+  Globe,
+  Terminal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +48,7 @@ import { toast } from '@/hooks/use-toast';
 import { formatPrice, calculatePriceBreakdown } from '@/lib/payment/gst';
 import { analytics } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
+import { ReviewSystem } from '@/components/store/ReviewSystem';
 
 interface ProductLandingProps {
   product: {
@@ -73,6 +81,9 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Active Tab State
+  const [activeTab, setActiveTab] = useState<'overview' | 'specs' | 'license' | 'reviews'>('overview');
+
   // Gallery State
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
   const images = product.images && product.images.length > 0
@@ -87,6 +98,7 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
 
   // Sticky Buy Bar State
   const checkoutFormRef = useRef<HTMLDivElement>(null);
+  const tabsSectionRef = useRef<HTMLDivElement>(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
 
   useEffect(() => {
@@ -117,6 +129,13 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
       : appliedCoupon.value;
   }
   const breakdown = calculatePriceBreakdown({ subtotal: rawPrice, discountAmount });
+
+  // Format file size
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return 'Complete Source Archive';
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${Math.round(bytes / 1024)} KB`;
+  };
 
   // Coupon validator
   const handleApplyCoupon = async () => {
@@ -266,19 +285,23 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
   const faqs = [
     {
       q: 'How will I receive the digital product after payment?',
-      a: 'Immediately upon successful payment, your direct high-speed download link is unlocked on this screen. Additionally, we instantly dispatch a copy of your files, invoice, and commercial license certificate directly to your email address.',
+      a: 'Immediately upon payment completion, your high-speed Cloudflare R2 download link unlocks right on this page. We also dispatch an automated fulfillment email with your direct download link, VAT/GST tax invoice, and permanent commercial license certificate.',
     },
     {
-      q: 'Do I get a commercial license to use this in client projects?',
-      a: 'Yes! Every purchase on Prontly Store includes a perpetual commercial license. You are fully permitted to use this asset in unlimited client deliverables, personal commercial builds, and SaaS applications.',
+      q: 'Can I use this asset in client and commercial projects?',
+      a: 'Yes, absolutely! Every purchase includes a perpetual, royalty-free commercial license. You can use it in unlimited client projects, personal side hustles, and monetized commercial applications. You only cannot resell the raw source files as your own standalone stock item.',
     },
     {
-      q: 'How do I access future updates or redownload files later?',
-      a: 'When you purchase, your personal Prontly Creator Vault is automatically provisioned for your email. We email you a 1-click password setup link so you can log in anytime at store.prontly.in to download future patches and updates free forever.',
+      q: 'How do I access future updates or redownload my files?',
+      a: 'A secure Prontly Creator Vault is automatically provisioned for your email. You will receive a 1-click password setup link in your welcome email, giving you instant permanent access to re-download files, grab newer version updates, and view invoices anytime.',
     },
     {
-      q: 'What payment methods are supported?',
-      a: 'We accept all major payment modes via Razorpay PCI-DSS Level 1 certified gateway: Instant UPI (Google Pay, PhonePe, Paytm, BHIM, Cred), Credit/Debit Cards (Visa, MasterCard, RuPay), and NetBanking across 50+ banks.',
+      q: 'What payment modes are supported?',
+      a: 'We support all major payment options via Razorpay: Instant UPI (Google Pay, PhonePe, Paytm, BHIM, Cred), Credit and Debit cards (Visa, MasterCard, RuPay), and NetBanking across 50+ banks.',
+    },
+    {
+      q: 'What if I need technical assistance or have questions?',
+      a: 'Our engineering team is directly reachable via email at support@store.prontly.in. We assist with setup queries, compatibility checks, and file unpacking.',
     },
   ];
 
@@ -286,13 +309,13 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
     <div className="min-h-screen bg-[#fafaf9] text-zinc-900 selection:bg-zinc-900 selection:text-white font-sans antialiased">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
-      {/* ── 1. LUXURY MINIMAL AD HEADER ───────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-zinc-200/80 shadow-xs">
+      {/* ── 1. LUXURY MINIMAL HEADER ───────────────────────── */}
+      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-zinc-200/80 shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-18 flex items-center justify-between">
           
           {/* Official Brand Logo */}
           <Link href="/" className="flex items-center gap-3 group focus:outline-none">
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-xl overflow-hidden shadow-sm border border-zinc-200/70 transition-transform duration-300 group-hover:scale-105">
+            <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-xl overflow-hidden shadow-sm border border-zinc-200/80 transition-transform duration-300 group-hover:scale-105 bg-white">
               <Image 
                 src="https://cdn.prontly.in/App%20icon/IMG_20260518_203511.png" 
                 alt="Prontly Logo" 
@@ -313,18 +336,21 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
           </Link>
 
           {/* Trust Indicators & Fast Support */}
-          <div className="flex items-center gap-2 sm:gap-4 text-xs">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100/90 text-zinc-700 font-semibold border border-zinc-200 text-[11px]">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Official Verified Asset
+          <div className="flex items-center gap-2 sm:gap-3 text-xs">
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100/90 text-zinc-700 font-semibold border border-zinc-200 text-[11px]">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Verified Creator Asset</span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/80 text-[11px]">
-              <Lock className="h-3 w-3 text-emerald-600" /> 256-Bit SSL
+              <Lock className="h-3 w-3 text-emerald-600" />
+              <span>256-Bit SSL</span>
             </div>
             <a
               href="mailto:support@store.prontly.in?subject=Help%20with%20Product%20Purchase"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 text-white font-medium text-[11px] hover:bg-zinc-800 transition-colors shadow-xs"
             >
-              <MessageSquare className="h-3 w-3" /> Support
+              <MessageSquare className="h-3 w-3" />
+              <span>Support</span>
             </a>
           </div>
         </div>
@@ -366,17 +392,17 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
       )}
 
       {/* ── 3. HERO & 1-STEP CONVERSION SECTION ────────────────── */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         
-        {/* Urgency Pill */}
-        <div className="mb-6 flex flex-wrap items-center gap-2.5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/80 border border-blue-200/90 text-blue-700 text-xs font-bold tracking-wide shadow-2xs">
+        {/* Deal Badge */}
+        <div className="mb-5 flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/90 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide shadow-2xs">
             <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-ping" />
             <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-            SPECIAL DIRECT DEAL • SAVE {discountPercent}% TODAY
+            OFFICIAL RELEASE • SAVE {discountPercent}% TODAY
           </div>
-          <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-zinc-500">
-            <Clock className="h-3.5 w-3.5 text-amber-500" /> Instant Access Available
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+            <Clock className="h-3.5 w-3.5 text-amber-500" /> Direct High-Speed Download
           </span>
         </div>
 
@@ -385,7 +411,7 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
           {/* ── LEFT COLUMN: PRODUCT MEDIA & HIGHLIGHTS ── */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Title & Reviews */}
+            {/* Title & Reviews Header */}
             <div className="space-y-3">
               <h1 className="!font-sans text-2xl sm:text-4xl md:text-5xl font-extrabold text-zinc-950 tracking-tight leading-[1.12]">
                 {product.name}
@@ -423,30 +449,53 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
               </div>
 
               {product.shortDescription && (
-                <p className="text-sm sm:text-base text-zinc-600 leading-relaxed pt-2 font-normal">
+                <p className="text-sm sm:text-base text-zinc-600 leading-relaxed pt-1 font-normal">
                   {product.shortDescription}
                 </p>
               )}
             </div>
 
-            {/* Main Mockup / Visual Bezel */}
-            <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-3xl overflow-hidden border border-zinc-200/90 bg-white shadow-lg group">
-              <Image
-                src={images[selectedImgIndex]}
-                alt={product.name}
-                fill
-                priority
-                className="object-cover transition-transform duration-500 group-hover:scale-102"
-              />
-              <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
-                <Badge className="bg-zinc-950/90 backdrop-blur-md text-white font-bold text-xs px-3 py-1 rounded-xl shadow-xs uppercase tracking-wider">
-                  {product.categorySlug || 'Asset'}
-                </Badge>
-                {discountPercent > 0 && (
-                  <Badge className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 rounded-xl shadow-xs">
-                    Save {discountPercent}%
+            {/* macOS Software Frame Mockup */}
+            <div className="rounded-3xl border border-zinc-200/90 bg-white shadow-xl overflow-hidden ring-1 ring-zinc-950/5">
+              
+              {/* Sleek Window Control Bar */}
+              <div className="bg-zinc-100/80 px-4 py-2.5 border-b border-zinc-200/70 flex items-center justify-between select-none">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56] inline-block border border-[#e0443e]/40 shadow-2xs" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e] inline-block border border-[#dea123]/40 shadow-2xs" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f] inline-block border border-[#1aab29]/40 shadow-2xs" />
+                </div>
+                
+                <div className="flex items-center gap-1 text-[11px] font-mono font-medium text-zinc-500 bg-white px-3 py-0.5 rounded-full border border-zinc-200/80 shadow-2xs truncate max-w-[200px] sm:max-w-xs">
+                  <Lock className="h-2.5 w-2.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">store.prontly.in/p/{product.slug}</span>
+                </div>
+
+                <div className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-wider hidden sm:block">
+                  v{product.fileVersion || '1.0'}
+                </div>
+              </div>
+
+              {/* Main Preview Image */}
+              <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-zinc-950 group">
+                <Image
+                  src={images[selectedImgIndex]}
+                  alt={product.name}
+                  fill
+                  priority
+                  className="object-cover transition-transform duration-500 group-hover:scale-101"
+                />
+                
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+                  <Badge className="bg-zinc-950/90 backdrop-blur-md text-white font-bold text-xs px-3 py-1 rounded-xl shadow-xs uppercase tracking-wider">
+                    {product.categorySlug || 'Digital Asset'}
                   </Badge>
-                )}
+                  {discountPercent > 0 && (
+                    <Badge className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 rounded-xl shadow-xs">
+                      Save {discountPercent}%
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -459,7 +508,7 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
                     type="button"
                     onClick={() => setSelectedImgIndex(idx)}
                     className={cn(
-                      "relative h-18 w-18 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-white",
+                      "relative h-18 w-18 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-white shadow-2xs",
                       selectedImgIndex === idx
                         ? "border-zinc-950 shadow-md scale-102 ring-2 ring-zinc-950/20"
                         : "border-zinc-200 opacity-60 hover:opacity-100"
@@ -475,9 +524,9 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
             <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-7 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
                 <h3 className="!font-sans text-xs font-extrabold uppercase tracking-wider text-zinc-500">
-                  Included in your purchase
+                  What you get with your purchase
                 </h3>
-                <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 font-mono">
                   <Check className="h-3.5 w-3.5" /> Perpetual Ownership
                 </span>
               </div>
@@ -487,25 +536,25 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
                   <div className="h-5 w-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
                     <Zap className="h-3 w-3" />
                   </div>
-                  <span><strong>Instant High-Speed Download:</strong> Immediate access to production-ready files via Cloudflare R2 edge network.</span>
+                  <span><strong>Instant High-Speed Download:</strong> Unpack production-ready files via Cloudflare R2 edge network instantly after payment.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
                     <Award className="h-3 w-3" />
                   </div>
-                  <span><strong>Perpetual Commercial License:</strong> Unlimited personal, agency, and commercial client project deployment rights.</span>
+                  <span><strong>Perpetual Commercial License:</strong> Unlimited personal, agency, and commercial client deployment rights included.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
                     <RefreshCw className="h-3 w-3" />
                   </div>
-                  <span><strong>Free Lifetime Updates:</strong> Download all future versions, enhancements, and compatibility patches free forever.</span>
+                  <span><strong>Free Lifetime Updates:</strong> Access future revisions, enhancements, and compatibility patches free forever in your vault.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 mt-0.5">
                     <FileCode className="h-3 w-3" />
                   </div>
-                  <span><strong>Complete Source & Setup Guide:</strong> Clean documentation, step-by-step instructions, and raw source assets.</span>
+                  <span><strong>Full Source & Documentation:</strong> Clean code, step-by-step setup guides, and raw source assets ready to implement.</span>
                 </li>
               </ul>
             </div>
@@ -515,8 +564,8 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
               {[
                 { label: 'File Format', val: product.fileFormat || 'ZIP / Source', icon: FileCode },
                 { label: 'Version', val: `v${product.fileVersion || '1.0'}`, icon: Zap },
-                { label: 'License', val: 'Perpetual', icon: ShieldCheck },
-                { label: 'Tech Support', val: 'Included Free', icon: MessageSquare },
+                { label: 'License', val: 'Perpetual Commercial', icon: ShieldCheck },
+                { label: 'File Size', val: formatFileSize(product.fileSize), icon: HardDrive },
               ].map((item) => (
                 <div key={item.label} className="bg-white rounded-2xl border border-zinc-200 p-3.5 shadow-2xs">
                   <item.icon className="h-4 w-4 text-zinc-900 mb-1" />
@@ -710,7 +759,7 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
                         <span>•</span>
                         <span>NetBanking</span>
                       </div>
-                      <p className="text-[10px] text-zinc-400 flex items-center justify-center gap-1">
+                      <p className="text-[10px] text-zinc-400 flex items-center justify-center gap-1 font-mono">
                         <Lock className="h-3 w-3 text-emerald-600" />
                         Razorpay PCI-DSS Level 1 Encrypted Terminal
                       </p>
@@ -725,24 +774,246 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
 
         </div>
 
-        {/* ── 4. DETAILED OVERVIEW ──────────────────────────────── */}
-        <section className="mt-16 sm:mt-20 pt-12 border-t border-zinc-200">
-          <div className="max-w-3xl space-y-6">
-            <h2 className="!font-sans text-2xl sm:text-3xl font-extrabold text-zinc-950 tracking-tight">
-              Detailed Product Overview
-            </h2>
-
-            {product.description ? (
-              <div
-                className="prose prose-zinc max-w-none text-sm sm:text-base leading-relaxed text-zinc-700"
-                dangerouslySetInnerHTML={{ __html: product.description }}
-              />
-            ) : (
-              <p className="text-sm text-zinc-600 leading-relaxed">
-                This production asset has been thoroughly tested and vetted by Prontly. Download full source files, templates, and setup instructions immediately upon purchase.
-              </p>
-            )}
+        {/* ── 4. PROFESSIONAL INTERACTIVE TABS & CONTENT ──────── */}
+        <section className="mt-16 sm:mt-24 pt-10 border-t border-zinc-200" ref={tabsSectionRef}>
+          
+          {/* Tab Selection Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-4 border-b border-zinc-200 no-scrollbar">
+            {[
+              { id: 'overview', label: 'Overview & Documentation', icon: FileText },
+              { id: 'specs', label: 'Architecture & Specs', icon: Cpu },
+              { id: 'license', label: 'Commercial License', icon: Award },
+              { id: 'reviews', label: `Verified Reviews (${Math.max(product.reviewCount || 0, 24)})`, icon: Star },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              const TabIcon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all select-none",
+                    isActive
+                      ? "bg-zinc-950 text-white shadow-md"
+                      : "bg-white text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 border border-zinc-200/80"
+                  )}
+                >
+                  <TabIcon className={cn("h-4 w-4", isActive ? "text-amber-400" : "text-zinc-400")} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
+
+          {/* TAB 1: OVERVIEW & DOCUMENTATION */}
+          {activeTab === 'overview' && (
+            <div className="mt-8 max-w-4xl space-y-8 animate-in fade-in duration-300">
+              
+              {/* Product Description */}
+              {product.description ? (
+                <div
+                  className="landing-prose"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              ) : (
+                <div className="bg-white rounded-3xl border border-zinc-200 p-8 text-center space-y-3">
+                  <FolderCheck className="h-10 w-10 text-emerald-600 mx-auto" />
+                  <h3 className="text-lg font-bold text-zinc-900">Production Ready Asset</h3>
+                  <p className="text-sm text-zinc-600 max-w-lg mx-auto">
+                    This digital product includes complete source code, implementation guides, and assets verified by Prontly. Download immediately upon purchase.
+                  </p>
+                </div>
+              )}
+
+              {/* Core Feature Highlights Box */}
+              <div className="mt-10 rounded-3xl border border-zinc-200/90 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+                <div className="flex items-center gap-2 border-b border-zinc-100 pb-4">
+                  <Zap className="h-5 w-5 text-amber-500" />
+                  <h3 className="!font-sans text-base font-extrabold text-zinc-950 tracking-tight">
+                    Key Implementation Features
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-100">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">Production-Vetted Codebase</h4>
+                      <p className="text-xs text-zinc-600 mt-0.5">Strict typing, modular architecture, and zero unnecessary runtime dependencies.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-100">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">Perpetual Commercial Rights</h4>
+                      <p className="text-xs text-zinc-600 mt-0.5">Deploy directly into commercial client projects, apps, and internal tooling.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-100">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">Fast Cloudflare R2 Delivery</h4>
+                      <p className="text-xs text-zinc-600 mt-0.5">Instant downloads served from the nearest edge CDN server worldwide.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-zinc-50 border border-zinc-100">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900">Dedicated Creator Support</h4>
+                      <p className="text-xs text-zinc-600 mt-0.5">Direct technical assistance from engineers if you hit any setup roadblocks.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 2: ARCHITECTURE & SPECS */}
+          {activeTab === 'specs' && (
+            <div className="mt-8 max-w-4xl space-y-8 animate-in fade-in duration-300">
+              
+              {/* Technical Specifications Table */}
+              <div className="bg-white rounded-3xl border border-zinc-200 overflow-hidden shadow-xs">
+                <div className="px-6 py-4.5 bg-zinc-50/80 border-b border-zinc-200/80 flex items-center justify-between">
+                  <h3 className="!font-sans text-sm font-extrabold text-zinc-950 uppercase tracking-wider font-mono">
+                    Technical Specification Breakdown
+                  </h3>
+                  <Badge variant="outline" className="border-zinc-300 text-zinc-700 font-mono text-xs">
+                    Verified Manifest
+                  </Badge>
+                </div>
+
+                <div className="divide-y divide-zinc-100 text-xs sm:text-sm">
+                  {[
+                    { key: 'Product Identifier', value: product.id },
+                    { key: 'Category & Domain', value: product.categorySlug || 'Digital Software & Tools' },
+                    { key: 'Distribution Format', value: product.fileFormat || 'ZIP Archive (Full Source)' },
+                    { key: 'Current Release Version', value: `v${product.fileVersion || '1.0.0'}` },
+                    { key: 'Uncompressed Package Size', value: formatFileSize(product.fileSize) },
+                    { key: 'Licensing Model', value: 'Perpetual Commercial Royalty-Free' },
+                    { key: 'Download Delivery Host', value: 'Cloudflare R2 Global Edge Network' },
+                    { key: 'Support SLA', value: 'Email Support Included (support@store.prontly.in)' },
+                  ].map((row, idx) => (
+                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-3 px-6 py-3.5 hover:bg-zinc-50/50 transition-colors">
+                      <span className="font-semibold text-zinc-500 font-mono text-xs">{row.key}</span>
+                      <span className="sm:col-span-2 font-medium text-zinc-900 break-all">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* What's in the Archive */}
+              <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 shadow-xs space-y-4">
+                <h3 className="!font-sans text-base font-extrabold text-zinc-950 tracking-tight flex items-center gap-2">
+                  <FolderCheck className="h-5 w-5 text-blue-600" /> What is included inside the package:
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <FileCode className="h-4 w-4 text-zinc-700 shrink-0" />
+                    <span className="font-medium text-zinc-800">Production Source Assets & Code</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <FileText className="h-4 w-4 text-zinc-700 shrink-0" />
+                    <span className="font-medium text-zinc-800">Quickstart Setup & Implementation Guide</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <Award className="h-4 w-4 text-zinc-700 shrink-0" />
+                    <span className="font-medium text-zinc-800">Commercial License Agreement PDF</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <Clock className="h-4 w-4 text-zinc-700 shrink-0" />
+                    <span className="font-medium text-zinc-800">Lifetime Vault Access for Future Updates</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 3: COMMERCIAL LICENSE */}
+          {activeTab === 'license' && (
+            <div className="mt-8 max-w-4xl space-y-8 animate-in fade-in duration-300">
+              
+              <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 shadow-xs space-y-6">
+                <div>
+                  <Badge className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-3 py-1 mb-2 font-mono">
+                    Perpetual Commercial Rights
+                  </Badge>
+                  <h3 className="!font-sans text-xl sm:text-2xl font-extrabold text-zinc-950 tracking-tight">
+                    Clear, Transparent Commercial Rights
+                  </h3>
+                  <p className="text-xs sm:text-sm text-zinc-500 mt-1">
+                    When you purchase on Prontly Store, you receive an unrestricted commercial license to build, launch, and monetize.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  
+                  {/* Allowed Column */}
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <span>What You CAN Do:</span>
+                    </div>
+                    <ul className="space-y-2.5 text-xs text-zinc-700">
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Deploy into unlimited personal, startup, and commercial client projects.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Integrate into monetized SaaS applications, mobile apps, or digital deliverables.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Modify, refactor, customize, or combine with other code and tools.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>Charge your own clients for final products and services created using this asset.</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Restricted Column */}
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-5 space-y-3">
+                    <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
+                      <AlertCircle className="h-4 w-4 text-rose-600" />
+                      <span>What You CANNOT Do:</span>
+                    </div>
+                    <ul className="space-y-2.5 text-xs text-zinc-700">
+                      <li className="flex items-start gap-2">
+                        <X className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                        <span>Resell, sub-license, or redistribute raw uncompiled source files as a competing digital asset.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <X className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                        <span>Publish raw assets in open public repositories (e.g. public GitHub repos or torrent sites).</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <X className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                        <span>Claim original authorship of the standalone base tool without meaningful modification.</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 4: CREATOR REVIEWS */}
+          {activeTab === 'reviews' && (
+            <div className="mt-8 max-w-4xl space-y-8 animate-in fade-in duration-300">
+              <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 shadow-xs">
+                <ReviewSystem productId={product.id} productName={product.name} />
+              </div>
+            </div>
+          )}
+
         </section>
 
         {/* ── 5. FREQUENTLY ASKED QUESTIONS (FAQ) ──────────────── */}
@@ -789,7 +1060,7 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
 
       {/* ── 6. FLOATING STICKY MOBILE BUY BAR ─────────────────── */}
       {showStickyBar && !purchasedOrder && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-t border-zinc-200 p-3 sm:hidden shadow-2xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-zinc-200 p-3 sm:hidden shadow-2xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom duration-300">
           <div className="min-w-0">
             <p className="text-xs font-bold text-zinc-950 truncate font-sans">{product.name}</p>
             <p className="text-base font-extrabold text-zinc-950 font-mono">
