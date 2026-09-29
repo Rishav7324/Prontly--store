@@ -17,7 +17,8 @@ import {
   Package,
   Layers,
   X,
-  Sparkles
+  Sparkles,
+  Copy,
 } from 'lucide-react';
 import {
   Table,
@@ -214,6 +215,21 @@ export default function AdminProducts() {
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild className="rounded-xl text-xs font-medium cursor-pointer p-2">
+                                <Link href={`/p/${product.slug}`} target="_blank" className="flex items-center gap-2 text-blue-600 font-semibold">
+                                  <Sparkles className="h-4 w-4 text-blue-600" /> Preview Ad Funnel
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="rounded-xl text-xs font-medium cursor-pointer p-2 flex items-center gap-2"
+                                onClick={() => {
+                                  const url = `https://store.prontly.in/p/${product.slug}`;
+                                  navigator.clipboard.writeText(url);
+                                  toast({ title: "Ad Funnel Link Copied!", description: `Copied ${url} for Meta Ads.` });
+                                }}
+                              >
+                                <Copy className="h-4 w-4 text-accent" /> Copy Ad Link (/p/...)
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild className="rounded-xl text-xs font-medium cursor-pointer p-2">
                                 <Link href={`/products/${product.slug}`} target="_blank" className="flex items-center gap-2">
                                   <ExternalLink className="h-4 w-4 text-muted-foreground" /> Storefront Preview
                                 </Link>
@@ -259,6 +275,18 @@ export default function AdminProducts() {
                     <div className="flex items-center justify-between pt-1 border-t border-border/40 text-xs">
                       <span className="text-muted-foreground text-[11px] font-mono">/{product.slug}</span>
                       <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-xl text-xs px-2.5 text-blue-600 gap-1"
+                          onClick={() => {
+                            const url = `https://store.prontly.in/p/${product.slug}`;
+                            navigator.clipboard.writeText(url);
+                            toast({ title: "Ad Link Copied!", description: url });
+                          }}
+                        >
+                          <Copy className="h-3 w-3" /> Ad Link
+                        </Button>
                         <Button asChild variant="outline" size="sm" className="h-8 rounded-xl text-xs px-2.5">
                           <Link href={`/admin/products/edit/${product.slug}`}>Edit</Link>
                         </Button>

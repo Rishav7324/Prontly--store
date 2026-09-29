@@ -23,7 +23,7 @@ interface TrackEventProps {
  * Safely triggers a GA4 event if tracking is accepted by the user.
  */
 export function trackEvent({ action, params }: TrackEventProps) {
-  if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
+  if (typeof window === 'undefined' || typeof (window as any).gtag !== 'function') {
     return;
   }
 
@@ -33,7 +33,7 @@ export function trackEvent({ action, params }: TrackEventProps) {
     return;
   }
 
-  window.gtag('event', action, {
+  (window as any).gtag('event', action, {
     ...params,
     send_to: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-MKC3EVCGSH',
   });
@@ -63,6 +63,17 @@ export const analytics = {
         currency: 'INR'
       }
     });
+
+    if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+      try {
+        (window as any).fbq('track', 'ViewContent', {
+          content_name: product.name,
+          content_category: product.categorySlug,
+          value: product.price / 100,
+          currency: 'INR'
+        });
+      } catch {}
+    }
   },
   addToCart: (item: any) => {
     trackEvent({
@@ -83,6 +94,16 @@ export const analytics = {
         items: items.map(i => ({ item_id: i.id, item_name: i.name }))
       }
     });
+
+    if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+      try {
+        (window as any).fbq('track', 'InitiateCheckout', {
+          value: total / 100,
+          currency: 'INR',
+          content_name: items?.[0]?.name || 'Prontly Asset'
+        });
+      } catch {}
+    }
   },
   purchase: (order: any) => {
     trackEvent({
@@ -91,9 +112,19 @@ export const analytics = {
         transaction_id: order.id,
         value: (order.totalAmount || order.total) / 100,
         currency: 'INR',
-        items: order.items.map((i: any) => ({ item_id: i.productId, item_name: i.productName }))
+        items: (order.items || []).map((i: any) => ({ item_id: i.productId, item_name: i.productName }))
       }
     });
+
+    if (typeof window !== 'undefined' && typeof (window as any).fbq === 'function') {
+      try {
+        (window as any).fbq('track', 'Purchase', {
+          value: (order.totalAmount || order.total) / 100,
+          currency: 'INR',
+          content_type: 'product'
+        });
+      } catch {}
+    }
   },
   downloadStart: (productId: string, orderId: string) => {
     trackEvent({

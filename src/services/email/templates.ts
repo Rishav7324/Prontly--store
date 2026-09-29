@@ -495,3 +495,68 @@ export function newsletterTemplate(input: { heading: string; bodyHtml: string; c
   return baseLayout(content, input.heading);
 }
 
+/* ─────────────────────────── 10. WELCOME GUEST & 1-CLICK PASSWORD SETUP ─────────────────────────── */
+export function welcomeGuestTemplate(name: string, email: string, setupLink: string, orderId: string) {
+  const orderIdShort = (orderId || '').slice(-8).toUpperCase();
+
+  const content = `
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="display:inline-block;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.25);color:${BRAND};font-size:10px;font-weight:800;letter-spacing:0.1em;padding:4px 14px;border-radius:20px;text-transform:uppercase;margin-bottom:12px;">
+      CREATOR VAULT ACTIVATED ⚡
+    </div>
+    <h1 style="margin:0 0 10px;font-size:24px;font-weight:800;color:${INK};letter-spacing:-0.02em;line-height:1.2;">
+      Welcome to Prontly Store, ${name}! 🎉
+    </h1>
+    <p style="margin:0;font-size:13px;color:${SOFT};line-height:1.6;max-width:460px;margin:0 auto;">
+      Your purchase for <strong>Order #${orderIdShort}</strong> is complete. We've automatically provisioned your personal digital vault so your files, perpetual licenses, and lifetime updates are always accessible.
+    </p>
+  </div>
+
+  <!-- Account Credentials Box -->
+  <div style="background:${BG};border:1px solid ${LINE};border-radius:14px;padding:20px;margin-bottom:24px;">
+    <p style="margin:0 0 12px;font-weight:800;color:${INK};font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">
+      Your Account Details:
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td style="padding:6px 0;font-size:12px;color:${SOFT};">Registered Email:</td>
+        <td align="right" style="padding:6px 0;font-size:12px;color:${INK};font-weight:700;font-family:'JetBrains Mono',monospace;">${email}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:12px;color:${SOFT};">Order Reference:</td>
+        <td align="right" style="padding:6px 0;font-size:12px;color:${INK};font-weight:700;font-family:'JetBrains Mono',monospace;">#${orderIdShort}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:12px;color:${SOFT};">License Type:</td>
+        <td align="right" style="padding:6px 0;font-size:12px;color:${GREEN};font-weight:700;">Perpetual Commercial</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="margin:0 0 16px;font-size:13px;color:${INK};font-weight:600;text-align:center;">
+    Click the button below to set your password in 5 seconds and access your vault:
+  </p>
+
+  ${btn(setupLink, '⚡ Set Password & Access Vault', true)}
+
+  <!-- Alternative Login Options -->
+  <div style="background:#fffbeb;border:1px solid #fef3c7;border-radius:12px;padding:16px;margin:20px 0;">
+    <p style="margin:0 0 8px;font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.05em;">
+      💡 Flexible Login Options:
+    </p>
+    <ul style="margin:0;padding-left:18px;font-size:12px;color:#92400e;line-height:1.7;">
+      <li><strong>Google 1-Tap:</strong> You can also sign in directly using <em>"Sign in with Google"</em> with <strong>${email}</strong>.</li>
+      <li><strong>Forgot Password:</strong> If you ever forget your password, simply click <em>"Forgot password?"</em> on the login screen to receive an instant verification code.</li>
+    </ul>
+  </div>
+
+  <div style="border-top:1px solid ${LINE};padding-top:16px;text-align:center;">
+    <p style="margin:0;font-size:11px;color:${MUTED};line-height:1.6;">
+      🔒 <em>This setup link is valid for 24 hours. For technical support, reply directly to this email or visit <a href="${SITE}" style="color:${BRAND};text-decoration:none;">store.prontly.in</a>.</em>
+    </p>
+  </div>`;
+
+  return baseLayout(content, `Your Prontly Store account is ready (Order #${orderIdShort}) — Set your password to access your vault.`);
+}
+
+

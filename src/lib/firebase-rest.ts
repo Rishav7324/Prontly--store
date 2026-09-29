@@ -91,3 +91,111 @@ export async function setFirebasePassword(uid: string, newPassword: string): Pro
     throw new Error(err?.error?.message || `IdentityToolkit update failed (${res.status})`);
   }
 }
+
+/**
+ * Lookup or create a Firebase Auth user profile via IdentityToolkit REST.
+ * Returns localId (Firebase UID).
+ */
+export async function findOrCreateFirebaseUser(email: string, displayName?: string, phone?: string): Promise<string> {
+  const normalizedEmail = email.toLowerCase().trim();
+  try {
+    const sa = loadServiceAccount();
+    const accessToken = await getGoogleAccessToken();
+
+    // 1. Check if user already exists in Firebase Auth
+    const lookupRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${sa.project_id}/accounts:lookup`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: [normalizedEmail] }),
+      }
+    );
+
+    if (lookupRes.ok) {
+      const data = await lookupRes.json();
+      if (data.users && data.users.length > 0 && data.users[0].localId) {
+        return data.users[0].localId;
+      }
+    }
+
+    // 2. User doesn't exist in Firebase Auth -> create user
+    const createRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${sa.project_id}/accounts`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          displayName: displayName || normalizedEmail.split('@')[0],
+          emailVerified: true,
+        }),
+      }
+    );
+
+    if (createRes.ok) {
+      const createdData = await createRes.json();
+      if (createdData.localId) {
+        return createdData.localId;
+      }
+    } else {
+      const errData = await createRes.json().catch(() => ({}));
+      if (errData?.error?.message === 'EMAIL_EXISTS') {
+        const retryLookup = await fetch(
+          `https://identitytoolkit.googleapis.com/v1/projects/${sa.project_id}/accounts:lookup`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: [normalizedEmail] }),
+          }
+        );
+        if (retryLookup.ok) {
+          const rData = await retryLookup.json();
+          if (rData.users?.[0]?.localId) return rData.users[0].localId;
+        }
+      }
+    }
+  } catch (error: any) {
+    console.warn('[FIREBASE_REST_USER_PROVISION_FALLBACK]:', error.message);
+  }
+
+  // Fallback deterministic UID based on email hash
+  return `user_${crypto.createHash('md5').update(normalizedEmail).digest('hex').slice(0, 24)}`;
+}
+
+/**
+ * Creates a secure 24-hour single-use token in passwordResetSessions for new buyers.
+ */
+export async function generatePasswordSetupToken(email: string): Promise<string> {
+  const { getDb } = await import('@/lib/db');
+  const { passwordResetSessions } = await import('@/lib/db/schema');
+  const { generateResetToken } = await import('@/lib/otp-utils');
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const resetToken = generateResetToken();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24-hour window
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://store.prontly.in';
+
+  try {
+    const db = getDb();
+    await db.insert(passwordResetSessions).values({
+      email: normalizedEmail,
+      token: resetToken,
+      expiresAt,
+      used: false,
+    });
+  } catch (err: any) {
+    console.error('[PASSWORD_SETUP_TOKEN_ERROR]:', err.message);
+  }
+
+  return `${SITE}/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(normalizedEmail)}`;
+}

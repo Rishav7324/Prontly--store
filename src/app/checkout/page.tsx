@@ -35,15 +35,14 @@ export default function CheckoutPage() {
   const [isValidating, setIsValidating] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // Guest Checkout Details
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestName, setGuestName] = useState('');
+
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (mounted && !authLoading && !user) {
-      router.push('/login?redirect=/checkout');
-    }
-  }, [user, authLoading, mounted, router]);
 
   const rawSubtotal = getTotal();
 
@@ -91,6 +90,28 @@ export default function CheckoutPage() {
     );
   }
 
+  const handlePay = () => {
+    if (!user) {
+      const cleanEmail = guestEmail.trim().toLowerCase();
+      if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        toast({ variant: 'destructive', title: 'Valid Email Required', description: 'Please enter a valid email to receive your order downloads.' });
+        return;
+      }
+      const cleanPhone = guestPhone.replace(/[^\d+]/g, '');
+      if (!cleanPhone || cleanPhone.length < 8) {
+        toast({ variant: 'destructive', title: 'Mobile Number Required', description: 'Please enter your mobile number for delivery confirmation.' });
+        return;
+      }
+      startCheckout(appliedCoupon?.code, {
+        email: cleanEmail,
+        phone: cleanPhone,
+        name: guestName.trim() || cleanEmail.split('@')[0],
+      });
+    } else {
+      startCheckout(appliedCoupon?.code);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
@@ -110,26 +131,91 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="space-y-4 lg:col-span-7">
+            
+            {/* Account Details or Guest Form */}
             <Card className="rounded-xl border-border bg-white shadow-sm overflow-hidden">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-center justify-between border-b border-border pb-3">
-                  <h3 className="text-sm font-semibold font-headline text-foreground">Account Details</h3>
-                  <Badge variant="outline" className="border-primary/20 px-2 py-0.5 text-[10px] text-primary">Verified</Badge>
+                  <h3 className="text-sm font-semibold font-headline text-foreground">
+                    {user ? 'Account Details' : 'Customer & Delivery Information'}
+                  </h3>
+                  {user ? (
+                    <Badge variant="outline" className="border-primary/20 px-2 py-0.5 text-[10px] text-primary">Verified</Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 text-[10px] font-semibold border-blue-200">
+                      Express Guest Checkout
+                    </Badge>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Full Name</Label>
-                    <div className="flex h-10 items-center truncate rounded-lg border border-border bg-muted/30 px-3 text-xs font-medium">
-                      <span className="truncate">{user?.displayName || 'Creator'}</span>
+
+                {user ? (
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Full Name</Label>
+                      <div className="flex h-10 items-center truncate rounded-lg border border-border bg-muted/30 px-3 text-xs font-medium">
+                        <span className="truncate">{user?.displayName || 'Creator'}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Email Address</Label>
+                      <div className="flex h-10 items-center rounded-lg border border-border bg-muted/30 px-3 text-xs font-medium overflow-hidden">
+                        <span className="truncate" title={user?.email || ''}>{user?.email}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Email Address</Label>
-                    <div className="flex h-10 items-center rounded-lg border border-border bg-muted/30 px-3 text-xs font-medium overflow-hidden">
-                      <span className="truncate" title={user?.email || ''}>{user?.email}</span>
+                ) : (
+                  <div className="space-y-3.5">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="guest-email" className="text-xs font-medium">
+                          Email Address <span className="text-rose-500">*</span>
+                        </Label>
+                        <Input
+                          id="guest-email"
+                          type="email"
+                          required
+                          placeholder="you@company.com"
+                          value={guestEmail}
+                          onChange={(e) => setGuestEmail(e.target.value)}
+                          className="h-10 rounded-lg text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="guest-phone" className="text-xs font-medium">
+                          Mobile / WhatsApp <span className="text-rose-500">*</span>
+                        </Label>
+                        <Input
+                          id="guest-phone"
+                          type="tel"
+                          required
+                          placeholder="e.g. 9876543210"
+                          value={guestPhone}
+                          onChange={(e) => setGuestPhone(e.target.value)}
+                          className="h-10 rounded-lg text-xs"
+                        />
+                      </div>
                     </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="guest-name" className="text-xs font-medium">
+                        Full Name <span className="text-muted-foreground text-[10px]">(Optional)</span>
+                      </Label>
+                      <Input
+                        id="guest-name"
+                        type="text"
+                        placeholder="John Doe"
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        className="h-10 rounded-lg text-xs"
+                      />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground pt-1 flex items-center justify-between">
+                      <span>🔒 Your personal vault & download access will be automatically created.</span>
+                      <Link href="/login?redirect=/checkout" className="text-primary hover:underline font-medium">
+                        Have an account? Sign in
+                      </Link>
+                    </p>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -186,7 +272,7 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col items-center space-y-3 pt-2">
               <Button 
-                onClick={() => startCheckout(appliedCoupon?.code)}
+                onClick={handlePay}
                 size="lg" 
                 className="h-11 w-full max-w-sm rounded-lg text-sm font-semibold shadow-sm transition-all sm:w-auto sm:min-w-[240px]" 
                 disabled={isProcessing || items.length === 0}
@@ -207,7 +293,7 @@ export default function CheckoutPage() {
             <Card className="sticky top-20 rounded-xl border-border bg-white p-5 shadow-sm overflow-hidden">
               <h4 className="mb-4 text-sm font-semibold font-headline text-foreground">Order Summary</h4>
               <div className="space-y-3">
-                {items.map((item) => (
+                {items.map((item: any) => (
                   <div key={item.id} className="flex items-start justify-between gap-3 pb-3 last:pb-0">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium text-foreground">{item.name}</p>

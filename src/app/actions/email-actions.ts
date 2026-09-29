@@ -7,6 +7,7 @@
 import { sendEmail } from '@/services/email/service';
 import {
   welcomeTemplate,
+  welcomeGuestTemplate,
   invoiceTemplate,
   deliveryTemplate,
   refundTemplate,
@@ -26,6 +27,19 @@ export async function sendWelcomeEmail(to: string, name: string) {
     to,
     subject: `🎉 Welcome to Prontly Store, ${name}!`,
     html: welcomeTemplate(name)
+  });
+}
+
+/**
+ * Dispatched to guest buyers with automated account creation + 1-click password setup link.
+ */
+export async function sendWelcomeGuestEmail(to: string, name: string, setupLink: string, orderId: string) {
+  const orderIdShort = (orderId || '').slice(-8).toUpperCase();
+  return sendEmail({
+    type: 'marketing',
+    to,
+    subject: `🎉 Your Prontly Vault is ready — Set your password (Order #${orderIdShort})`,
+    html: welcomeGuestTemplate(name, to, setupLink, orderId),
   });
 }
 

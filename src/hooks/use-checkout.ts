@@ -6,8 +6,14 @@ import { useAuth } from '@/firebase';
 import { useCart } from './use-cart';
 import { toast } from './use-toast';
 
+export interface GuestCheckoutDetails {
+  email: string;
+  phone: string;
+  name?: string;
+}
+
 /**
- * Unified hook for handling the high-security Razorpay checkout flow.
+ * Unified hook for handling the high-security Razorpay checkout flow (User & Guest).
  */
 export function useCheckout() {
   const auth = useAuth();
@@ -16,10 +22,9 @@ export function useCheckout() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const startCheckout = async (couponCode?: string) => {
-    if (!user) {
-      toast({ title: "Authentication Required", description: "Please sign in to proceed." });
-      router.push('/login?redirect=/checkout');
+  const startCheckout = async (couponCode?: string, guestDetails?: GuestCheckoutDetails) => {
+    if (!user && !guestDetails?.email) {
+      toast({ title: "Email Required", description: "Please enter your email to proceed with checkout." });
       return;
     }
 
@@ -32,14 +37,19 @@ export function useCheckout() {
 
     try {
       // 1. Create order intent via backend API
-      const token = await user.getIdToken();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (user) {
+        const token = await user.getIdToken();
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("/api/razorpay/create-order", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ items, couponCode }),
+        headers,
+        body: JSON.stringify({ items, couponCode, guest: guestDetails }),
       });
 
       const data = await res.json();
@@ -80,8 +90,9 @@ export function useCheckout() {
           }
         },
         prefill: {
-          name: user.displayName || '',
-          email: user.email || ''
+          name: user?.displayName || guestDetails?.name || '',
+          email: user?.email || guestDetails?.email || '',
+          contact: guestDetails?.phone || '',
         },
         theme: { color: "#533afd" },
         modal: {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPaymentSignature } from '@/lib/razorpay/client';
 import { generateInvoicePdf } from '@/lib/payment/invoice';
-import { sendOrderConfirmationEmail, sendDeliveryEmail, sendNewOrderAlert } from '@/app/actions/email-actions';
+import { sendOrderConfirmationEmail, sendDeliveryEmail, sendNewOrderAlert, sendWelcomeGuestEmail } from '@/app/actions/email-actions';
+import { findOrCreateFirebaseUser, generatePasswordSetupToken } from '@/lib/firebase-rest';
 import { getDb, getPgDb, isDatabaseConfigured } from '@/lib/db';
 import { orders, orderItems, products, downloads, users, analytics } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -112,6 +113,27 @@ export async function POST(req: NextRequest) {
           await sendOrderConfirmationEmail(result.orderData);
           void sendDeliveryEmail(result.orderData).catch(() => {});
           void sendNewOrderAlert(result.orderData);
+
+          // Auto-Provision Firebase Auth Account & Dispatch 1-Click Password Setup Link
+          if (result.orderData.userEmail) {
+            void (async () => {
+              try {
+                await findOrCreateFirebaseUser(
+                  result.orderData.userEmail,
+                  result.orderData.userName || 'Creator'
+                );
+                const setupLink = await generatePasswordSetupToken(result.orderData.userEmail);
+                await sendWelcomeGuestEmail(
+                  result.orderData.userEmail,
+                  result.orderData.userName || 'Creator',
+                  setupLink,
+                  razorpay_order_id
+                );
+              } catch (accErr: any) {
+                console.error('[AUTO_PROVISION_EMAIL_WARN]:', accErr.message);
+              }
+            })();
+          }
         } catch (err) {
           console.error('[FULFILLMENT_POST_PROCESSING_ERROR]:', err);
         }

@@ -6,21 +6,61 @@ import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { products, coupons, orders, orderItems, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+import crypto from 'crypto';
+
 /**
  * API: Initialize Payment Process
- * Creates a Razorpay order and logs a pending intent in Firestore.
+ * Supports both Authenticated Users and 1-Step Guest Checkout (Email + Mobile).
  */
 export async function POST(req: NextRequest) {
   try {
-    // 1. Authenticate User
-    const decoded = await verifyAuthToken(req.headers.get('authorization'));
-    const uid = decoded.uid;
-
     const body = await req.json();
-    const { items, couponCode } = body;
+    const { items, couponCode, guest } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
+    }
+
+    // 1. Resolve User Identity: Authenticated Session OR Guest Checkout
+    let uid = '';
+    let email = '';
+    let name = 'Creator';
+    let phone = '';
+    let isGuest = false;
+
+    const authHeader = req.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const decoded = await verifyAuthToken(authHeader);
+        uid = decoded.uid;
+        email = (decoded.email || '').toLowerCase();
+        name = decoded.name || email.split('@')[0] || 'Creator';
+      } catch (authErr) {
+        console.warn('[CREATE_ORDER_AUTH_WARN]:', authErr);
+      }
+    }
+
+    if (!uid) {
+      // Check for Guest Checkout Details
+      if (!guest || !guest.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guest.email)) {
+        return NextResponse.json(
+          { error: 'A valid email address is required for instant order delivery.' },
+          { status: 400 }
+        );
+      }
+
+      const cleanPhone = (guest.phone || '').replace(/[^\d+]/g, '');
+      if (!cleanPhone || cleanPhone.length < 8) {
+        return NextResponse.json(
+          { error: 'A valid mobile number is required for instant fulfillment confirmation.' },
+          { status: 400 }
+        );
+      }
+
+      isGuest = true;
+      email = guest.email.trim().toLowerCase();
+      phone = cleanPhone;
+      name = (guest.name || email.split('@')[0] || 'Creator').trim();
     }
 
     // 2 & 3: Try SQL first, fallback to Firestore if DATABASE_URL not set
@@ -77,31 +117,69 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Minimum transaction amount is ₹1.' }, { status: 400 });
     }
 
-    // 5. Create Razorpay Order
+    // 5. User Resolution in Neon DB (FK requirement)
+    if (isDatabaseConfigured()) {
+      const db = getDb();
+      if (!uid) {
+        // Find existing user by email
+        const [byEmail] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        if (byEmail) {
+          uid = byEmail.uid;
+          if (phone && !byEmail.phone) {
+            await db.update(users).set({ phone }).where(eq(users.uid, uid));
+          }
+        } else {
+          uid = `usr_${crypto.randomBytes(12).toString('hex')}`;
+          await db.insert(users).values({
+            uid,
+            email,
+            displayName: name,
+            phone: phone || null,
+            role: 'customer',
+          }).onConflictDoNothing();
+        }
+      } else {
+        const [existingUser] = await db.select().from(users).where(eq(users.uid, uid)).limit(1);
+        if (!existingUser) {
+          await db.insert(users).values({
+            uid,
+            email: (email || `${uid}@unknown.local`).toLowerCase(),
+            displayName: name,
+            phone: phone || null,
+            role: 'customer',
+          }).onConflictDoNothing();
+        } else if (phone && !existingUser.phone) {
+          await db.update(users).set({ phone }).where(eq(users.uid, uid));
+        }
+      }
+    }
+
+    if (!uid) {
+      uid = `usr_${crypto.randomBytes(12).toString('hex')}`;
+    }
+
+    // 6. Create Razorpay Order with Guest & User Notes
     const razorpayOrder = await createRazorpayOrder({
       amount: breakdown.total,
       receipt: `order_${Date.now()}`,
-      notes: { userId: uid, appName: "prontly-store" }
+      notes: {
+        userId: uid,
+        userEmail: email,
+        userPhone: phone || '',
+        userName: name,
+        isGuest: isGuest ? 'true' : 'false',
+        appName: "prontly-store",
+      },
     });
 
-    // 6. Log Pending Intent — SQL if configured, else Firestore
+    // 7. Log Pending Intent in Database
     if (isDatabaseConfigured()) {
       const db = getDb();
-      // Ensure user exists in Neon (FK)
-      const [existingUser] = await db.select().from(users).where(eq(users.uid, uid)).limit(1);
-      if (!existingUser) {
-        await db.insert(users).values({
-          uid,
-          email: (decoded.email || `${uid}@unknown.local`).toLowerCase(),
-          displayName: decoded.name || 'User',
-          role: 'customer',
-        }).onConflictDoNothing();
-      }
       await db.insert(orders).values({
         id: razorpayOrder.id,
         userId: uid,
-        userEmail: decoded.email || '',
-        userName: decoded.name || 'User',
+        userEmail: email,
+        userName: name,
         subtotal: breakdown.subtotal,
         discountAmount: breakdown.discount,
         gstAmount: 0,
