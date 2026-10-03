@@ -15,18 +15,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-16 max-w-6xl">
-        <header className="max-w-3xl mb-8 sm:mb-10">
-          <Badge variant="outline" className="mb-2 text-[10px] font-mono font-bold border-primary/50 text-primary px-2.5 py-0.5 uppercase tracking-wider">
+      <main className="flex-1 container mx-auto px-4 pt-20 md:pt-24 pb-16 max-w-5xl">
+        <header className="max-w-2xl mb-8">
+          <Badge variant="outline" className="mb-2 text-[10px] font-mono font-bold border-primary/40 text-primary px-2.5 py-0.5 uppercase tracking-wider">
             Official Contact Center
           </Badge>
-          <h1 className="text-2xl md:text-4xl font-extrabold font-headline mb-3 leading-snug tracking-tight text-foreground">
+          <h1 className="text-xl sm:text-3xl font-extrabold font-sans text-zinc-950 tracking-tight leading-snug">
             How can we assist you <span className="text-primary">today?</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed mt-1.5 font-normal">
             Reach out to our specialized department inboxes directly. Whether it is technical troubleshooting, billing & tax receipts, instant file delivery, or legal licensing inquiries, our teams guarantee a response within 24 hours.
           </p>
         </header>

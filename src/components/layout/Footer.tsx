@@ -139,15 +139,7 @@ export function Footer() {
         <div className="pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Prontly Store. Built for creators and developers worldwide.</p>
           <div className="flex items-center gap-4 text-xs">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <span>•</span>
-            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <span>•</span>
-            <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refunds</Link>
-            <span>•</span>
-            <Link href="/delivery-policy" className="hover:text-foreground transition-colors">Delivery</Link>
-            <span>•</span>
-            <Link href="/contact" className="hover:text-foreground transition-colors font-semibold text-primary">Contact Us</Link>
+            
           </div>
         </div>
       </div>
