@@ -41,7 +41,7 @@ export default function RefundPolicy() {
           <section>
             <h2 className="text-2xl font-bold mb-4 text-foreground">3. Refund Request Process</h2>
             <p>
-              To request a refund, please email <a href="mailto:support@prontly.in" className="text-primary font-bold hover:underline">support@prontly.in</a> within 48 hours of purchase. Your email must include:
+              To request a refund or billing adjustment, please email our billing department at <a href="mailto:billing@store.prontly.in" className="text-primary font-bold hover:underline">billing@store.prontly.in</a> (or <a href="mailto:support@store.prontly.in" className="text-primary font-bold hover:underline">support@store.prontly.in</a>) within 48 hours of purchase. Your email must include:
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Your Order Reference ID.</li>

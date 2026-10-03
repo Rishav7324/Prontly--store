@@ -65,11 +65,15 @@ export default function TermsOfService() {
             </p>
           </section>
 
-          <section className="p-8 bg-muted/30 rounded-2xl border border-stone-gray/10">
-            <h2 className="text-xl font-bold mb-4 text-foreground">6. Governing Law & Jurisdiction</h2>
+          <section className="p-8 bg-muted/30 rounded-2xl border border-stone-gray/10 space-y-4">
+            <h2 className="text-xl font-bold text-foreground">6. Governing Law, Legal Notices & Licensing Inquiries</h2>
             <p className="text-sm leading-relaxed">
               These terms are governed by the laws of India. Any disputes arising out of or in connection with these terms shall be subject to the exclusive jurisdiction of the courts located in <strong>Patna, Bihar</strong>.
             </p>
+            <div className="pt-2 text-sm border-t border-border/60">
+              <p className="font-semibold text-foreground">Official Legal & Intellectual Property Desk:</p>
+              <p className="text-muted-foreground mt-1">For commercial licensing clarifications, copyright/DMCA notices, or legal representations, email: <a href="mailto:legal@store.prontly.in" className="text-primary font-bold hover:underline">legal@store.prontly.in</a></p>
+            </div>
           </section>
         </div>
       </main>

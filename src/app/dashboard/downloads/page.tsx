@@ -90,7 +90,7 @@ export default function DownloadsPage() {
                 </p>
                 <div className="flex flex-wrap justify-center lg:justify-start gap-2 pt-1">
                   <Button variant="outline" size="sm" className="h-8 rounded-lg" asChild>
-                    <a href="mailto:store.support@prontly.in">Contact Data Support</a>
+                    <a href="mailto:delivery@store.prontly.in?subject=Download%20Assistance%20/%20Limit%20Reset">Contact Delivery Support</a>
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 rounded-lg gap-1.5 text-primary hover:bg-primary/5" asChild>
                     <Link href="/delivery-policy">Delivery Policy <HelpCircle className="h-3 w-3" /></Link>

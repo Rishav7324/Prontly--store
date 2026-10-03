@@ -171,7 +171,7 @@ I understand that this action is permanent and will immediately revoke my access
 
 Regards,`;
 
-  const deletionMailto = `mailto:store.support@prontly.in?subject=Account Deletion Request - ${user.email}&body=${encodeURIComponent(deletionEmailBody)}`;
+  const deletionMailto = `mailto:legal@store.prontly.in?cc=support@store.prontly.in&subject=Account Deletion Request - ${user.email}&body=${encodeURIComponent(deletionEmailBody)}`;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -30,12 +30,12 @@ export const SENDER_MAP: Record<EmailType, EmailSenderConfig> = {
   },
   order: {
     from: 'billing@store.prontly.in',
-    replyTo: 'support@store.prontly.in',
+    replyTo: 'billing@store.prontly.in',
     displayName: 'Prontly Billing',
   },
   delivery: {
     from: 'delivery@store.prontly.in',
-    replyTo: 'support@store.prontly.in',
+    replyTo: 'delivery@store.prontly.in',
     displayName: 'Prontly Delivery',
   },
   support: {

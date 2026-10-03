@@ -230,7 +230,7 @@ export async function generateInvoicePdf(order: any, options?: { bgImageBase64?:
   doc.rect(0, pageHeight - 14, pageWidth, 14, 'F');
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
-  doc.text('© 2026 Prontly Store • Digital Assets Marketplace • support@store.prontly.in', pageWidth / 2, pageHeight - 6, { align: 'center' });
+  doc.text('© 2026 Prontly Store • Billing: billing@store.prontly.in • Support: support@store.prontly.in', pageWidth / 2, pageHeight - 6, { align: 'center' });
 
   return doc.output('datauristring').split(',')[1];
 }

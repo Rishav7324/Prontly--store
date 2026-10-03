@@ -1063,9 +1063,15 @@ export function ProductLandingClient({ product }: ProductLandingProps) {
         <p className="text-[11px] text-zinc-500">
           © {new Date().getFullYear()} Prontly Technologies — Verified Digital Assets for Modern Creators.
         </p>
-        <p className="text-[10px] text-zinc-400 max-w-md mx-auto">
-          Assistance or custom queries: <a href="mailto:support@store.prontly.in" className="text-blue-600 underline font-semibold">support@store.prontly.in</a>.
-        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-zinc-400 max-w-xl mx-auto pt-1 font-mono">
+          <span>Support: <a href="mailto:support@store.prontly.in" className="text-zinc-600 underline font-semibold">support@store.prontly.in</a></span>
+          <span>•</span>
+          <span>Billing: <a href="mailto:billing@store.prontly.in" className="text-zinc-600 underline font-semibold">billing@store.prontly.in</a></span>
+          <span>•</span>
+          <span>Delivery: <a href="mailto:delivery@store.prontly.in" className="text-zinc-600 underline font-semibold">delivery@store.prontly.in</a></span>
+          <span>•</span>
+          <span>Legal: <a href="mailto:legal@store.prontly.in" className="text-zinc-600 underline font-semibold">legal@store.prontly.in</a></span>
+        </div>
       </footer>
 
     </div>

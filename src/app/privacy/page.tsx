@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
               If you have any questions or wish to exercise your data rights, please contact our designated Grievance Officer:
             </p>
             <div className="mt-4 text-sm font-bold">
-              <p>Email: <a href="mailto:privacy@store.prontly.in" className="text-primary hover:underline">privacy@store.prontly.in</a></p>
+              <p>Email: <a href="mailto:legal@store.prontly.in" className="text-primary hover:underline">legal@store.prontly.in</a></p>
               <p>Subject: Data Privacy Grievance</p>
             </div>
             <p className="mt-4 text-xs text-muted-foreground italic">

@@ -33,11 +33,18 @@ export function getGlobalSchema() {
         'https://github.com/prontly',
         'https://instagram.com/prontly',
       ],
-      contactPoint: {
-        '@type': 'ContactPoint',
-        email: 'support@prontly.in',
-        contactType: 'customer service',
-      },
+      contactPoint: [
+        {
+          '@type': 'ContactPoint',
+          email: 'support@store.prontly.in',
+          contactType: 'customer service',
+        },
+        {
+          '@type': 'ContactPoint',
+          email: 'billing@store.prontly.in',
+          contactType: 'billing support',
+        },
+      ],
     },
   ];
 }

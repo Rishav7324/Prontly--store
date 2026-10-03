@@ -25,7 +25,7 @@ We support:
 - \`read:downloads\`: Verify license records
 - \`profile\`: Access basic agent profile data
 
-For human assistance, contact support@prontly.in.
+For human assistance, contact support@store.prontly.in.
   `.trim();
 
   return new NextResponse(content, {

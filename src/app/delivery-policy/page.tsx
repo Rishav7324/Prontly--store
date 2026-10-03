@@ -54,7 +54,7 @@ export default function DeliveryPolicy() {
           <section className="p-8 bg-muted/30 rounded-2xl border border-stone-gray/10">
             <h2 className="text-xl font-bold mb-4 text-foreground">5. Support & Troubleshooting</h2>
             <p className="text-sm leading-relaxed">
-              If you encounter technical difficulties extracting files or accessing links, please email <a href="mailto:support@prontly.in" className="text-primary font-bold hover:underline">support@prontly.in</a>. We guarantee a response and technical resolution within 24 hours.
+              If you encounter technical difficulties extracting files, accessing links, or require limit resets, please email our dedicated delivery desk at <a href="mailto:delivery@store.prontly.in" className="text-primary font-bold hover:underline">delivery@store.prontly.in</a> (or general support at <a href="mailto:support@store.prontly.in" className="text-primary font-bold hover:underline">support@store.prontly.in</a>). We guarantee a response and technical resolution within 24 hours.
             </p>
           </section>
         </div>

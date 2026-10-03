@@ -103,6 +103,38 @@ export function Footer() {
 
         </div>
 
+        {/* Official Department Inboxes */}
+        <div className="py-6 border-t border-border/60">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-foreground font-mono">
+                Official Department Desks
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Dedicated inboxes for verified customer resolutions within 24 hours.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs w-full lg:w-auto">
+              <a href="mailto:support@store.prontly.in" className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/70 text-foreground transition-colors group border border-border/40">
+                <span className="font-semibold text-[11px] text-muted-foreground group-hover:text-foreground">Support:</span>
+                <span className="text-[11px] font-mono text-primary font-medium">support@store.prontly.in</span>
+              </a>
+              <a href="mailto:billing@store.prontly.in" className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/70 text-foreground transition-colors group border border-border/40">
+                <span className="font-semibold text-[11px] text-muted-foreground group-hover:text-foreground">Billing:</span>
+                <span className="text-[11px] font-mono text-primary font-medium">billing@store.prontly.in</span>
+              </a>
+              <a href="mailto:delivery@store.prontly.in" className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/70 text-foreground transition-colors group border border-border/40">
+                <span className="font-semibold text-[11px] text-muted-foreground group-hover:text-foreground">Delivery:</span>
+                <span className="text-[11px] font-mono text-primary font-medium">delivery@store.prontly.in</span>
+              </a>
+              <a href="mailto:legal@store.prontly.in" className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/70 text-foreground transition-colors group border border-border/40">
+                <span className="font-semibold text-[11px] text-muted-foreground group-hover:text-foreground">Legal:</span>
+                <span className="text-[11px] font-mono text-primary font-medium">legal@store.prontly.in</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom copyright & legal bar */}
         <div className="pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Prontly Store. Built for creators and developers worldwide.</p>
@@ -114,6 +146,8 @@ export function Footer() {
             <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refunds</Link>
             <span>•</span>
             <Link href="/delivery-policy" className="hover:text-foreground transition-colors">Delivery</Link>
+            <span>•</span>
+            <Link href="/contact" className="hover:text-foreground transition-colors font-semibold text-primary">Contact Us</Link>
           </div>
         </div>
       </div>
