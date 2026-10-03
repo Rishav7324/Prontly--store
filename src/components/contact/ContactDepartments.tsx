@@ -318,14 +318,14 @@ export function ContactDepartments() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-10 rounded-xl text-xs font-bold group shadow-sm bg-zinc-950 text-white hover:bg-zinc-800"
+                className="w-full h-10 rounded-xl text-sm font-bold group shadow-sm bg-zinc-950 text-white hover:bg-zinc-800"
               >
                 <span>Dispatch to {activeDepartment.badge} ({activeDepartment.email})</span>
-                <Send className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                <Send className="ml-2 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </Button>
 
               <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-muted-foreground font-medium">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                <ShieldCheck className="h-3 w-3  text-emerald-600" />
                 <span>256-Bit SSL Protected Communication</span>
               </div>
             </form>
